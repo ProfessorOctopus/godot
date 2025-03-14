@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  resource_loader.cpp                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "resource_loader.h"
-
 #include "core/config/project_settings.h"
 #include "core/core_bind.h"
 #include "core/io/dir_access.h"
@@ -52,7 +22,6 @@
 #endif
 
 Ref<ResourceFormatLoader> ResourceLoader::loader[ResourceLoader::MAX_LOADERS];
-
 int ResourceLoader::loader_count = 0;
 
 bool ResourceFormatLoader::recognize_path(const String &p_path, const String &p_for_type) const {
@@ -75,7 +44,6 @@ bool ResourceFormatLoader::recognize_path(const String &p_path, const String &p_
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -174,7 +142,6 @@ Ref<Resource> ResourceFormatLoader::load(const String &p_path, const String &p_o
 			return res;
 		}
 	}
-
 	ERR_FAIL_V_MSG(Ref<Resource>(), vformat("Failed to load resource '%s'. ResourceFormatLoader::load was not implemented for this resource type.", p_path));
 }
 
@@ -193,7 +160,6 @@ Error ResourceFormatLoader::rename_dependencies(const String &p_path, const Hash
 	for (KeyValue<String, String> E : p_map) {
 		deps_dict[E.key] = E.value;
 	}
-
 	Error err = OK;
 	GDVIRTUAL_CALL(_rename_dependencies, p_path, deps_dict, err);
 	return err;
@@ -219,13 +185,10 @@ void ResourceFormatLoader::_bind_methods() {
 	GDVIRTUAL_BIND(_load, "path", "original_path", "use_sub_threads", "cache_mode");
 }
 
-///////////////////////////////////
-
 // These are used before and after a wait for a WorkerThreadPool task
 // because that can lead to another load started in the same thread,
 // something we must treat as a different stack for the purposes
 // of tracking nesting.
-
 #define PREPARE_FOR_WTP_WAIT                                                   \
 	int load_nesting_backup = ResourceLoader::load_nesting;                    \
 	Vector<String> load_paths_stack_backup = ResourceLoader::load_paths_stack; \
@@ -380,7 +343,6 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 			set_current_thread_safe_for_nodes(true);
 		}
 	}
-	// --
 
 	bool xl_remapped = false;
 	const String &remapped_path = _path_remap(load_task.local_path, &xl_remapped);
@@ -491,7 +453,6 @@ void ResourceLoader::_run_load_task(void *p_userdata) {
 		}
 		DEV_ASSERT(load_paths_stack.is_empty());
 	}
-
 	curr_load_task = curr_load_task_backup;
 }
 
@@ -551,7 +512,6 @@ Ref<Resource> ResourceLoader::load(const String &p_path, const String &p_type_hi
 		}
 		return Ref<Resource>();
 	}
-
 	Ref<Resource> res = _load_complete(*load_token.ptr(), r_error);
 	return res;
 }
@@ -651,7 +611,6 @@ Ref<ResourceLoader::LoadToken> ResourceLoader::_load_start(const String &p_path,
 	if (p_thread_mode == LOAD_THREAD_FROM_CURRENT) {
 		_run_load_task(load_task_ptr);
 	}
-
 	return load_token;
 }
 
@@ -711,7 +670,6 @@ ResourceLoader::ThreadLoadStatus ResourceLoader::load_threaded_get_status(const 
 	if (ensure_progress) {
 		_ensure_load_progress();
 	}
-
 	return status;
 }
 
@@ -1394,11 +1352,12 @@ void ResourceLoader::clear_thread_load_tasks() {
 		DEV_ASSERT(user_token->user_rc > 0 && !user_token->user_path.is_empty());
 		user_token->user_path.clear();
 		user_token->user_rc = 0;
-		user_token->unreference();
+		if (user_token->unreference()) {
+			memdelete(user_token);
+			user_token = nullptr;
+		}
 	}
-
 	thread_load_tasks.clear();
-
 	cleaning_tasks = false;
 }
 
@@ -1466,7 +1425,6 @@ void ResourceLoader::set_create_missing_resources_if_class_unavailable(bool p_en
 
 void ResourceLoader::add_custom_loaders() {
 	// Custom loaders registration exploits global class names
-
 	String custom_loader_base_class = ResourceFormatLoader::get_class_static();
 
 	List<StringName> global_classes;

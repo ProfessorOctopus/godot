@@ -1,39 +1,8 @@
-/**************************************************************************/
-/*  raycast_occlusion_cull.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "raycast_occlusion_cull.h"
-
 #include "core/config/project_settings.h"
 #include "core/object/worker_thread_pool.h"
 #include "core/templates/local_vector.h"
-
 #ifdef __SSE2__
 #include <pmmintrin.h>
 #endif
@@ -173,7 +142,8 @@ void RaycastOcclusionCull::RaycastHZBuffer::sort_rays(const Vector3 &p_camera_di
 					}
 					int k = tile_i * TILE_SIZE + tile_j;
 					int tile_index = i * tile_grid_size.x + j;
-					mips[0][y * buffer_size.x + x] = camera_rays[tile_index].ray.tfar[k];
+					Vector3 ray_dir(camera_rays[tile_index].ray.dir_x[k], camera_rays[tile_index].ray.dir_y[k], camera_rays[tile_index].ray.dir_z[k]);
+					mips[0][y * buffer_size.x + x] = camera_rays[tile_index].ray.tfar[k] * p_camera_dir.dot(ray_dir); // Store z-depth in view space.
 				}
 			}
 		}
@@ -185,8 +155,6 @@ RaycastOcclusionCull::RaycastHZBuffer::~RaycastHZBuffer() {
 		memfree(camera_rays_unaligned_buffer);
 	}
 }
-
-////////////////////////////////////////////////////////
 
 bool RaycastOcclusionCull::is_occluder(RID p_rid) {
 	return occluder_owner.owns(p_rid);
@@ -228,8 +196,6 @@ void RaycastOcclusionCull::free_occluder(RID p_occluder) {
 	memdelete(occluder);
 	occluder_owner.free(p_occluder);
 }
-
-////////////////////////////////////////////////////////
 
 void RaycastOcclusionCull::add_scenario(RID p_scenario) {
 	ERR_FAIL_COND(scenarios.has(p_scenario));
@@ -502,8 +468,6 @@ void RaycastOcclusionCull::Scenario::raycast(CameraRayTile *r_rays, const uint32
 	WorkerThreadPool::get_singleton()->wait_for_group_task_completion(group_task);
 }
 
-////////////////////////////////////////////////////////
-
 void RaycastOcclusionCull::add_buffer(RID p_buffer) {
 	ERR_FAIL_COND(buffers.has(p_buffer));
 	buffers[p_buffer] = RaycastHZBuffer();
@@ -618,8 +582,6 @@ RID RaycastOcclusionCull::buffer_get_debug_texture(RID p_buffer) {
 	return buffers[p_buffer].get_debug_texture();
 }
 
-////////////////////////////////////////////////////////
-
 void RaycastOcclusionCull::set_build_quality(RS::ViewportOcclusionCullingBuildQuality p_quality) {
 	if (build_quality == p_quality) {
 		return;
@@ -657,6 +619,5 @@ RaycastOcclusionCull::~RaycastOcclusionCull() {
 	if (ebr_device != nullptr) {
 		rtcReleaseDevice(ebr_device);
 	}
-
 	raycast_singleton = nullptr;
 }

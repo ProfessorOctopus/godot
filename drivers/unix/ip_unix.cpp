@@ -1,39 +1,7 @@
-/**************************************************************************/
-/*  ip_unix.cpp                                                           */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #if defined(UNIX_ENABLED) && !defined(UNIX_SOCKET_UNAVAILABLE)
-
 #include "ip_unix.h"
-
 #include <netdb.h>
-
 #ifdef ANDROID_ENABLED
 // We could drop this file once we up our API level to 24,
 // where the NDK's ifaddrs.h supports to needed getifaddrs.
@@ -44,16 +12,12 @@
 #endif
 #include <ifaddrs.h>
 #endif
-
 #include <arpa/inet.h>
 #include <sys/socket.h>
-
 #ifdef __FreeBSD__
 #include <netinet/in.h>
 #endif
-
 #include <net/if.h> // Order is important on OpenBSD, leave as last.
-
 #include <string.h>
 
 static IPAddress _sockaddr2ip(struct sockaddr *p_addr) {
@@ -66,7 +30,6 @@ static IPAddress _sockaddr2ip(struct sockaddr *p_addr) {
 		struct sockaddr_in6 *addr6 = (struct sockaddr_in6 *)p_addr;
 		ip.set_ipv6(addr6->sin6_addr.s6_addr);
 	}
-
 	return ip;
 }
 
@@ -162,7 +125,6 @@ IP *IPUnix::_create_unix() {
 	return memnew(IPUnix);
 }
 
-IPUnix::IPUnix() {
-}
+IPUnix::IPUnix() {}
 
 #endif // UNIX_ENABLED

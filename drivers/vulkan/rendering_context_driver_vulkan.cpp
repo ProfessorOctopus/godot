@@ -1,46 +1,15 @@
-/**************************************************************************/
-/*  rendering_context_driver_vulkan.cpp                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #ifdef VULKAN_ENABLED
-
 #include "rendering_context_driver_vulkan.h"
-
 #include "vk_enum_string_helper.h"
 
 #include "core/config/project_settings.h"
 #include "core/version.h"
-
 #include "rendering_device_driver_vulkan.h"
 #include "vulkan_hooks.h"
 
 #if defined(VK_TRACK_DRIVER_MEMORY)
+
 /*************************************************/
 // Driver memory tracking
 /*************************************************/
@@ -140,7 +109,6 @@ RenderingContextDriverVulkan::VkTrackedObjectType vk_object_to_tracked_object(Vk
 				return (RenderingContextDriverVulkan::VkTrackedObjectType)VK_OBJECT_TYPE_UNKNOWN;
 		}
 	}
-
 	return (RenderingContextDriverVulkan::VkTrackedObjectType)p_type;
 }
 #endif
@@ -177,7 +145,6 @@ uint64_t RenderingContextDriverVulkan::get_driver_memory_by_object_type(uint32_t
 	for (uint32_t i = 0; i < VK_TRACKED_SYSTEM_ALLOCATION_SCOPE_COUNT; i++) {
 		ret += driver_memory_tracker[p_type][i].get();
 	}
-
 	return ret;
 }
 
@@ -186,7 +153,6 @@ uint64_t RenderingContextDriverVulkan::get_driver_allocs_by_object_type(uint32_t
 	for (uint32_t i = 0; i < VK_TRACKED_SYSTEM_ALLOCATION_SCOPE_COUNT; i++) {
 		ret += driver_memory_allocation_count[p_type][i].get();
 	}
-
 	return ret;
 }
 #endif
@@ -411,7 +377,6 @@ Error RenderingContextDriverVulkan::_initialize_vulkan_version() {
 		print_line("vkEnumerateInstanceVersion not available, assuming Vulkan 1.0.");
 		instance_api_version = VK_API_VERSION_1_0;
 	}
-
 	return OK;
 }
 
@@ -616,7 +581,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingContextDriverVulkan::_debug_messenger_ca
 					labels_string += ", ";
 				}
 			}
-
 			labels_string += " }";
 		}
 	}
@@ -645,7 +609,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingContextDriverVulkan::_debug_messenger_ca
 		case VK_DEBUG_UTILS_MESSAGE_SEVERITY_FLAG_BITS_MAX_ENUM_EXT:
 			break; // Shouldn't happen, only handling to make compilers happy.
 	}
-
 	return VK_FALSE;
 }
 
@@ -665,7 +628,6 @@ VKAPI_ATTR VkBool32 VKAPI_CALL RenderingContextDriverVulkan::_debug_report_callb
 			ERR_PRINT(debug_message);
 			break;
 	}
-
 	return VK_FALSE;
 }
 
@@ -807,7 +769,6 @@ Error RenderingContextDriverVulkan::_initialize_instance() {
 				break;
 		}
 	}
-
 	return OK;
 }
 
@@ -857,7 +818,6 @@ Error RenderingContextDriverVulkan::_initialize_devices() {
 			vkGetPhysicalDeviceQueueFamilyProperties(physical_devices[i], &queue_family_properties_count, device_queue_families[i].properties.ptr());
 		}
 	}
-
 	return OK;
 }
 
@@ -908,7 +868,6 @@ Error RenderingContextDriverVulkan::_create_vulkan_instance(const VkInstanceCrea
 				"Please look at the Getting Started guide for additional information.\n"
 				"vkCreateInstance Failure");
 	}
-
 	return OK;
 }
 
@@ -956,7 +915,6 @@ bool RenderingContextDriverVulkan::device_supports_present(uint32_t p_device_ind
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -1053,5 +1011,4 @@ bool RenderingContextDriverVulkan::queue_family_supports_present(VkPhysicalDevic
 const RenderingContextDriverVulkan::Functions &RenderingContextDriverVulkan::functions_get() const {
 	return functions;
 }
-
 #endif // VULKAN_ENABLED

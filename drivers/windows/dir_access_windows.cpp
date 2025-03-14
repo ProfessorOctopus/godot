@@ -1,43 +1,11 @@
-/**************************************************************************/
-/*  dir_access_windows.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #if defined(WINDOWS_ENABLED)
-
 #include "dir_access_windows.h"
 #include "file_access_windows.h"
-
 #include "core/config/project_settings.h"
 #include "core/os/memory.h"
 #include "core/os/os.h"
 #include "core/string/print_string.h"
-
 #include <stdio.h>
 #include <wchar.h>
 #define WIN32_LEAN_AND_MEAN
@@ -99,7 +67,6 @@ Error DirAccessWindows::list_dir_begin() {
 	if (p->h == INVALID_HANDLE_VALUE) {
 		return ERR_CANT_OPEN;
 	}
-
 	return OK;
 }
 
@@ -117,7 +84,6 @@ String DirAccessWindows::get_next() {
 		FindClose(p->h);
 		p->h = INVALID_HANDLE_VALUE;
 	}
-
 	return name;
 }
 
@@ -144,7 +110,6 @@ String DirAccessWindows::get_drive(int p_drive) {
 	if (p_drive < 0 || p_drive >= drive_count) {
 		return "";
 	}
-
 	return String::chr(drives[p_drive]) + ":";
 }
 
@@ -296,7 +261,6 @@ Error DirAccessWindows::rename(String p_path, String p_new_path) {
 			DeleteFileW((LPCWSTR)tmpfile_utf16.get_data());
 			return FAILED;
 		}
-
 		return MoveFileW((LPCWSTR)tmpfile_utf16.get_data(), (LPCWSTR)(new_path.utf16().get_data())) != 0 ? OK : FAILED;
 
 	} else {
@@ -305,7 +269,6 @@ Error DirAccessWindows::rename(String p_path, String p_new_path) {
 				return FAILED;
 			}
 		}
-
 		return MoveFileW((LPCWSTR)(path.utf16().get_data()), (LPCWSTR)(new_path.utf16().get_data())) != 0 ? OK : FAILED;
 	}
 }
@@ -364,7 +327,6 @@ String DirAccessWindows::get_filesystem_type() const {
 				sizeof(szFileSystemName)) == TRUE) {
 		return String::utf16((const char16_t *)szFileSystemName);
 	}
-
 	ERR_FAIL_V("");
 }
 
@@ -398,7 +360,6 @@ bool DirAccessWindows::is_link(String p_file) {
 	if (attr == INVALID_FILE_ATTRIBUTES) {
 		return false;
 	}
-
 	return (attr & FILE_ATTRIBUTE_REPARSE_POINT);
 }
 
@@ -456,14 +417,11 @@ DirAccessWindows::DirAccessWindows() {
 			drive_count++;
 		}
 	}
-
 	change_dir(".");
 }
 
 DirAccessWindows::~DirAccessWindows() {
 	list_dir_end();
-
 	memdelete(p);
 }
-
 #endif // WINDOWS_ENABLED

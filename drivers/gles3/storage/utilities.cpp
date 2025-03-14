@@ -1,37 +1,6 @@
-/**************************************************************************/
-/*  utilities.cpp                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #ifdef GLES3_ENABLED
-
 #include "utilities.h"
-
 #include "../rasterizer_gles3.h"
 #include "config.h"
 #include "light_storage.h"
@@ -54,7 +23,6 @@ Utilities::Utilities() {
 		frames[i].timestamp_names.resize(max_timestamp_query_elements);
 		frames[i].timestamp_cpu_values.resize(max_timestamp_query_elements);
 		frames[i].timestamp_count = 0;
-
 		frames[i].timestamp_result_names.resize(max_timestamp_query_elements);
 		frames[i].timestamp_cpu_result_values.resize(max_timestamp_query_elements);
 		frames[i].timestamp_result_values.resize(max_timestamp_query_elements);
@@ -144,7 +112,6 @@ Vector<uint8_t> Utilities::buffer_get_data(GLenum p_target, GLuint p_buffer, uin
 }
 
 /* INSTANCES */
-
 RS::InstanceType Utilities::get_base_type(RID p_rid) const {
 	if (GLES3::MeshStorage::get_singleton()->owns_mesh(p_rid)) {
 		return RS::INSTANCE_MESH;
@@ -227,7 +194,6 @@ bool Utilities::free(RID p_rid) {
 }
 
 /* DEPENDENCIES */
-
 void Utilities::base_update_dependency(RID p_base, DependencyTracker *p_instance) {
 	if (MeshStorage::get_singleton()->owns_mesh(p_base)) {
 		Mesh *mesh = MeshStorage::get_singleton()->get_mesh(p_base);
@@ -257,7 +223,6 @@ void Utilities::base_update_dependency(RID p_base, DependencyTracker *p_instance
 }
 
 /* VISIBILITY NOTIFIER */
-
 RID Utilities::visibility_notifier_allocate() {
 	return visibility_notifier_owner.allocate_rid();
 }
@@ -316,7 +281,6 @@ void Utilities::visibility_notifier_call(RID p_notifier, bool p_enter, bool p_de
 }
 
 /* TIMING */
-
 void Utilities::capture_timestamps_begin() {
 	capture_timestamp("Frame Begin");
 }
@@ -421,12 +385,10 @@ bool Utilities::has_os_feature(const String &p_feature) const {
 	if (p_feature == "etc2") {
 		return config->etc2_supported;
 	}
-
 	return false;
 }
 
-void Utilities::update_memory_info() {
-}
+void Utilities::update_memory_info() {}
 
 uint64_t Utilities::get_rendering_info(RS::RenderingInfo p_info) {
 	if (p_info == RS::RENDERING_INFO_TEXTURE_MEM_USED) {

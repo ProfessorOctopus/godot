@@ -1,40 +1,8 @@
-/**************************************************************************/
-/*  net_socket_winsock.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #ifdef WINDOWS_ENABLED
-
 #include "net_socket_winsock.h"
-
 #include <winsock2.h>
 #include <ws2tcpip.h>
-
 #include <mswsock.h>
 // Workaround missing flag in MinGW
 #if defined(__MINGW32__) && !defined(SIO_UDP_NETRESET)
@@ -115,8 +83,7 @@ void NetSocketWinSock::cleanup() {
 	_create = nullptr;
 }
 
-NetSocketWinSock::NetSocketWinSock() {
-}
+NetSocketWinSock::NetSocketWinSock() {}
 
 NetSocketWinSock::~NetSocketWinSock() {
 	close();
@@ -288,7 +255,6 @@ Error NetSocketWinSock::bind(IPAddress p_addr, uint16_t p_port) {
 		close();
 		return ERR_UNAVAILABLE;
 	}
-
 	return OK;
 }
 
@@ -301,7 +267,6 @@ Error NetSocketWinSock::listen(int p_max_pending) {
 		close();
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -329,7 +294,6 @@ Error NetSocketWinSock::connect_to_host(IPAddress p_host, uint16_t p_port) {
 				return FAILED;
 		}
 	}
-
 	return OK;
 }
 
@@ -408,10 +372,8 @@ Error NetSocketWinSock::recv(uint8_t *p_buffer, int p_len, int &r_read) {
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -449,7 +411,6 @@ Error NetSocketWinSock::recvfrom(uint8_t *p_buffer, int p_len, int &r_read, IPAd
 		// Unsupported socket family, should never happen.
 		ERR_FAIL_V(FAILED);
 	}
-
 	return OK;
 }
 
@@ -467,10 +428,8 @@ Error NetSocketWinSock::send(const uint8_t *p_buffer, int p_len, int &r_sent) {
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -489,10 +448,8 @@ Error NetSocketWinSock::sendto(const uint8_t *p_buffer, int p_len, int &r_sent, 
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -545,7 +502,6 @@ void NetSocketWinSock::set_tcp_no_delay_enabled(bool p_enabled) {
 
 void NetSocketWinSock::set_reuse_address_enabled(bool p_enabled) {
 	ERR_FAIL_COND(!is_open());
-
 	// On Windows, enabling SO_REUSEADDR actually would also enable reuse port, very bad on TCP. Denying...
 	// Windows does not have this option, SO_REUSEADDR in this magical world means SO_REUSEPORT
 }
@@ -609,5 +565,4 @@ Error NetSocketWinSock::join_multicast_group(const IPAddress &p_multi_address, c
 Error NetSocketWinSock::leave_multicast_group(const IPAddress &p_multi_address, const String &p_if_name) {
 	return _change_multicast_group(p_multi_address, p_if_name, false);
 }
-
 #endif // WINDOWS_ENABLED

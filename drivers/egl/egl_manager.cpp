@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  egl_manager.cpp                                                       */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "egl_manager.h"
-
 #include "core/crypto/crypto_core.h"
 #include "core/io/dir_access.h"
 #include "drivers/gles3/rasterizer_gles3.h"
@@ -100,7 +70,6 @@ int EGLManager::_get_gldisplay_id(void *p_display) {
 	}
 
 	ERR_FAIL_COND_V(eglGetError() != EGL_SUCCESS, -1);
-
 	ERR_FAIL_COND_V_MSG(new_gldisplay.egl_display == EGL_NO_DISPLAY, -1, "Can't create an EGL display.");
 
 	if (!eglInitialize(new_gldisplay.egl_display, nullptr, nullptr)) {
@@ -244,7 +213,6 @@ int EGLManager::display_get_native_visual_id(void *p_display) {
 	if (!eglGetConfigAttrib(gldisplay.egl_display, gldisplay.egl_config, EGL_NATIVE_VISUAL_ID, &native_visual_id)) {
 		ERR_FAIL_V(-1);
 	}
-
 	return native_visual_id;
 }
 
@@ -396,7 +364,6 @@ void EGLManager::set_use_vsync(bool p_use) {
 	if (!eglSwapInterval(disp.egl_display, swap_interval)) {
 		WARN_PRINT("Could not set V-Sync mode.");
 	}
-
 	use_vsync = p_use;
 }
 
@@ -522,12 +489,10 @@ Error EGLManager::initialize(void *p_native_display) {
 			ERR_FAIL_V_MSG(ERR_UNAVAILABLE, vformat("EGL platform extension \"%s\" not found.", platform));
 		}
 	}
-
 	return OK;
 }
 
-EGLManager::EGLManager() {
-}
+EGLManager::EGLManager() {}
 
 EGLManager::~EGLManager() {
 	for (unsigned int i = 0; i < displays.size(); i++) {

@@ -1,39 +1,8 @@
-/**************************************************************************/
-/*  net_socket_unix.cpp                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 // Some proprietary Unix-derived platforms don't expose Unix sockets
 // so this allows skipping this file to reimplement this API differently.
 #if defined(UNIX_ENABLED) && !defined(UNIX_SOCKET_UNAVAILABLE)
-
 #include "net_socket_unix.h"
-
 #include <errno.h>
 #include <fcntl.h>
 #include <netdb.h>
@@ -47,7 +16,6 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #ifdef WEB_ENABLED
 #include <arpa/inet.h>
 #endif
@@ -123,11 +91,9 @@ void NetSocketUnix::make_default() {
 	_create = _create_func;
 }
 
-void NetSocketUnix::cleanup() {
-}
+void NetSocketUnix::cleanup() {}
 
-NetSocketUnix::NetSocketUnix() {
-}
+NetSocketUnix::NetSocketUnix() {}
 
 NetSocketUnix::~NetSocketUnix() {
 	close();
@@ -322,7 +288,6 @@ Error NetSocketUnix::bind(IPAddress p_addr, uint16_t p_port) {
 		close();
 		return ERR_UNAVAILABLE;
 	}
-
 	return OK;
 }
 
@@ -335,7 +300,6 @@ Error NetSocketUnix::listen(int p_max_pending) {
 		close();
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -363,7 +327,6 @@ Error NetSocketUnix::connect_to_host(IPAddress p_host, uint16_t p_port) {
 				return FAILED;
 		}
 	}
-
 	return OK;
 }
 
@@ -397,7 +360,6 @@ Error NetSocketUnix::poll(PollType p_type, int p_timeout) const {
 	if (ret == 0) {
 		return ERR_BUSY;
 	}
-
 	return OK;
 }
 
@@ -415,10 +377,8 @@ Error NetSocketUnix::recv(uint8_t *p_buffer, int p_len, int &r_read) {
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -440,7 +400,6 @@ Error NetSocketUnix::recvfrom(uint8_t *p_buffer, int p_len, int &r_read, IPAddre
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
 
@@ -456,7 +415,6 @@ Error NetSocketUnix::recvfrom(uint8_t *p_buffer, int p_len, int &r_read, IPAddre
 		// Unsupported socket family, should never happen.
 		ERR_FAIL_V(FAILED);
 	}
-
 	return OK;
 }
 
@@ -479,10 +437,8 @@ Error NetSocketUnix::send(const uint8_t *p_buffer, int p_len, int &r_sent) {
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
-
 	return OK;
 }
 
@@ -501,10 +457,8 @@ Error NetSocketUnix::sendto(const uint8_t *p_buffer, int p_len, int &r_sent, IPA
 		if (err == ERR_NET_BUFFER_TOO_SMALL) {
 			return ERR_OUT_OF_MEMORY;
 		}
-
 		return FAILED;
 	}
-
 	return OK;
 }
 

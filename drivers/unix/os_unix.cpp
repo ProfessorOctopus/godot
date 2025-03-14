@@ -1,37 +1,6 @@
-/**************************************************************************/
-/*  os_unix.cpp                                                           */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "os_unix.h"
-
 #ifdef UNIX_ENABLED
-
 #include "core/config/project_settings.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/debugger/script_debugger.h"
@@ -41,7 +10,6 @@
 #include "drivers/unix/net_socket_unix.h"
 #include "drivers/unix/thread_posix.h"
 #include "servers/rendering_server.h"
-
 #if defined(__APPLE__)
 #include <mach-o/dyld.h>
 #include <mach/host_info.h>
@@ -49,25 +17,20 @@
 #include <mach/mach_time.h>
 #include <sys/sysctl.h>
 #endif
-
 #if defined(__FreeBSD__) || defined(__OpenBSD__) || defined(__NetBSD__)
 #include <sys/param.h>
 #include <sys/sysctl.h>
 #endif
-
 #if defined(__FreeBSD__)
 #include <kvm.h>
 #endif
-
 #if defined(__OpenBSD__)
 #include <sys/swap.h>
 #include <uvm/uvmexp.h>
 #endif
-
 #if defined(__NetBSD__)
 #include <uvm/uvm_extern.h>
 #endif
-
 #include <dlfcn.h>
 #include <errno.h>
 #include <poll.h>
@@ -366,7 +329,6 @@ OS::TimeZoneInfo OS_Unix::get_time_zone_info() const {
 	} else {
 		ret.bias = hour * 60 + minutes;
 	}
-
 	return ret;
 }
 
@@ -898,7 +860,6 @@ Error OS_Unix::open_dynamic_library(const String &p_path, void *&p_library_handl
 	if (p_data != nullptr && p_data->r_resolved_path != nullptr) {
 		*p_data->r_resolved_path = path;
 	}
-
 	return OK;
 }
 
@@ -928,7 +889,6 @@ Error OS_Unix::set_cwd(const String &p_cwd) {
 	if (chdir(p_cwd.utf8().get_data()) != 0) {
 		return ERR_CANT_OPEN;
 	}
-
 	return OK;
 }
 
@@ -1086,5 +1046,4 @@ OS_Unix::OS_Unix() {
 	loggers.push_back(memnew(UnixTerminalLogger));
 	_set_logger(memnew(CompositeLogger(loggers)));
 }
-
 #endif

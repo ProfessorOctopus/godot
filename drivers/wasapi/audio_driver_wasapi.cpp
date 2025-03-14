@@ -1,45 +1,12 @@
-/**************************************************************************/
-/*  audio_driver_wasapi.cpp                                               */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #ifdef WASAPI_ENABLED
-
 #include "audio_driver_wasapi.h"
-
 #include "core/config/project_settings.h"
 #include "core/os/os.h"
-
 #include <stdint.h> // INT32_MAX
-
 #include <functiondiscoverykeys.h>
-
 #include <wrl/client.h>
+
 using Microsoft::WRL::ComPtr;
 
 // Define IAudioClient3 if not already defined by MinGW headers
@@ -91,7 +58,6 @@ public:
 __CRT_UUID_DECL(IAudioClient3, 0x7ED4EE07, 0x8E67, 0x4CD4, 0x8C, 0x1A, 0x2B, 0x7A, 0x59, 0x87, 0xAD, 0x42)
 
 #endif // __IAudioClient3_INTERFACE_DEFINED__
-
 #endif // __MINGW32__ || __MINGW64__
 
 #ifndef PKEY_Device_FriendlyNameGodot
@@ -253,10 +219,8 @@ Error AudioDriverWASAPI::audio_device_init(AudioDeviceWASAPI *p_device, bool p_i
 					ERR_PRINT("Cannot get device ID string.");
 					break;
 				}
-
 				found = true;
 			}
-
 			PropVariantClear(&propvar);
 		}
 
@@ -657,7 +621,6 @@ PackedStringArray AudioDriverWASAPI::audio_device_get_list(bool p_input) {
 
 		PropVariantClear(&propvar);
 	}
-
 	return list;
 }
 
@@ -708,7 +671,6 @@ int32_t AudioDriverWASAPI::read_sample(WORD format_tag, int bits_per_sample, BYT
 	} else {
 		ERR_PRINT("WASAPI: Unknown format tag");
 	}
-
 	return 0;
 }
 
@@ -1034,7 +996,6 @@ Error AudioDriverWASAPI::input_stop() {
 
 		return OK;
 	}
-
 	return FAILED;
 }
 
@@ -1059,5 +1020,4 @@ void AudioDriverWASAPI::set_input_device(const String &p_name) {
 AudioDriverWASAPI::AudioDriverWASAPI() {
 	samples_in.clear();
 }
-
 #endif // WASAPI_ENABLED

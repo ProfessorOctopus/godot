@@ -1,42 +1,10 @@
-/**************************************************************************/
-/*  dir_access_unix.cpp                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "dir_access_unix.h"
-
 #if defined(UNIX_ENABLED)
-
 #include "core/os/memory.h"
 #include "core/os/os.h"
 #include "core/string/print_string.h"
 #include "core/templates/list.h"
-
 #include <errno.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -44,7 +12,6 @@
 #include <string.h>
 #include <sys/ioctl.h>
 #include <sys/statvfs.h>
-
 #ifdef HAVE_MNTENT
 #include <mntent.h>
 #endif
@@ -60,7 +27,6 @@ Error DirAccessUnix::list_dir_begin() {
 	if (!dir_stream) {
 		return ERR_CANT_OPEN; //error!
 	}
-
 	return OK;
 }
 
@@ -79,7 +45,6 @@ bool DirAccessUnix::file_exists(String p_file) {
 	if (success && S_ISDIR(flags.st_mode)) {
 		success = false;
 	}
-
 	return success;
 }
 
@@ -272,7 +237,6 @@ static void _get_drives(List<String> *list) {
 			list->push_back(dpath);
 		}
 	}
-
 	list->sort();
 }
 
@@ -565,5 +529,4 @@ DirAccessUnix::RemoveNotificationFunc DirAccessUnix::remove_notification_func = 
 DirAccessUnix::~DirAccessUnix() {
 	list_dir_end();
 }
-
 #endif // UNIX_ENABLED

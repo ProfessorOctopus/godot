@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  renderer_scene_occlusion_cull.h                                       */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/math/projection.h"
 #include "core/templates/local_vector.h"
 #include "servers/rendering_server.h"
@@ -71,7 +41,7 @@ public:
 				return false;
 			}
 
-			float min_depth = (closest_point - p_cam_position).length();
+			float min_depth = -closest_point_view.z;
 
 			Vector2 rect_min = Vector2(FLT_MAX, FLT_MAX);
 			Vector2 rect_max = Vector2(FLT_MIN, FLT_MIN);
@@ -82,12 +52,9 @@ public:
 				Vector3 corner = Vector3(p_bounds[0] * c.x + p_bounds[3] * nc.x, p_bounds[1] * c.y + p_bounds[4] * nc.y, p_bounds[2] * c.z + p_bounds[5] * nc.z);
 				Vector3 view = p_cam_inv_transform.xform(corner);
 
-				if (p_cam_projection.is_orthogonal()) {
-					min_depth = MIN(min_depth, -view.z);
-				}
-
 				Plane vp = Plane(view, 1.0);
 				Plane projected = p_cam_projection.xform4(vp);
+				min_depth = MIN(min_depth, -view.z);
 
 				float w = projected.d;
 				if (w < 1.0) {
@@ -118,10 +85,8 @@ public:
 			for (; lod >= 0; lod--) {
 				int w = sizes[lod].x;
 				int h = sizes[lod].y;
-
 				int minx = CLAMP(rect_min.x * w - 1, 0, w - 1);
 				int maxx = CLAMP(rect_max.x * w + 1, 0, w - 1);
-
 				int miny = CLAMP(rect_min.y * h - 1, 0, h - 1);
 				int maxy = CLAMP(rect_max.y * h + 1, 0, h - 1);
 
@@ -188,7 +153,6 @@ public:
 					r_occlusion_timeout = 0;
 				}
 			}
-
 			return occluded && !r_occlusion_timeout;
 		}
 
@@ -209,7 +173,6 @@ public:
 	virtual void occluder_initialize(RID p_occluder) {}
 	virtual void free_occluder(RID p_occluder) { _print_warning(); }
 	virtual void occluder_set_mesh(RID p_occluder, const PackedVector3Array &p_vertices, const PackedInt32Array &p_indices) { _print_warning(); }
-
 	virtual void add_scenario(RID p_scenario) {}
 	virtual void remove_scenario(RID p_scenario) {}
 	virtual void scenario_set_instance(RID p_scenario, RID p_instance, RID p_occluder, const Transform3D &p_xform, bool p_enabled) { _print_warning(); }

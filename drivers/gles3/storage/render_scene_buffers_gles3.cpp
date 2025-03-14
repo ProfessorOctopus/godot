@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  render_scene_buffers_gles3.cpp                                        */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #ifdef GLES3_ENABLED
-
 #include "render_scene_buffers_gles3.h"
 #include "config.h"
 #include "texture_storage.h"
@@ -136,13 +106,8 @@ void RenderSceneBuffersGLES3::configure(const RenderSceneBuffersConfiguration *p
 	internal_size = p_config->get_internal_size();
 	target_size = p_config->get_target_size();
 	scaling_3d_mode = p_config->get_scaling_3d_mode();
-	//fsr_sharpness = p_config->get_fsr_sharpness();
-	//texture_mipmap_bias = p_config->get_texture_mipmap_bias();
-	//anisotropic_filtering_level = p_config->get_anisotropic_filtering_level();
 	render_target = p_config->get_render_target();
 	msaa3d.mode = p_config->get_msaa_3d();
-	//screen_space_aa = p_config->get_screen_space_aa();
-	//use_debanding = p_config->get_use_debanding();
 	view_count = config->multiview_supported ? p_config->get_view_count() : 1;
 
 	bool use_multiview = view_count > 1;
@@ -185,7 +150,6 @@ void RenderSceneBuffersGLES3::configure(const RenderSceneBuffersConfiguration *p
 		WARN_PRINT_ONCE("Multiview MSAA is not supported on this device.");
 		msaa3d.mode = RS::VIEWPORT_MSAA_DISABLED;
 	}
-
 	// We don't create our buffers right away because post effects can be made active at any time and change our buffer configuration.
 }
 
@@ -587,7 +551,6 @@ void RenderSceneBuffersGLES3::check_glow_buffers() {
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
@@ -665,7 +628,6 @@ GLuint RenderSceneBuffersGLES3::get_render_fbo() {
 		_rt_attach_textures(color, depth, msaa3d.samples, view_count);
 		glBindFramebuffer(GL_FRAMEBUFFER, texture_storage->system_fbo);
 	}
-
 	return rt_fbo;
 }
 

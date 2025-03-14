@@ -1,46 +1,14 @@
-/**************************************************************************/
-/*  rendering_device_driver_vulkan.cpp                                    */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "rendering_device_driver_vulkan.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/marshalls.h"
 #include "thirdparty/misc/smolv.h"
 #include "vulkan_hooks.h"
-
 #if defined(ANDROID_ENABLED)
 #include "platform/android/java_godot_wrapper.h"
 #include "platform/android/os_android.h"
 #include "platform/android/thread_jandroid.h"
 #endif
-
 #if defined(SWAPPY_FRAME_PACING_ENABLED)
 #include "thirdparty/swappy-frame-pacing/swappyVk.h"
 #endif
@@ -52,7 +20,6 @@
 /*****************/
 /**** GENERIC ****/
 /*****************/
-
 #if defined(DEBUG_ENABLED) || defined(DEV_ENABLED)
 static const uint32_t BREADCRUMB_BUFFER_ENTRIES = 512u;
 #endif
@@ -383,7 +350,6 @@ uint32_t RenderingDeviceDriverVulkan::SubgroupCapabilities::supported_stages_fla
 	if (supported_stages & VK_SHADER_STAGE_COMPUTE_BIT) {
 		flags += SHADER_STAGE_COMPUTE_BIT;
 	}
-
 	return flags;
 }
 
@@ -434,7 +400,6 @@ String RenderingDeviceDriverVulkan::SubgroupCapabilities::supported_stages_desc(
 	if (supported_stages & 0x00000080 /* VK_SHADER_STAGE_MESH_BIT_NV */) {
 		res += ", STAGE_MESH_NV";
 	}
-
 	return res.substr(2); // Remove first ", ".
 }
 
@@ -465,7 +430,6 @@ uint32_t RenderingDeviceDriverVulkan::SubgroupCapabilities::supported_operations
 	if (supported_operations & VK_SUBGROUP_FEATURE_QUAD_BIT) {
 		flags += SUBGROUP_QUAD_BIT;
 	}
-
 	return flags;
 }
 
@@ -499,14 +463,12 @@ String RenderingDeviceDriverVulkan::SubgroupCapabilities::supported_operations_d
 	if (supported_operations & VK_SUBGROUP_FEATURE_PARTITIONED_BIT_NV) {
 		res += ", FEATURE_PARTITIONED_NV";
 	}
-
 	return res.substr(2); // Remove first ", ".
 }
 
 /*****************/
 /**** GENERIC ****/
 /*****************/
-
 void RenderingDeviceDriverVulkan::_register_requested_device_extension(const CharString &p_extension_name, bool p_required) {
 	ERR_FAIL_COND(requested_device_extensions.has(p_extension_name));
 	requested_device_extensions[p_extension_name] = p_required;
@@ -619,7 +581,6 @@ Error RenderingDeviceDriverVulkan::_initialize_device_extensions() {
 			}
 		}
 	}
-
 	return OK;
 }
 
@@ -643,7 +604,6 @@ Error RenderingDeviceDriverVulkan::_check_device_features() {
 #else
 		OS::get_singleton()->alert(error_string + "\nClick OK to exit.");
 #endif
-
 		return ERR_CANT_CREATE;
 	}
 
@@ -677,7 +637,6 @@ Error RenderingDeviceDriverVulkan::_check_device_features() {
 	// - sparseResidency16Samples
 	// - sparseResidencyAliased
 	// - inheritedQueries
-
 #define VK_DEVICEFEATURE_ENABLE_IF(x)                             \
 	if (physical_device_features.x) {                             \
 		requested_device_features.x = physical_device_features.x; \
@@ -955,7 +914,6 @@ Error RenderingDeviceDriverVulkan::_check_device_capabilities() {
 			print_verbose("  quad operations in all stages");
 		}
 	}
-
 	return OK;
 }
 

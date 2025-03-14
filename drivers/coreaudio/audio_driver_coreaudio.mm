@@ -1,37 +1,6 @@
-/**************************************************************************/
-/*  audio_driver_coreaudio.mm                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #import "audio_driver_coreaudio.h"
-
 #ifdef COREAUDIO_ENABLED
-
 #include "core/config/project_settings.h"
 #include "core/os/os.h"
 
@@ -49,7 +18,6 @@ OSStatus AudioDriverCoreAudio::input_device_address_cb(AudioObjectID inObjectID,
 	if (driver->input_device_name == "Default") {
 		driver->set_input_device("Default");
 	}
-
 	return noErr;
 }
 
@@ -63,7 +31,6 @@ OSStatus AudioDriverCoreAudio::output_device_address_cb(AudioObjectID inObjectID
 	if (driver->output_device_name == "Default") {
 		driver->set_output_device("Default");
 	}
-
 	return noErr;
 }
 
@@ -653,11 +620,9 @@ void AudioDriverCoreAudio::_set_device(const String &output_device, bool input) 
 						found = true;
 					}
 				}
-
 				memfree(buffer);
 			}
 		}
-
 		memfree(audioDevices);
 	}
 
@@ -714,7 +679,6 @@ void AudioDriverCoreAudio::set_input_device(const String &p_name) {
 		_set_device(input_device_name, true);
 	}
 }
-
 #endif
 
 AudioDriverCoreAudio::AudioDriverCoreAudio() {
