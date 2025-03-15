@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  scene_debugger.cpp                                                    */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "scene_debugger.h"
-
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/engine_debugger.h"
 #include "core/io/marshalls.h"
@@ -59,7 +29,6 @@ SceneDebugger::SceneDebugger() {
 #ifdef DEBUG_ENABLED
 	LiveEditor::singleton = memnew(LiveEditor);
 	RuntimeNodeSelect::singleton = memnew(RuntimeNodeSelect);
-
 	EngineDebugger::register_message_capture("scene", EngineDebugger::Capture(nullptr, SceneDebugger::parse_message));
 #endif // DEBUG_ENABLED
 }
@@ -77,7 +46,6 @@ SceneDebugger::~SceneDebugger() {
 		RuntimeNodeSelect::singleton = nullptr;
 	}
 #endif // DEBUG_ENABLED
-
 	singleton = nullptr;
 }
 
@@ -182,17 +150,14 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 		scene_tree->get_root()->set_camera_3d_override_transform(transform);
 		runtime_node_select->_queue_selection_update();
 #endif // _3D_DISABLED
-
 	} else if (p_msg == "set_object_property") {
 		ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 		_set_object_property(p_args[0], p_args[1], p_args[2]);
 		runtime_node_select->_queue_selection_update();
-
 	} else if (p_msg == "set_object_property_field") {
 		ERR_FAIL_COND_V(p_args.size() < 4, ERR_INVALID_DATA);
 		_set_object_property(p_args[0], p_args[1], p_args[2], p_args[3]);
 		runtime_node_select->_queue_selection_update();
-
 	} else if (p_msg == "reload_cached_files") {
 		ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);
 		PackedStringArray files = p_args[0];
@@ -202,31 +167,24 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 		if (p_msg == "live_set_root") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			live_editor->_root_func(p_args[0], p_args[1]);
-
 		} else if (p_msg == "live_node_path") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			live_editor->_node_path_func(p_args[0], p_args[1]);
-
 		} else if (p_msg == "live_res_path") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			live_editor->_res_path_func(p_args[0], p_args[1]);
-
 		} else if (p_msg == "live_node_prop_res") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_node_set_res_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_node_prop") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_node_set_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_res_prop_res") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_res_set_res_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_res_prop") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_res_set_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_node_call") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			LocalVector<Variant> args;
@@ -238,7 +196,6 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 				argptrs[i] = &args[i];
 			}
 			live_editor->_node_call_func(p_args[0], p_args[1], argptrs.size() ? (const Variant **)argptrs.ptr() : nullptr, argptrs.size());
-
 		} else if (p_msg == "live_res_call") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			LocalVector<Variant> args;
@@ -250,37 +207,29 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 				argptrs[i] = &args[i];
 			}
 			live_editor->_res_call_func(p_args[0], p_args[1], argptrs.size() ? (const Variant **)argptrs.ptr() : nullptr, argptrs.size());
-
 		} else if (p_msg == "live_create_node") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_create_node_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_instantiate_node") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_instance_node_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_remove_node") {
 			ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);
 			live_editor->_remove_node_func(p_args[0]);
 			runtime_node_select->_queue_selection_update();
-
 		} else if (p_msg == "live_remove_and_keep_node") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			live_editor->_remove_and_keep_node_func(p_args[0], p_args[1]);
 			runtime_node_select->_queue_selection_update();
-
 		} else if (p_msg == "live_restore_node") {
 			ERR_FAIL_COND_V(p_args.size() < 3, ERR_INVALID_DATA);
 			live_editor->_restore_node_func(p_args[0], p_args[1], p_args[2]);
-
 		} else if (p_msg == "live_duplicate_node") {
 			ERR_FAIL_COND_V(p_args.size() < 2, ERR_INVALID_DATA);
 			live_editor->_duplicate_node_func(p_args[0], p_args[1]);
-
 		} else if (p_msg == "live_reparent_node") {
 			ERR_FAIL_COND_V(p_args.size() < 4, ERR_INVALID_DATA);
 			live_editor->_reparent_node_func(p_args[0], p_args[1], p_args[2], p_args[3]);
-
 		} else {
 			return ERR_SKIP;
 		}
@@ -289,38 +238,30 @@ Error SceneDebugger::parse_message(void *p_user, const String &p_msg, const Arra
 		if (p_msg == "runtime_node_select_setup") {
 			ERR_FAIL_COND_V(p_args.is_empty() || p_args[0].get_type() != Variant::DICTIONARY, ERR_INVALID_DATA);
 			runtime_node_select->_setup(p_args[0]);
-
 		} else if (p_msg == "runtime_node_select_set_type") {
 			ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);
 			RuntimeNodeSelect::NodeType type = (RuntimeNodeSelect::NodeType)(int)p_args[0];
 			runtime_node_select->_node_set_type(type);
-
 		} else if (p_msg == "runtime_node_select_set_mode") {
 			ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);
 			RuntimeNodeSelect::SelectMode mode = (RuntimeNodeSelect::SelectMode)(int)p_args[0];
 			runtime_node_select->_select_set_mode(mode);
-
 		} else if (p_msg == "runtime_node_select_set_visible") {
 			ERR_FAIL_COND_V(p_args.is_empty(), ERR_INVALID_DATA);
 			bool visible = p_args[0];
 			runtime_node_select->_set_selection_visible(visible);
-
 		} else if (p_msg == "runtime_node_select_reset_camera_2d") {
 			runtime_node_select->_reset_camera_2d();
-
 #ifndef _3D_DISABLED
 		} else if (p_msg == "runtime_node_select_reset_camera_3d") {
 			runtime_node_select->_reset_camera_3d();
 #endif // _3D_DISABLED
-
 		} else {
 			return ERR_SKIP;
 		}
-
 	} else {
 		r_captured = false;
 	}
-
 	return OK;
 }
 
@@ -381,7 +322,6 @@ void SceneDebugger::_send_object_ids(const Vector<ObjectID> &p_ids, bool p_updat
 				nodes.push_back(node);
 			}
 		}
-
 		Array arr;
 		obj.serialize(arr);
 		objs.append(arr);
@@ -400,7 +340,6 @@ void SceneDebugger::_send_object_ids(const Vector<ObjectID> &p_ids, bool p_updat
 		Array arr;
 		arr.append(invalid_selection);
 		EngineDebugger::get_singleton()->send_message("remote_selection_invalidated", arr);
-
 		EngineDebugger::get_singleton()->send_message(objs.is_empty() ? "remote_nothing_clicked" : "remote_nodes_clicked", objs);
 	} else {
 		EngineDebugger::get_singleton()->send_message("scene:inspect_objects", objs);
@@ -427,7 +366,6 @@ void SceneDebugger::_set_object_property(ObjectID p_id, const String &p_property
 		// Only one field.
 		value = fieldwise_assign(obj->get(prop_name), p_value, p_field);
 	}
-
 	obj->set(prop_name, value);
 }
 
@@ -436,7 +374,6 @@ void SceneDebugger::_next_frame() {
 	if (!scene_tree->is_suspended()) {
 		return;
 	}
-
 	scene_tree->set_suspend(false);
 	RenderingServer::get_singleton()->connect("frame_post_draw", callable_mp(scene_tree, &SceneTree::set_suspend).bind(true), Object::CONNECT_ONE_SHOT);
 }
@@ -1202,14 +1139,13 @@ void LiveEditor::_duplicate_node_func(const NodePath &p_at, const String &p_new_
 		if (!n->has_node(p_at)) {
 			continue;
 		}
-		Node *n2 = n->get_node(p_at);
 
+		Node *n2 = n->get_node(p_at);
 		Node *dup = n2->duplicate(Node::DUPLICATE_SIGNALS | Node::DUPLICATE_GROUPS | Node::DUPLICATE_SCRIPTS);
 
 		if (!dup) {
 			continue;
 		}
-
 		dup->set_name(p_new_name);
 		n2->get_parent()->add_child(dup);
 	}
@@ -1328,7 +1264,6 @@ void RuntimeNodeSelect::_setup(const Dictionary &p_settings) {
 
 	/// 3D Selection Box Generation
 	// Copied from the Node3DEditor implementation.
-
 	sbox_3d_color = p_settings.get("editors/3d/selection_box_color", Color());
 
 	// Use two AABBs to create the illusion of a slightly thicker line.
@@ -1418,14 +1353,13 @@ void RuntimeNodeSelect::_root_window_input(const Ref<InputEvent> &p_event) {
 			selection_list->push_input(p_event);
 			callable_mp(root->get_viewport(), &Viewport::set_disable_input_override).call_deferred(true);
 		}
-
 		return;
 	}
 
 	bool is_dragging_camera = false;
 	if (camera_override) {
 		if (node_select_type == NODE_TYPE_2D) {
-			is_dragging_camera = panner->gui_input(p_event, Rect2(Vector2(), root->get_size()));
+			is_dragging_camera = panner->gui_input(p_event, Rect2(Vector2(), root->get_visible_rect().get_size()));
 		} else if (node_select_type == NODE_TYPE_3D && selection_drag_state == SELECTION_DRAG_NONE) {
 #ifndef _3D_DISABLED
 			if (_handle_3d_input(p_event)) {
@@ -1594,7 +1528,6 @@ void RuntimeNodeSelect::_physics_frame() {
 				if (items[j].item == item) {
 					items.remove_at(i);
 					i--;
-
 					break;
 				}
 			}
@@ -1624,14 +1557,11 @@ void RuntimeNodeSelect::_physics_frame() {
 					}
 					_send_ids(nodes, false);
 				}
-
 				_update_selection_drag();
 				return;
 			}
-
 			_update_selection_drag();
 		} break;
-
 		case SELECTION_DRAG_NONE: {
 			if (node_select_mode == SELECT_MODE_LIST) {
 				break;
@@ -1645,15 +1575,12 @@ void RuntimeNodeSelect::_physics_frame() {
 					EngineDebugger::get_singleton()->send_message("remote_nothing_clicked", Array());
 					_clear_selection();
 				}
-
 				selection_drag_state = SELECTION_DRAG_MOVE;
 			} else {
 				break;
 			}
-
 			[[fallthrough]];
 		}
-
 		case SELECTION_DRAG_MOVE: {
 			selection_drag_area.position = selection_position;
 
@@ -1681,7 +1608,6 @@ void RuntimeNodeSelect::_physics_frame() {
 	if (!selection_list && (list_shortcut_pressed || node_select_mode == SELECT_MODE_LIST)) {
 		_open_selection_list(items, selection_position);
 	}
-
 	selection_position = Point2(INFINITY, INFINITY);
 }
 
@@ -1773,10 +1699,8 @@ void RuntimeNodeSelect::_send_ids(const Vector<Node *> &p_picked_nodes, bool p_i
 			obj.serialize(arr);
 			message.append(arr);
 		}
-
 		EngineDebugger::get_singleton()->send_message("remote_nodes_clicked", message);
 	}
-
 	_set_selected_nodes(nodes);
 }
 
@@ -1862,7 +1786,6 @@ void RuntimeNodeSelect::_set_selected_nodes(const Vector<Node *> &p_nodes) {
 		has_selection = true;
 	}
 #endif // _3D_DISABLED
-
 	_queue_selection_update();
 }
 
@@ -1986,7 +1909,6 @@ void RuntimeNodeSelect::_update_selection() {
 		RS::get_singleton()->instance_set_visible(sb->instance_ofs, selection_visible);
 		RS::get_singleton()->instance_set_visible(sb->instance_xray, selection_visible);
 		RS::get_singleton()->instance_set_visible(sb->instance_xray_ofs, selection_visible);
-
 		RS::get_singleton()->instance_set_transform(sb->instance, t);
 		RS::get_singleton()->instance_set_transform(sb->instance_ofs, t_offset);
 		RS::get_singleton()->instance_set_transform(sb->instance_xray, t);
@@ -2000,7 +1922,6 @@ void RuntimeNodeSelect::_clear_selection() {
 	if (draw_canvas.is_valid()) {
 		RS::get_singleton()->canvas_item_clear(sbox_2d_ci);
 	}
-
 #ifndef _3D_DISABLED
 	selected_3d_nodes.clear();
 #endif // _3D_DISABLED
@@ -2050,6 +1971,7 @@ void RuntimeNodeSelect::_update_selection_drag(const Point2 &p_end_pos) {
 
 	// Draw fill.
 	RS::get_singleton()->canvas_item_add_rect(sel_drag_ci, selection_drawing, selection_area_fill);
+
 	// Draw outline.
 	for (int i = 0; i < 4; i++) {
 		RS::get_singleton()->canvas_item_add_line(sel_drag_ci, endpoints[i], endpoints[(i + 1) % 4], selection_area_outline, thickness);
@@ -2076,6 +1998,7 @@ void RuntimeNodeSelect::_open_selection_list(const Vector<SelectResult> &p_items
 	selection_list->set_position(selection_list->is_embedded() ? p_pos : (Input::get_singleton()->get_mouse_position() + root->get_position()));
 	selection_list->reset_size();
 	selection_list->popup();
+
 	// FIXME: Ugly hack that stops the popup from hiding when the button is released.
 	selection_list->call_deferred(SNAME("set_position"), selection_list->get_position() + Point2(1, 0));
 }
@@ -2214,8 +2137,9 @@ void RuntimeNodeSelect::_find_canvas_items_at_rect(const Rect2 &p_rect, Node *p_
 }
 
 void RuntimeNodeSelect::_pan_callback(Vector2 p_scroll_vec, Ref<InputEvent> p_event) {
-	view_2d_offset.x -= p_scroll_vec.x / view_2d_zoom;
-	view_2d_offset.y -= p_scroll_vec.y / view_2d_zoom;
+	Vector2 scroll = SceneTree::get_singleton()->get_root()->get_screen_transform().affine_inverse().xform(p_scroll_vec);
+	view_2d_offset.x -= scroll.x / view_2d_zoom;
+	view_2d_offset.y -= scroll.y / view_2d_zoom;
 
 	_update_view_2d();
 }
@@ -2339,7 +2263,6 @@ void RuntimeNodeSelect::_find_3d_items_at_pos(const Point2 &p_pos, Vector<Select
 				}
 			}
 		}
-
 		items.remove_at(i);
 		i--;
 	}
@@ -2446,7 +2369,6 @@ void RuntimeNodeSelect::_find_3d_items_at_rect(const Rect2 &p_rect, Vector<Selec
 				r_items.push_back(res_shape);
 			}
 		}
-
 		r_items.push_back(res);
 	}
 
@@ -2483,7 +2405,6 @@ void RuntimeNodeSelect::_find_3d_items_at_rect(const Rect2 &p_rect, Vector<Selec
 				}
 			}
 		}
-
 		items.remove_at(i);
 		i--;
 	}
@@ -2513,7 +2434,6 @@ Vector3 RuntimeNodeSelect::_get_screen_to_space(const Vector3 &p_vector3) {
 
 		camera_transform = camera->get_camera_transform();
 	}
-
 	Vector2 screen_he = cm.get_viewport_half_extents();
 	return camera_transform.xform(Vector3(((p_vector3.x / size.width) * 2.0 - 1.0) * screen_he.x, ((1.0 - (p_vector3.y / size.height)) * 2.0 - 1.0) * screen_he.y, -(znear + p_vector3.z)));
 }
@@ -2561,7 +2481,6 @@ bool RuntimeNodeSelect::_handle_3d_input(const Ref<InputEvent> &p_event) {
 				_cursor_orbit(m);
 			}
 		}
-
 		return true;
 	}
 
@@ -2595,9 +2514,7 @@ bool RuntimeNodeSelect::_handle_3d_input(const Ref<InputEvent> &p_event) {
 			}
 		}
 	}
-
 	// TODO: Handle magnify and pan input gestures.
-
 	return false;
 }
 
@@ -2705,7 +2622,6 @@ void RuntimeNodeSelect::_cursor_orbit(Ref<InputEventWithModifiers> p_event) {
 	} else {
 		cursor.y_rot += relative.x * orbit_sensitivity;
 	}
-
 	SceneTree::get_singleton()->get_root()->set_camera_3d_override_transform(_get_cursor_transform());
 }
 
@@ -2715,7 +2631,6 @@ Point2 RuntimeNodeSelect::_get_warped_mouse_motion(const Ref<InputEventMouseMoti
 	if (warped_mouse_panning_3d) {
 		return Input::get_singleton()->warp_mouse_motion(p_event, p_area);
 	}
-
 	return p_event->get_relative();
 }
 
@@ -2725,7 +2640,6 @@ Transform3D RuntimeNodeSelect::_get_cursor_transform() {
 	camera_transform.basis.rotate(Vector3(1, 0, 0), -cursor.x_rot);
 	camera_transform.basis.rotate(Vector3(0, 1, 0), -cursor.y_rot);
 	camera_transform.translate_local(0, 0, cursor.distance);
-
 	return camera_transform;
 }
 
@@ -2747,10 +2661,8 @@ void RuntimeNodeSelect::_reset_camera_3d() {
 	} else {
 		cursor.fov_scale = 1.0;
 	}
-
 	SceneTree::get_singleton()->get_root()->set_camera_3d_override_transform(_get_cursor_transform());
 	SceneTree::get_singleton()->get_root()->set_camera_3d_override_perspective(camera_fov * cursor.fov_scale, camera_znear, camera_zfar);
 }
 #endif // _3D_DISABLED
-
 #endif // DEBUG_ENABLED

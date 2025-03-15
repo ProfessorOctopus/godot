@@ -1,42 +1,11 @@
-/**************************************************************************/
-/*  jolt_contact_listener_3d.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "jolt_contact_listener_3d.h"
-
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_type_conversions.h"
 #include "../objects/jolt_area_3d.h"
 #include "../objects/jolt_body_3d.h"
 #include "../objects/jolt_soft_body_3d.h"
 #include "jolt_space_3d.h"
-
 #include "Jolt/Physics/Collision/EstimateCollisionResponse.h"
 #include "Jolt/Physics/SoftBody/SoftBodyManifold.h"
 
@@ -48,7 +17,7 @@ void JoltContactListener3D::OnContactAdded(const JPH::Body &p_body1, const JPH::
 
 #ifdef DEBUG_ENABLED
 	_try_add_debug_contacts(p_body1, p_body2, p_manifold);
-#endif
+#endif // DEBUG_ENABLED
 }
 
 void JoltContactListener3D::OnContactPersisted(const JPH::Body &p_body1, const JPH::Body &p_body2, const JPH::ContactManifold &p_manifold, JPH::ContactSettings &p_settings) {
@@ -59,7 +28,7 @@ void JoltContactListener3D::OnContactPersisted(const JPH::Body &p_body1, const J
 
 #ifdef DEBUG_ENABLED
 	_try_add_debug_contacts(p_body1, p_body2, p_manifold);
-#endif
+#endif // DEBUG_ENABLED
 }
 
 void JoltContactListener3D::OnContactRemoved(const JPH::SubShapeIDPair &p_shape_pair) {
@@ -79,12 +48,10 @@ JPH::SoftBodyValidateResult JoltContactListener3D::OnSoftBodyContactValidate(con
 }
 
 #ifdef DEBUG_ENABLED
-
 void JoltContactListener3D::OnSoftBodyContactAdded(const JPH::Body &p_soft_body, const JPH::SoftBodyManifold &p_manifold) {
 	_try_add_debug_contacts(p_soft_body, p_manifold);
 }
-
-#endif
+#endif // DEBUG_ENABLED
 
 bool JoltContactListener3D::_try_override_collision_response(const JPH::Body &p_jolt_body1, const JPH::Body &p_jolt_body2, JPH::ContactSettings &p_settings) {
 	if (p_jolt_body1.IsSensor() || p_jolt_body2.IsSensor()) {
@@ -108,7 +75,6 @@ bool JoltContactListener3D::_try_override_collision_response(const JPH::Body &p_
 		p_settings.mInvMassScale1 = 0.0f;
 		p_settings.mInvInertiaScale1 = 0.0f;
 	}
-
 	return true;
 }
 
@@ -200,7 +166,7 @@ bool JoltContactListener3D::_try_add_contacts(const JPH::Body &p_jolt_body1, con
 	manifold.depth = p_manifold.mPenetrationDepth;
 
 	JPH::CollisionEstimationResult collision;
-	JPH::EstimateCollisionResponse(p_jolt_body1, p_jolt_body2, p_manifold, collision, p_settings.mCombinedFriction, p_settings.mCombinedRestitution, JoltProjectSettings::get_bounce_velocity_threshold(), 5);
+	JPH::EstimateCollisionResponse(p_jolt_body1, p_jolt_body2, p_manifold, collision, p_settings.mCombinedFriction, p_settings.mCombinedRestitution, JoltProjectSettings::bounce_velocity_threshold, 5);
 
 	for (JPH::uint i = 0; i < contact_count; ++i) {
 		const JPH::RVec3 relative_point1 = JPH::RVec3(p_manifold.mRelativeContactPointsOn1[i]);
@@ -262,7 +228,6 @@ bool JoltContactListener3D::_try_evaluate_area_overlap(const JPH::Body &p_body1,
 	};
 
 	const JPH::SubShapeIDPair shape_pair1(p_body1.GetID(), p_manifold.mSubShapeID1, p_body2.GetID(), p_manifold.mSubShapeID2);
-
 	const JPH::SubShapeIDPair shape_pair2(p_body2.GetID(), p_manifold.mSubShapeID2, p_body1.GetID(), p_manifold.mSubShapeID1);
 
 	const JoltObject3D *object1 = reinterpret_cast<JoltObject3D *>(p_body1.GetUserData());
@@ -313,7 +278,6 @@ bool JoltContactListener3D::_try_remove_area_overlap(const JPH::SubShapeIDPair &
 }
 
 #ifdef DEBUG_ENABLED
-
 bool JoltContactListener3D::_try_add_debug_contacts(const JPH::Body &p_body1, const JPH::Body &p_body2, const JPH::ContactManifold &p_manifold) {
 	if (p_body1.IsSensor() || p_body2.IsSensor()) {
 		return false;
@@ -394,11 +358,9 @@ bool JoltContactListener3D::_try_add_debug_contacts(const JPH::Body &p_soft_body
 
 		debug_contacts.write[contact_index++] = to_godot(contact_point);
 	}
-
 	return true;
 }
-
-#endif
+#endif // DEBUG_ENABLED
 
 void JoltContactListener3D::_flush_contacts() {
 	for (KeyValue<JPH::SubShapeIDPair, Manifold> &E : manifolds_by_shape_pair) {
@@ -424,7 +386,6 @@ void JoltContactListener3D::_flush_contacts() {
 		for (const Contact &contact : manifold.contacts2) {
 			body2->add_contact(body1, manifold.depth, shape_index2, shape_index1, contact.normal, contact.point_self, contact.point_other, contact.velocity_self, contact.velocity_other, contact.impulse);
 		}
-
 		manifold.contacts1.clear();
 		manifold.contacts2.clear();
 	}
@@ -459,7 +420,6 @@ void JoltContactListener3D::_flush_area_enters() {
 			area2->body_shape_entered(body_id1, sub_shape_id1, sub_shape_id2);
 		}
 	}
-
 	area_enters.clear();
 }
 
@@ -522,14 +482,13 @@ void JoltContactListener3D::_flush_area_exits() {
 			area2->shape_exited(body_id1, sub_shape_id1, sub_shape_id2);
 		}
 	}
-
 	area_exits.clear();
 }
 
 void JoltContactListener3D::pre_step() {
 #ifdef DEBUG_ENABLED
 	debug_contact_count = 0;
-#endif
+#endif // DEBUG_ENABLED
 }
 
 void JoltContactListener3D::post_step() {

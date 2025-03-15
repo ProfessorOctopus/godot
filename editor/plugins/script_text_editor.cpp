@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  script_text_editor.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "script_text_editor.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/json.h"
 #include "core/math/expression.h"
@@ -47,8 +17,7 @@
 #include "scene/gui/rich_text_label.h"
 #include "scene/gui/split_container.h"
 
-void ConnectionInfoDialog::ok_pressed() {
-}
+void ConnectionInfoDialog::ok_pressed() {}
 
 void ConnectionInfoDialog::popup_connections(const String &p_method, const Vector<Node *> &p_nodes) {
 	method->set_text(p_method);
@@ -975,19 +944,7 @@ void ScriptTextEditor::_lookup_symbol(const String &p_symbol, int p_row, int p_c
 	if (ScriptServer::is_global_class(p_symbol)) {
 		EditorNode::get_singleton()->load_resource(ScriptServer::get_global_class_path(p_symbol));
 	} else if (p_symbol.is_resource_file() || p_symbol.begins_with("uid://")) {
-		String symbol = p_symbol;
-		if (symbol.begins_with("uid://")) {
-			symbol = ResourceUID::uid_to_path(symbol);
-		}
-
-		List<String> scene_extensions;
-		ResourceLoader::get_recognized_extensions_for_type("PackedScene", &scene_extensions);
-
-		if (scene_extensions.find(symbol.get_extension())) {
-			EditorNode::get_singleton()->load_scene(symbol);
-		} else {
-			EditorNode::get_singleton()->load_resource(symbol);
-		}
+		EditorNode::get_singleton()->load_scene_or_resource(p_symbol);
 	} else if (lc_error == OK) {
 		_goto_line(p_row);
 
@@ -1082,14 +1039,7 @@ void ScriptTextEditor::_lookup_symbol(const String &p_symbol, int p_row, int p_c
 		// Every symbol other than absolute path is relative path so keep this condition at last.
 		String path = _get_absolute_path(p_symbol);
 		if (FileAccess::exists(path)) {
-			List<String> scene_extensions;
-			ResourceLoader::get_recognized_extensions_for_type("PackedScene", &scene_extensions);
-
-			if (scene_extensions.find(path.get_extension())) {
-				EditorNode::get_singleton()->load_scene(path);
-			} else {
-				EditorNode::get_singleton()->load_resource(path);
-			}
+			EditorNode::get_singleton()->load_scene_or_resource(path);
 		}
 	}
 }

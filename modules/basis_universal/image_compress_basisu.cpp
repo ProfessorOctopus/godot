@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  image_compress_basisu.cpp                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "image_compress_basisu.h"
-
 #include "core/io/image.h"
 #include "core/os/os.h"
 #include "core/string/print_string.h"
@@ -41,7 +11,7 @@
 
 static Mutex init_mutex;
 static bool initialized = false;
-#endif
+#endif // TOOLS_ENABLED
 
 void basis_universal_init() {
 	basist::basisu_transcoder_init();
@@ -50,6 +20,7 @@ void basis_universal_init() {
 #ifdef TOOLS_ENABLED
 template <typename T>
 inline void _basisu_pad_mipmap(const uint8_t *p_image_mip_data, Vector<uint8_t> &r_mip_data_padded, int p_next_width, int p_next_height, int p_width, int p_height, int64_t p_size) {
+
 	// Source mip's data interpreted as 32-bit RGBA blocks to help with copying pixel data.
 	const T *mip_src_data = reinterpret_cast<const T *>(p_image_mip_data);
 
@@ -275,6 +246,7 @@ Ref<Image> basis_universal_unpacker_ptr(const uint8_t *p_data, int p_size) {
 	bool rgtc_supported = RS::get_singleton()->has_os_feature("rgtc");
 	bool s3tc_supported = RS::get_singleton()->has_os_feature("s3tc");
 	bool etc2_supported = RS::get_singleton()->has_os_feature("etc2");
+	bool astc_hdr_supported = RS::get_singleton()->has_os_feature("astc_hdr");
 
 	bool needs_ra_rg_swap = false;
 	bool needs_rg_trim = false;
@@ -379,7 +351,7 @@ Ref<Image> basis_universal_unpacker_ptr(const uint8_t *p_data, int p_size) {
 			if (bptc_supported) {
 				basisu_format = basist::transcoder_texture_format::cTFBC6H;
 				image_format = Image::FORMAT_BPTC_RGBFU;
-			} else if (astc_supported) {
+			} else if (astc_hdr_supported) {
 				basisu_format = basist::transcoder_texture_format::cTFASTC_HDR_4x4_RGBA;
 				image_format = Image::FORMAT_ASTC_4x4_HDR;
 			} else {

@@ -1,33 +1,4 @@
-/**************************************************************************/
-/*  audio_stream_interactive.h                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
 
 #include "servers/audio/audio_stream.h"
@@ -164,7 +135,6 @@ public:
 	int get_clip_auto_advance_next_clip(int p_clip) const;
 
 	// TRANSITIONS
-
 	void add_transition(int p_from_clip, int p_to_clip, TransitionFromTime p_from_time, TransitionToTime p_to_time, FadeMode p_fade_mode, float p_fade_beats, bool p_use_filler_flip = false, int p_filler_clip = -1, bool p_hold_previous = false);
 	TransitionFromTime get_transition_from_time(int p_from_clip, int p_to_clip) const;
 	TransitionToTime get_transition_to_time(int p_from_clip, int p_to_clip) const;
@@ -182,6 +152,8 @@ public:
 	virtual Ref<AudioStreamPlayback> instantiate_playback() override;
 	virtual String get_stream_name() const override;
 	virtual double get_length() const override { return 0; }
+	virtual bool is_meta_stream() const override { return true; }
+
 	AudioStreamInteractive();
 
 protected:

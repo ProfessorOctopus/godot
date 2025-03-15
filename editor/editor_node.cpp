@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_node.cpp                                                       */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_node.h"
-
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/input/input.h"
@@ -71,7 +41,6 @@
 #include "servers/navigation_server_3d.h"
 #include "servers/physics_server_2d.h"
 #include "servers/rendering_server.h"
-
 #include "editor/audio_stream_preview.h"
 #include "editor/debugger/editor_debugger_node.h"
 #include "editor/debugger/script_editor_debugger.h"
@@ -164,19 +133,15 @@
 #include "editor/themes/editor_scale.h"
 #include "editor/themes/editor_theme_manager.h"
 #include "editor/window_wrapper.h"
-
 #include "modules/modules_enabled.gen.h" // For gdscript, mono.
-
 #ifdef ANDROID_ENABLED
 #include "editor/gui/touch_actions_panel.h"
-#endif
-
+#endif // ANDROID_ENABLED
 #include <stdlib.h>
 
 EditorNode *EditorNode::singleton = nullptr;
 
 static const String EDITOR_NODE_CONFIG_SECTION = "EditorNode";
-
 static const String REMOVE_ANDROID_BUILD_TEMPLATE_MESSAGE = "The Android build template is already installed in this project and it won't be overwritten.\nRemove the \"%s\" directory manually before attempting this operation again.";
 static const String INSTALL_ANDROID_BUILD_TEMPLATE_MESSAGE = "This will set up your project for gradle Android builds by installing the source template to \"%s\".\nNote that in order to make gradle builds instead of using pre-built APKs, the \"Use Gradle Build\" option should be enabled in the Android export preset.";
 
@@ -507,8 +472,9 @@ void EditorNode::_gdextensions_reloaded() {
 	// Reload script editor to revalidate GDScript if classes are added or removed.
 	ScriptEditor::get_singleton()->reload_scripts(true);
 
-	// Regenerate documentation.
-	EditorHelp::generate_doc();
+	// Regenerate documentation without using script documentation cache since that would
+	// revert doc changes during this session.
+	EditorHelp::generate_doc(true, false);
 }
 
 void EditorNode::_update_theme(bool p_skip_creation) {
@@ -607,12 +573,7 @@ void EditorNode::_notification(int p_what) {
 			EditorHelpHighlighter::create_singleton();
 #endif
 		} break;
-
 		case NOTIFICATION_PROCESS: {
-			if (opening_prev && !confirmation->is_visible()) {
-				opening_prev = false;
-			}
-
 			bool global_unsaved = EditorUndoRedoManager::get_singleton()->is_history_unsaved(EditorUndoRedoManager::GLOBAL_HISTORY);
 			bool scene_or_global_unsaved = global_unsaved || EditorUndoRedoManager::get_singleton()->is_history_unsaved(editor_data.get_current_edited_scene_history_id());
 			if (unsaved_cache != scene_or_global_unsaved) {
@@ -717,6 +678,7 @@ void EditorNode::_notification(int p_what) {
 			if (save_accept) {
 				save_accept->queue_free();
 			}
+			EditorHelp::save_script_doc_cache();
 			editor_data.save_editor_external_data();
 			FileAccess::set_file_close_fail_notify_callback(nullptr);
 			log->deinit(); // Do not get messages anymore.
@@ -1343,14 +1305,23 @@ Error EditorNode::load_resource(const String &p_resource, bool p_ignore_broken_d
 		for (const String &E : dependency_errors[p_resource]) {
 			errors.push_back(E);
 		}
-		dependency_error->show(DependencyErrorDialog::MODE_RESOURCE, p_resource, errors);
+		dependency_error->show(p_resource, errors);
 		dependency_errors.erase(p_resource);
 
 		return ERR_FILE_MISSING_DEPENDENCIES;
 	}
-
 	InspectorDock::get_singleton()->edit_resource(res);
 	return OK;
+}
+
+Error EditorNode::load_scene_or_resource(const String &p_path, bool p_ignore_broken_deps, bool p_change_scene_tab_if_already_open) {
+	if (ClassDB::is_parent_class(ResourceLoader::get_resource_type(p_path), "PackedScene")) {
+		if (!p_change_scene_tab_if_already_open && EditorNode::get_singleton()->is_scene_open(p_path)) {
+			return OK;
+		}
+		return EditorNode::get_singleton()->load_scene(p_path, p_ignore_broken_deps);
+	}
+	return EditorNode::get_singleton()->load_resource(p_path, p_ignore_broken_deps);
 }
 
 void EditorNode::edit_node(Node *p_node) {
@@ -1586,15 +1557,11 @@ void EditorNode::_save_editor_states(const String &p_file, int p_idx) {
 	} else {
 		md = editor_data.get_scene_editor_states(p_idx);
 	}
-
-	List<Variant> keys;
-	md.get_key_list(&keys);
-	for (const Variant &E : keys) {
-		cf->set_value("editor_states", E, md[E]);
+	for (const KeyValue<Variant, Variant> &kv : md) {
+		cf->set_value("editor_states", kv.key, kv.value);
 	}
 
 	// Save the currently selected nodes.
-
 	List<Node *> selection = editor_selection->get_full_selected_node_list();
 	TypedArray<NodePath> selection_paths;
 	for (Node *selected_node : selection) {
@@ -1664,11 +1631,8 @@ bool EditorNode::_find_and_save_edited_subresources(Object *obj, HashMap<Ref<Res
 			} break;
 			case Variant::DICTIONARY: {
 				Dictionary d = obj->get(E.name);
-				List<Variant> keys;
-				d.get_key_list(&keys);
-				for (const Variant &F : keys) {
-					Variant v = d[F];
-					Ref<Resource> res = v;
+				for (const KeyValue<Variant, Variant> &kv : d) {
+					Ref<Resource> res = kv.value;
 					if (_find_and_save_resource(res, processed, flags)) {
 						ret_changed = true;
 					}
@@ -1678,7 +1642,6 @@ bool EditorNode::_find_and_save_edited_subresources(Object *obj, HashMap<Ref<Res
 			}
 		}
 	}
-
 	return ret_changed;
 }
 
@@ -1722,9 +1685,10 @@ void EditorNode::_save_scene_with_preview(String p_file, int p_idx) {
 		_find_node_types(editor_data.get_edited_scene_root(), c2d, c3d);
 
 		save_scene_progress->step(TTR("Creating Thumbnail"), 1);
-		// Current view?
 
+		// Current view?
 		Ref<Image> img;
+
 		// If neither 3D or 2D nodes are present, make a 1x1 black texture.
 		// We cannot fallback on the 2D editor, because it may not have been used yet,
 		// which would result in an invalid texture.
@@ -2796,13 +2760,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			quick_open_dialog->popup_dialog({ "Script" }, callable_mp(this, &EditorNode::_quick_opened));
 		} break;
 		case FILE_OPEN_PREV: {
-			if (previous_scenes.is_empty()) {
-				break;
+			if (!prev_closed_scenes.is_empty()) {
+				load_scene(prev_closed_scenes.back()->get());
 			}
-			opening_prev = true;
-			open_request(previous_scenes.back()->get());
-			previous_scenes.pop_back();
-
 		} break;
 		case EditorSceneTabs::SCENE_CLOSE_OTHERS: {
 			tab_closing_menu_option = -1;
@@ -3448,7 +3408,6 @@ void EditorNode::unload_editor_addons() {
 		remove_editor_plugin(E.value, false);
 		memdelete(E.value);
 	}
-
 	addon_name_to_plugin.clear();
 }
 
@@ -3458,10 +3417,7 @@ void EditorNode::_discard_changes(const String &p_str) {
 		case SCENE_TAB_CLOSE: {
 			Node *scene = editor_data.get_edited_scene_root(tab_closing_idx);
 			if (scene != nullptr) {
-				String scene_filename = scene->get_scene_file_path();
-				if (!scene_filename.is_empty()) {
-					previous_scenes.push_back(scene_filename);
-				}
+				_update_prev_closed_scenes(scene->get_scene_file_path(), true);
 			}
 
 			// Don't close tabs when exiting the editor (required for "restore_scenes_on_load" setting).
@@ -3493,7 +3449,6 @@ void EditorNode::_discard_changes(const String &p_str) {
 		case FILE_QUIT: {
 			project_run_bar->stop_playing();
 			_exit_editor(EXIT_SUCCESS);
-
 		} break;
 		case PROJECT_QUIT_TO_PROJECT_MANAGER: {
 			_restart_editor(true);
@@ -3519,12 +3474,7 @@ void EditorNode::_update_file_menu_opened() {
 		file_menu->set_item_disabled(file_menu->get_item_index(FILE_SAVE_ALL_SCENES), true);
 		file_menu->set_item_tooltip(file_menu->get_item_index(FILE_SAVE_ALL_SCENES), TTR("All scenes are already saved."));
 	}
-	file_menu->set_item_disabled(file_menu->get_item_index(FILE_OPEN_PREV), previous_scenes.is_empty());
 	_update_undo_redo_allowed();
-}
-
-void EditorNode::_update_file_menu_closed() {
-	file_menu->set_item_disabled(file_menu->get_item_index(FILE_OPEN_PREV), false);
 }
 
 void EditorNode::_palette_quick_open_dialog() {
@@ -3696,7 +3646,6 @@ void EditorNode::_update_addon_config() {
 		enabled_addons.sort();
 		ProjectSettings::get_singleton()->set("editor_plugins/enabled", enabled_addons);
 	}
-
 	project_settings_editor->queue_save();
 }
 
@@ -3764,7 +3713,6 @@ void EditorNode::set_addon_plugin_enabled(const String &p_addon, bool p_enabled,
 				pending_addons.push_back(p_addon);
 				return;
 			}
-
 			show_warning(vformat(TTR("Unable to load addon script from path: '%s'. This might be due to a code error in that script.\nDisabling the addon at '%s' to prevent further errors."), script_path, addon_path));
 			_remove_plugin_from_enabled(addon_path);
 			return;
@@ -3781,7 +3729,6 @@ void EditorNode::set_addon_plugin_enabled(const String &p_addon, bool p_enabled,
 			return;
 		}
 	}
-
 	EditorPlugin *ep = memnew(EditorPlugin);
 	ep->set_script(scr);
 	ep->set_plugin_version(plugin_version);
@@ -3795,7 +3742,6 @@ bool EditorNode::is_addon_plugin_enabled(const String &p_addon) const {
 	if (p_addon.begins_with("res://")) {
 		return addon_name_to_plugin.has(p_addon);
 	}
-
 	return addon_name_to_plugin.has("res://addons/" + p_addon + "/plugin.cfg");
 }
 
@@ -3898,6 +3844,7 @@ void EditorNode::_set_main_scene_state(Dictionary p_state, Node *p_for_scene) {
 	if (p_state.has("scene_tree_offset")) {
 		SceneTreeDock::get_singleton()->get_tree_editor()->get_scene_tree()->get_vscroll_bar()->set_value(p_state["scene_tree_offset"]);
 	}
+
 	if (p_state.has("property_edit_offset")) {
 		InspectorDock::get_inspector_singleton()->set_scroll_offset(p_state["property_edit_offset"]);
 	}
@@ -3907,7 +3854,6 @@ void EditorNode::_set_main_scene_state(Dictionary p_state, Node *p_for_scene) {
 	}
 
 	// This should only happen at the very end.
-
 	EditorDebuggerNode::get_singleton()->update_live_edit_root();
 	ScriptEditor::get_singleton()->set_scene_root_script(editor_data.get_scene_root_script(editor_data.get_edited_scene()));
 	editor_data.notify_edited_scene_changed();
@@ -3925,7 +3871,6 @@ void EditorNode::_set_current_scene(int p_idx) {
 	if (p_idx == editor_data.get_edited_scene()) {
 		return; // Pointless.
 	}
-
 	_set_current_scene_nocheck(p_idx);
 }
 
@@ -3969,7 +3914,6 @@ void EditorNode::_set_current_scene_nocheck(int p_idx) {
 		if (!editor_data.get_scene_path(p_idx).is_empty()) {
 			editor_folding.load_scene_folding(editor_data.get_edited_scene_root(p_idx), editor_data.get_scene_path(p_idx));
 		}
-
 		EditorUndoRedoManager::get_singleton()->clear_history(editor_data.get_scene_history_id(p_idx), false);
 	}
 
@@ -3982,7 +3926,6 @@ void EditorNode::_set_current_scene_nocheck(int p_idx) {
 	if (tabs_to_close.is_empty()) {
 		callable_mp(this, &EditorNode::_set_main_scene_state).call_deferred(state, get_edited_scene()); // Do after everything else is done setting up.
 	}
-
 	_update_undo_redo_allowed();
 }
 
@@ -4005,7 +3948,6 @@ bool EditorNode::is_scene_open(const String &p_path) {
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -4031,7 +3973,6 @@ int EditorNode::new_scene() {
 			}
 		}
 	}
-
 	editor_data.clear_editor_states();
 	scene_tabs->update_scene_tabs();
 	return idx;
@@ -4044,6 +3985,8 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 	}
 
 	String lpath = ProjectSettings::get_singleton()->localize_path(ResourceUID::ensure_path(p_scene));
+	_update_prev_closed_scenes(lpath, false);
+
 	if (!p_set_inherited) {
 		for (int i = 0; i < editor_data.get_edited_scene_count(); i++) {
 			if (editor_data.get_scene_path(i) == lpath) {
@@ -4063,7 +4006,6 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 
 	if (!lpath.begins_with("res://")) {
 		show_accept(TTR("Error loading scene, it must be inside the project path. Use 'Import' to open the scene, then save it inside the project path."), TTR("OK"));
-		opening_prev = false;
 		return ERR_FILE_NOT_FOUND;
 	}
 
@@ -4093,9 +4035,7 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 		for (const String &E : dependency_errors[lpath]) {
 			errors.push_back(E);
 		}
-		dependency_error->show(DependencyErrorDialog::MODE_SCENE, lpath, errors);
-		opening_prev = false;
-
+		dependency_error->show(lpath, errors);
 		if (prev != -1 && prev != idx) {
 			_set_current_scene(prev);
 			editor_data.remove_scene(idx);
@@ -4105,8 +4045,6 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 
 	if (sdata.is_null()) {
 		_dialog_display_load_error(lpath, err);
-		opening_prev = false;
-
 		if (prev != -1 && prev != idx) {
 			_set_current_scene(prev);
 			editor_data.remove_scene(idx);
@@ -4142,7 +4080,6 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 	if (!new_scene) {
 		sdata.unref();
 		_dialog_display_load_error(lpath, ERR_FILE_CORRUPT);
-		opening_prev = false;
 		if (prev != -1 && prev != idx) {
 			_set_current_scene(prev);
 			editor_data.remove_scene(idx);
@@ -4175,8 +4112,6 @@ Error EditorNode::load_scene(const String &p_scene, bool p_ignore_broken_deps, b
 		editor_folding.unfold_scene(new_scene);
 		editor_folding.save_scene_folding(new_scene, lpath);
 	}
-
-	opening_prev = false;
 
 	EditorDebuggerNode::get_singleton()->update_live_edit_root();
 
@@ -4558,19 +4493,8 @@ void EditorNode::replace_history_reimported_nodes(Node *p_original_root_node, No
 	}
 }
 
-void EditorNode::open_request(const String &p_path, bool p_set_inherited) {
-	if (!opening_prev) {
-		List<String>::Element *prev_scene_item = previous_scenes.find(p_path);
-		if (prev_scene_item != nullptr) {
-			prev_scene_item->erase();
-		}
-	}
-
-	load_scene(p_path, false, p_set_inherited); // As it will be opened in separate tab.
-}
-
-bool EditorNode::has_previous_scenes() const {
-	return !previous_scenes.is_empty();
+bool EditorNode::has_previous_closed_scenes() const {
+	return !prev_closed_scenes.is_empty();
 }
 
 void EditorNode::edit_foreign_resource(Ref<Resource> p_resource) {
@@ -4651,6 +4575,17 @@ void EditorNode::_show_messages() {
 	center_split->set_split_offset(old_split_ofs);
 }
 
+void EditorNode::_update_prev_closed_scenes(const String &p_scene_path, bool p_add_scene) {
+	if (!p_scene_path.is_empty()) {
+		if (p_add_scene) {
+			prev_closed_scenes.push_back(p_scene_path);
+		} else {
+			prev_closed_scenes.erase(p_scene_path);
+		}
+		file_menu->set_item_disabled(file_menu->get_item_index(FILE_OPEN_PREV), prev_closed_scenes.is_empty());
+	}
+}
+
 void EditorNode::_add_to_recent_scenes(const String &p_scene) {
 	Array rc = EditorSettings::get_singleton()->get_project_metadata("recent_files", "scenes", Array());
 	if (rc.has(p_scene)) {
@@ -4660,7 +4595,6 @@ void EditorNode::_add_to_recent_scenes(const String &p_scene) {
 	if (rc.size() > 10) {
 		rc.resize(10);
 	}
-
 	EditorSettings::get_singleton()->set_project_metadata("recent_files", "scenes", rc);
 	_update_recent_scenes();
 }
@@ -4690,18 +4624,13 @@ void EditorNode::_update_recent_scenes() {
 		path = rc[i];
 		recent_scenes->add_item(path.replace("res://", ""), i);
 	}
-
 	recent_scenes->add_separator();
 	recent_scenes->add_shortcut(ED_SHORTCUT("editor/clear_recent", TTRC("Clear Recent Scenes")));
 	recent_scenes->reset_size();
 }
 
 void EditorNode::_quick_opened(const String &p_file_path) {
-	if (ClassDB::is_parent_class(ResourceLoader::get_resource_type(p_file_path), "PackedScene")) {
-		open_request(p_file_path);
-	} else {
-		load_resource(p_file_path);
-	}
+	load_scene_or_resource(p_file_path);
 }
 
 void EditorNode::_project_run_started() {
@@ -7896,7 +7825,6 @@ EditorNode::EditorNode() {
 
 	file_menu->connect(SceneStringName(id_pressed), callable_mp(this, &EditorNode::_menu_option));
 	file_menu->connect("about_to_popup", callable_mp(this, &EditorNode::_update_file_menu_opened));
-	file_menu->connect("popup_hide", callable_mp(this, &EditorNode::_update_file_menu_closed));
 
 	settings_menu->connect(SceneStringName(id_pressed), callable_mp(this, &EditorNode::_menu_option));
 
@@ -7930,7 +7858,6 @@ EditorNode::EditorNode() {
 		disk_changed->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_reload_modified_scenes));
 		disk_changed->connect(SceneStringName(confirmed), callable_mp(this, &EditorNode::_reload_project_settings));
 		disk_changed->set_ok_button_text(TTR("Reload from disk"));
-
 		disk_changed->add_button(TTR("Ignore external changes"), !DisplayServer::get_singleton()->get_swap_cancel_ok(), "resave");
 		disk_changed->connect("custom_action", callable_mp(this, &EditorNode::_resave_scenes));
 	}

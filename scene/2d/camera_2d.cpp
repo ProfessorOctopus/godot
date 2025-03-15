@@ -1,36 +1,7 @@
-/**************************************************************************/
-/*  camera_2d.cpp                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "camera_2d.h"
-
 #include "core/config/project_settings.h"
+#include "core/input/input.h"
 #include "scene/main/viewport.h"
 
 bool Camera2D::_is_editing_in_editor() const {
@@ -40,6 +11,58 @@ bool Camera2D::_is_editing_in_editor() const {
 	return false;
 #endif // TOOLS_ENABLED
 }
+
+#ifdef TOOLS_ENABLED
+Dictionary Camera2D::_edit_get_state() const {
+	Dictionary state = Node2D::_edit_get_state();
+	state["limit_rect"] = get_limit_rect();
+	return state;
+}
+
+void Camera2D::_edit_set_state(const Dictionary &p_state) {
+	if (p_state.has("limit_rect")) {
+		_set_limit_rect(p_state["limit_rect"]);
+	}
+	Node2D::_edit_set_state(p_state);
+}
+
+void Camera2D::_edit_set_position(const Point2 &p_position) {
+	if (_is_dragging_limit_rect()) {
+		Rect2 rect = get_limit_rect();
+		rect.position = p_position;
+		_set_limit_rect(rect);
+	} else {
+		Node2D::_edit_set_position(p_position);
+	}
+}
+
+Point2 Camera2D::_edit_get_position() const {
+	return _is_dragging_limit_rect() ? get_limit_rect().position : Node2D::_edit_get_position();
+}
+
+void Camera2D::_edit_set_rect(const Rect2 &p_rect) {
+	ERR_FAIL_COND(limit_enabled && !_edit_use_rect());
+	Rect2 rect = p_rect;
+	Vector2 scl = get_global_scale().abs();
+	rect.size *= scl;
+	rect.position = (rect.position + get_global_position()) * scl;
+	_set_limit_rect(rect);
+}
+#endif // TOOLS_ENABLED
+
+#ifdef DEBUG_ENABLED
+Rect2 Camera2D::_edit_get_rect() const {
+	Rect2 rect = get_limit_rect();
+	Vector2 scl = get_global_scale().abs();
+	rect.size /= scl;
+	rect.position = (rect.position - get_global_position()) / scl;
+	return rect;
+}
+
+bool Camera2D::_edit_use_rect() const {
+	return limit_enabled;
+}
+#endif // DEBUG_ENABLED
 
 void Camera2D::_update_scroll() {
 	if (!is_inside_tree() || !viewport) {
@@ -75,6 +98,10 @@ void Camera2D::_update_scroll() {
 }
 
 #ifdef TOOLS_ENABLED
+bool Camera2D::_is_dragging_limit_rect() const {
+	return _edit_use_rect() && Input::get_singleton()->is_key_pressed(Key::CTRL);
+}
+
 void Camera2D::_project_settings_changed() {
 	if (screen_drawing_enabled) {
 		queue_redraw();
@@ -169,7 +196,7 @@ Transform2D Camera2D::get_camera_transform() {
 		Point2 screen_offset = (anchor_mode == ANCHOR_MODE_DRAG_CENTER ? (screen_size * 0.5 * zoom_scale) : Point2());
 		Rect2 screen_rect(-screen_offset + camera_pos, screen_size * zoom_scale);
 
-		if (limit_smoothing_enabled) {
+		if (limit_enabled && limit_smoothing_enabled) {
 			if (screen_rect.position.x < limit[SIDE_LEFT]) {
 				camera_pos.x -= screen_rect.position.x - limit[SIDE_LEFT];
 			}
@@ -222,7 +249,7 @@ Transform2D Camera2D::get_camera_transform() {
 
 	Rect2 screen_rect(-screen_offset + ret_camera_pos, screen_size * zoom_scale);
 
-	if (!position_smoothing_enabled || !limit_smoothing_enabled) {
+	if (limit_enabled && (!position_smoothing_enabled || !limit_smoothing_enabled)) {
 		if (screen_rect.position.x < limit[SIDE_LEFT]) {
 			screen_rect.position.x = limit[SIDE_LEFT];
 		}
@@ -398,8 +425,7 @@ void Camera2D::_notification(int p_what) {
 				}
 			}
 
-			if (limit_drawing_enabled) {
-				Color limit_drawing_color(1, 1, 0.25, 0.63);
+			if (limit_enabled && limit_drawing_enabled) {
 				real_t limit_drawing_width = -1;
 				if (is_current()) {
 					limit_drawing_width = 3;
@@ -415,7 +441,7 @@ void Camera2D::_notification(int p_what) {
 				};
 
 				for (int i = 0; i < 4; i++) {
-					draw_line(limit_points[i], limit_points[(i + 1) % 4], limit_drawing_color, limit_drawing_width);
+					draw_line(limit_points[i], limit_points[(i + 1) % 4], Color(1, 1, 0.25, 0.63), limit_drawing_width);
 				}
 			}
 
@@ -484,6 +510,22 @@ bool Camera2D::is_ignoring_rotation() const {
 	return ignore_rotation;
 }
 
+void Camera2D::set_limit_enabled(bool p_limit_enabled) {
+	if (p_limit_enabled == limit_enabled) {
+		return;
+	}
+	limit_enabled = p_limit_enabled;
+	_update_scroll();
+#ifdef TOOLS_ENABLED
+	emit_signal("_camera_limit_enabled_updated"); // Used for Camera2DEditorPlugin
+#endif
+	notify_property_list_changed();
+}
+
+bool Camera2D::is_limit_enabled() const {
+	return limit_enabled;
+}
+
 void Camera2D::set_process_callback(Camera2DProcessCallback p_mode) {
 	if (process_callback == p_mode) {
 		return;
@@ -546,6 +588,18 @@ void Camera2D::_update_process_internal_for_smoothing() {
 
 	bool enable = is_any_smoothing_valid && is_not_in_scene_or_editor;
 	set_process_internal(enable);
+}
+
+void Camera2D::_set_limit_rect(const Rect2 &p_limit_rect) {
+	Point2 limit_rect_end = p_limit_rect.get_end();
+	set_limit(SIDE_LEFT, p_limit_rect.position.x);
+	set_limit(SIDE_TOP, p_limit_rect.position.y);
+	set_limit(SIDE_RIGHT, limit_rect_end.x);
+	set_limit(SIDE_BOTTOM, limit_rect_end.y);
+}
+
+Rect2 Camera2D::get_limit_rect() const {
+	return Rect2(limit[SIDE_LEFT], limit[SIDE_TOP], limit[SIDE_RIGHT] - limit[SIDE_LEFT], limit[SIDE_BOTTOM] - limit[SIDE_TOP]);
 }
 
 void Camera2D::make_current() {
@@ -817,6 +871,9 @@ bool Camera2D::is_margin_drawing_enabled() const {
 }
 
 void Camera2D::_validate_property(PropertyInfo &p_property) const {
+	if (!limit_enabled && (p_property.name == "limit_smoothed" || p_property.name == "limit_left" || p_property.name == "limit_top" || p_property.name == "limit_right" || p_property.name == "limit_bottom")) {
+		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
+	}
 	if (!position_smoothing_enabled && p_property.name == "position_smoothing_speed") {
 		p_property.usage = PROPERTY_USAGE_NO_EDITOR;
 	}
@@ -828,79 +885,56 @@ void Camera2D::_validate_property(PropertyInfo &p_property) const {
 void Camera2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_offset", "offset"), &Camera2D::set_offset);
 	ClassDB::bind_method(D_METHOD("get_offset"), &Camera2D::get_offset);
-
 	ClassDB::bind_method(D_METHOD("set_anchor_mode", "anchor_mode"), &Camera2D::set_anchor_mode);
 	ClassDB::bind_method(D_METHOD("get_anchor_mode"), &Camera2D::get_anchor_mode);
-
 	ClassDB::bind_method(D_METHOD("set_ignore_rotation", "ignore"), &Camera2D::set_ignore_rotation);
 	ClassDB::bind_method(D_METHOD("is_ignoring_rotation"), &Camera2D::is_ignoring_rotation);
-
 	ClassDB::bind_method(D_METHOD("_update_scroll"), &Camera2D::_update_scroll);
-
 	ClassDB::bind_method(D_METHOD("set_process_callback", "mode"), &Camera2D::set_process_callback);
 	ClassDB::bind_method(D_METHOD("get_process_callback"), &Camera2D::get_process_callback);
-
 	ClassDB::bind_method(D_METHOD("set_enabled", "enabled"), &Camera2D::set_enabled);
 	ClassDB::bind_method(D_METHOD("is_enabled"), &Camera2D::is_enabled);
-
 	ClassDB::bind_method(D_METHOD("make_current"), &Camera2D::make_current);
 	ClassDB::bind_method(D_METHOD("is_current"), &Camera2D::is_current);
 	ClassDB::bind_method(D_METHOD("_make_current"), &Camera2D::_make_current);
-
+	ClassDB::bind_method(D_METHOD("set_limit_enabled", "limit_enabled"), &Camera2D::set_limit_enabled);
+	ClassDB::bind_method(D_METHOD("is_limit_enabled"), &Camera2D::is_limit_enabled);
 	ClassDB::bind_method(D_METHOD("set_limit", "margin", "limit"), &Camera2D::set_limit);
 	ClassDB::bind_method(D_METHOD("get_limit", "margin"), &Camera2D::get_limit);
-
 	ClassDB::bind_method(D_METHOD("set_limit_smoothing_enabled", "limit_smoothing_enabled"), &Camera2D::set_limit_smoothing_enabled);
 	ClassDB::bind_method(D_METHOD("is_limit_smoothing_enabled"), &Camera2D::is_limit_smoothing_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_drag_vertical_enabled", "enabled"), &Camera2D::set_drag_vertical_enabled);
 	ClassDB::bind_method(D_METHOD("is_drag_vertical_enabled"), &Camera2D::is_drag_vertical_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_drag_horizontal_enabled", "enabled"), &Camera2D::set_drag_horizontal_enabled);
 	ClassDB::bind_method(D_METHOD("is_drag_horizontal_enabled"), &Camera2D::is_drag_horizontal_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_drag_vertical_offset", "offset"), &Camera2D::set_drag_vertical_offset);
 	ClassDB::bind_method(D_METHOD("get_drag_vertical_offset"), &Camera2D::get_drag_vertical_offset);
-
 	ClassDB::bind_method(D_METHOD("set_drag_horizontal_offset", "offset"), &Camera2D::set_drag_horizontal_offset);
 	ClassDB::bind_method(D_METHOD("get_drag_horizontal_offset"), &Camera2D::get_drag_horizontal_offset);
-
 	ClassDB::bind_method(D_METHOD("set_drag_margin", "margin", "drag_margin"), &Camera2D::set_drag_margin);
 	ClassDB::bind_method(D_METHOD("get_drag_margin", "margin"), &Camera2D::get_drag_margin);
-
 	ClassDB::bind_method(D_METHOD("get_target_position"), &Camera2D::get_camera_position);
 	ClassDB::bind_method(D_METHOD("get_screen_center_position"), &Camera2D::get_camera_screen_center);
-
 	ClassDB::bind_method(D_METHOD("set_zoom", "zoom"), &Camera2D::set_zoom);
 	ClassDB::bind_method(D_METHOD("get_zoom"), &Camera2D::get_zoom);
-
 	ClassDB::bind_method(D_METHOD("set_custom_viewport", "viewport"), &Camera2D::set_custom_viewport);
 	ClassDB::bind_method(D_METHOD("get_custom_viewport"), &Camera2D::get_custom_viewport);
-
 	ClassDB::bind_method(D_METHOD("set_position_smoothing_speed", "position_smoothing_speed"), &Camera2D::set_position_smoothing_speed);
 	ClassDB::bind_method(D_METHOD("get_position_smoothing_speed"), &Camera2D::get_position_smoothing_speed);
-
 	ClassDB::bind_method(D_METHOD("set_position_smoothing_enabled", "position_smoothing_speed"), &Camera2D::set_position_smoothing_enabled);
 	ClassDB::bind_method(D_METHOD("is_position_smoothing_enabled"), &Camera2D::is_position_smoothing_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_rotation_smoothing_enabled", "enabled"), &Camera2D::set_rotation_smoothing_enabled);
 	ClassDB::bind_method(D_METHOD("is_rotation_smoothing_enabled"), &Camera2D::is_rotation_smoothing_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_rotation_smoothing_speed", "speed"), &Camera2D::set_rotation_smoothing_speed);
 	ClassDB::bind_method(D_METHOD("get_rotation_smoothing_speed"), &Camera2D::get_rotation_smoothing_speed);
-
 	ClassDB::bind_method(D_METHOD("force_update_scroll"), &Camera2D::force_update_scroll);
 	ClassDB::bind_method(D_METHOD("reset_smoothing"), &Camera2D::reset_smoothing);
 	ClassDB::bind_method(D_METHOD("align"), &Camera2D::align);
-
 	ClassDB::bind_method(D_METHOD("_set_old_smoothing", "follow_smoothing"), &Camera2D::_set_old_smoothing);
-
 	ClassDB::bind_method(D_METHOD("set_screen_drawing_enabled", "screen_drawing_enabled"), &Camera2D::set_screen_drawing_enabled);
 	ClassDB::bind_method(D_METHOD("is_screen_drawing_enabled"), &Camera2D::is_screen_drawing_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_limit_drawing_enabled", "limit_drawing_enabled"), &Camera2D::set_limit_drawing_enabled);
 	ClassDB::bind_method(D_METHOD("is_limit_drawing_enabled"), &Camera2D::is_limit_drawing_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_margin_drawing_enabled", "margin_drawing_enabled"), &Camera2D::set_margin_drawing_enabled);
 	ClassDB::bind_method(D_METHOD("is_margin_drawing_enabled"), &Camera2D::is_margin_drawing_enabled);
 
@@ -913,6 +947,7 @@ void Camera2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "process_callback", PROPERTY_HINT_ENUM, "Physics,Idle"), "set_process_callback", "get_process_callback");
 
 	ADD_GROUP("Limit", "limit_");
+	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "limit_enabled"), "set_limit_enabled", "is_limit_enabled");
 	ADD_PROPERTYI(PropertyInfo(Variant::INT, "limit_left", PROPERTY_HINT_NONE, "suffix:px"), "set_limit", "get_limit", SIDE_LEFT);
 	ADD_PROPERTYI(PropertyInfo(Variant::INT, "limit_top", PROPERTY_HINT_NONE, "suffix:px"), "set_limit", "get_limit", SIDE_TOP);
 	ADD_PROPERTYI(PropertyInfo(Variant::INT, "limit_right", PROPERTY_HINT_NONE, "suffix:px"), "set_limit", "get_limit", SIDE_RIGHT);
@@ -961,4 +996,8 @@ Camera2D::Camera2D() {
 
 	set_notify_transform(true);
 	set_hide_clip_children(true);
+
+#ifdef TOOLS_ENABLED
+	add_user_signal(MethodInfo("_camera_limit_enabled_updated")); // Camera2DEditorPlugin listens to this
+#endif
 }

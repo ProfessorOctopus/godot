@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  plane.h                                                               */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/math/vector3.h"
 
 class Variant;
@@ -45,7 +15,6 @@ struct [[nodiscard]] Plane {
 	Plane normalized() const;
 
 	/* Plane-Point operations */
-
 	_FORCE_INLINE_ Vector3 get_center() const { return normal * d; }
 	Vector3 get_any_perpendicular_normal() const;
 
@@ -54,7 +23,6 @@ struct [[nodiscard]] Plane {
 	_FORCE_INLINE_ bool has_point(const Vector3 &p_point, real_t p_tolerance = CMP_EPSILON) const;
 
 	/* intersections */
-
 	bool intersect_3(const Plane &p_plane1, const Plane &p_plane2, Vector3 *r_result = nullptr) const;
 	bool intersects_ray(const Vector3 &p_from, const Vector3 &p_dir, Vector3 *p_intersection) const;
 	bool intersects_segment(const Vector3 &p_begin, const Vector3 &p_end, Vector3 *p_intersection) const;
@@ -69,7 +37,6 @@ struct [[nodiscard]] Plane {
 	}
 
 	/* misc */
-
 	Plane operator-() const { return Plane(-normal, -d); }
 	bool is_equal_approx(const Plane &p_plane) const;
 	bool is_same(const Plane &p_plane) const;
@@ -132,3 +99,6 @@ bool Plane::operator==(const Plane &p_plane) const {
 bool Plane::operator!=(const Plane &p_plane) const {
 	return normal != p_plane.normal || d != p_plane.d;
 }
+
+template <>
+struct is_zero_constructible<Plane> : std::true_type {};

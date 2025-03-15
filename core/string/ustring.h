@@ -1,37 +1,6 @@
-/**************************************************************************/
-/*  ustring.h                                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 // Note: _GODOT suffix added to header guard to avoid conflict with ICU header.
-
 #include "core/string/char_utils.h"
 #include "core/templates/cowdata.h"
 #include "core/templates/vector.h"
@@ -41,7 +10,6 @@
 /*************************************************************************/
 /*  Utility Functions                                                    */
 /*************************************************************************/
-
 // Not defined by std.
 // strlen equivalent function for char16_t * arguments.
 constexpr size_t strlen(const char16_t *p_str) {
@@ -77,7 +45,6 @@ constexpr size_t _strlen_clipped(const char *p_str, int p_clip_to_len) {
 	if (p_clip_to_len < 0) {
 		return strlen(p_str);
 	}
-
 	int len = 0;
 	while (len < p_clip_to_len && *(p_str++) != 0) {
 		len++;
@@ -100,7 +67,6 @@ constexpr size_t _strlen_clipped(const char32_t *p_str, int p_clip_to_len) {
 /*************************************************************************/
 /*  CharProxy                                                            */
 /*************************************************************************/
-
 template <typename T>
 class CharProxy {
 	friend class Char16String;
@@ -144,7 +110,6 @@ public:
 /*************************************************************************/
 /*  Char16String                                                         */
 /*************************************************************************/
-
 class Char16String {
 	CowData<char16_t> _cowdata;
 	static const char16_t _null;
@@ -191,7 +156,6 @@ protected:
 /*************************************************************************/
 /*  CharString                                                           */
 /*************************************************************************/
-
 class CharString {
 	CowData<char> _cowdata;
 	static const char _null;
@@ -239,7 +203,6 @@ protected:
 /*************************************************************************/
 /*  String                                                               */
 /*************************************************************************/
-
 class String {
 	CowData<char32_t> _cowdata;
 	static const char32_t _null;
@@ -304,7 +267,6 @@ public:
 	_FORCE_INLINE_ char32_t *ptrw() { return _cowdata.ptrw(); }
 	_FORCE_INLINE_ const char32_t *ptr() const { return _cowdata.ptr(); }
 	_FORCE_INLINE_ int size() const { return _cowdata.size(); }
-
 	_FORCE_INLINE_ operator Span<char32_t>() const { return Span(ptr(), length()); }
 	_FORCE_INLINE_ Span<char32_t> span() const { return Span(ptr(), length()); }
 
@@ -326,31 +288,25 @@ public:
 	_FORCE_INLINE_ CharProxy<char32_t> operator[](int p_index) { return CharProxy<char32_t>(p_index, _cowdata); }
 
 	/* Compatibility Operators */
-
 	bool operator==(const String &p_str) const;
 	bool operator!=(const String &p_str) const;
 	String operator+(const String &p_str) const;
 	String operator+(char32_t p_char) const;
-
 	String &operator+=(const String &);
 	String &operator+=(char32_t p_char);
 	String &operator+=(const char *p_str);
 	String &operator+=(const wchar_t *p_str);
 	String &operator+=(const char32_t *p_str);
-
 	bool operator==(const char *p_str) const;
 	bool operator==(const wchar_t *p_str) const;
 	bool operator==(const char32_t *p_str) const;
 	bool operator==(const Span<char32_t> &p_str_range) const;
-
 	bool operator!=(const char *p_str) const;
 	bool operator!=(const wchar_t *p_str) const;
 	bool operator!=(const char32_t *p_str) const;
-
 	bool operator<(const char32_t *p_str) const;
 	bool operator<(const char *p_str) const;
 	bool operator<(const wchar_t *p_str) const;
-
 	bool operator<(const String &p_str) const;
 	bool operator<=(const String &p_str) const;
 	bool operator>(const String &p_str) const;
@@ -360,6 +316,7 @@ public:
 	signed char nocasecmp_to(const String &p_str) const;
 	signed char naturalcasecmp_to(const String &p_str) const;
 	signed char naturalnocasecmp_to(const String &p_str) const;
+
 	// Special sorting for file names. Names starting with `_` are put before all others except those starting with `.`, otherwise natural comparison is used.
 	signed char filecasecmp_to(const String &p_str) const;
 	signed char filenocasecmp_to(const String &p_str) const;
@@ -434,7 +391,11 @@ public:
 	static String num_real(float p_num, bool p_trailing = true);
 	static String num_int64(int64_t p_num, int base = 10, bool capitalize_hex = false);
 	static String num_uint64(uint64_t p_num, int base = 10, bool capitalize_hex = false);
-	static String chr(char32_t p_char);
+	static String chr(char32_t p_char) {
+		String string;
+		string.parse_utf32(p_char);
+		return string;
+	}
 	static String md5(const uint8_t *p_md5);
 	static String hex_encode_buffer(const uint8_t *p_buffer, int p_len);
 	Vector<uint8_t> hex_decode() const;
@@ -606,7 +567,6 @@ public:
 	/**
 	 * The constructors must not depend on other overloads
 	 */
-
 	_FORCE_INLINE_ String() {}
 	_FORCE_INLINE_ String(const String &p_str) { _cowdata._ref(p_str._cowdata); }
 	_FORCE_INLINE_ String(String &&p_str) :
@@ -652,11 +612,14 @@ public:
 	}
 };
 
+// Zero-constructing String initializes _cowdata.ptr() to nullptr and thus empty.
+template <>
+struct is_zero_constructible<String> : std::true_type {};
+
 bool operator==(const char *p_chr, const String &p_str);
 bool operator==(const wchar_t *p_chr, const String &p_str);
 bool operator!=(const char *p_chr, const String &p_str);
 bool operator!=(const wchar_t *p_chr, const String &p_str);
-
 String operator+(const char *p_chr, const String &p_str);
 String operator+(const wchar_t *p_chr, const String &p_str);
 String operator+(char32_t p_chr, const String &p_str);
@@ -701,12 +664,10 @@ _FORCE_INLINE_ bool is_str_less(const L *l_ptr, const R *r_ptr) {
 		} else if (l > r) {
 			return false;
 		}
-
 		l_ptr++;
 		r_ptr++;
 	}
 }
-
 /* end of namespace */
 
 // Tool translate (TTR and variants) for the editor UI,
@@ -780,8 +741,7 @@ _FORCE_INLINE_ String ETRN(const String &p_text, const String &p_text_plural, in
 
 bool select_word(const String &p_s, int p_col, int &r_beg, int &r_end);
 
-_FORCE_INLINE_ void sarray_add_str(Vector<String> &arr) {
-}
+_FORCE_INLINE_ void sarray_add_str(Vector<String> &arr) {}
 
 _FORCE_INLINE_ void sarray_add_str(Vector<String> &arr, const String &p_str) {
 	arr.push_back(p_str);

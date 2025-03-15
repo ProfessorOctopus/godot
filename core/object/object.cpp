@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  object.cpp                                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "object.h"
-
 #include "core/extension/gdextension_manager.h"
 #include "core/io/resource.h"
 #include "core/object/class_db.h"
@@ -41,7 +11,6 @@
 #include "core/variant/typed_array.h"
 
 #ifdef DEBUG_ENABLED
-
 struct _ObjectDebugLock {
 	ObjectID obj_id;
 
@@ -58,12 +27,9 @@ struct _ObjectDebugLock {
 };
 
 #define OBJ_DEBUG_LOCK _ObjectDebugLock _debug_lock(this);
-
 #else
-
 #define OBJ_DEBUG_LOCK
-
-#endif
+#endif // DEBUG_ENABLED
 
 PropertyInfo::operator Dictionary() const {
 	Dictionary d;
@@ -102,7 +68,6 @@ PropertyInfo PropertyInfo::from_dict(const Dictionary &p_dict) {
 	if (p_dict.has("usage")) {
 		pi.usage = p_dict["usage"];
 	}
-
 	return pi;
 }
 
@@ -111,7 +76,6 @@ TypedArray<Dictionary> convert_property_list(const List<PropertyInfo> *p_list) {
 	for (const List<PropertyInfo>::Element *E = p_list->front(); E; E = E->next()) {
 		va.push_back(Dictionary(E->get()));
 	}
-
 	return va;
 }
 
@@ -1640,12 +1604,9 @@ void Object::_clear_internal_resource_paths(const Variant &p_var) {
 		} break;
 		case Variant::DICTIONARY: {
 			Dictionary d = p_var;
-			List<Variant> keys;
-			d.get_key_list(&keys);
-
-			for (const Variant &E : keys) {
-				_clear_internal_resource_paths(E);
-				_clear_internal_resource_paths(d[E]);
+			for (const KeyValue<Variant, Variant> &kv : d) {
+				_clear_internal_resource_paths(kv.key);
+				_clear_internal_resource_paths(kv.value);
 			}
 		} break;
 		default: {
@@ -1669,8 +1630,7 @@ void Object::editor_set_section_unfold(const String &p_section, bool p_unfolded,
 bool Object::editor_is_section_unfolded(const String &p_section) {
 	return editor_section_folding.has(p_section);
 }
-
-#endif
+#endif // TOOLS_ENABLED
 
 void Object::clear_internal_resource_paths() {
 	List<PropertyInfo> pinfo;
@@ -1700,20 +1660,16 @@ void Object::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("notification", "what", "reversed"), &Object::notification, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("to_string"), &Object::to_string);
 	ClassDB::bind_method(D_METHOD("get_instance_id"), &Object::get_instance_id);
-
 	ClassDB::bind_method(D_METHOD("set_script", "script"), &Object::set_script);
 	ClassDB::bind_method(D_METHOD("get_script"), &Object::get_script);
-
 	ClassDB::bind_method(D_METHOD("set_meta", "name", "value"), &Object::set_meta);
 	ClassDB::bind_method(D_METHOD("remove_meta", "name"), &Object::remove_meta);
 	ClassDB::bind_method(D_METHOD("get_meta", "name", "default"), &Object::get_meta, DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("has_meta", "name"), &Object::has_meta);
 	ClassDB::bind_method(D_METHOD("get_meta_list"), &Object::_get_meta_list_bind);
-
 	ClassDB::bind_method(D_METHOD("add_user_signal", "signal", "arguments"), &Object::_add_user_signal, DEFVAL(Array()));
 	ClassDB::bind_method(D_METHOD("has_user_signal", "signal"), &Object::_has_user_signal);
 	ClassDB::bind_method(D_METHOD("remove_user_signal", "signal"), &Object::_remove_user_signal);
-
 	{
 		MethodInfo mi;
 		mi.name = "emit_signal";
@@ -1721,7 +1677,6 @@ void Object::_bind_methods() {
 
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "emit_signal", &Object::_emit_signal, mi, varray(), false);
 	}
-
 	{
 		MethodInfo mi;
 		mi.name = "call";
@@ -1729,7 +1684,6 @@ void Object::_bind_methods() {
 
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "call", &Object::_call_bind, mi);
 	}
-
 	{
 		MethodInfo mi;
 		mi.name = "call_deferred";
@@ -1739,34 +1693,26 @@ void Object::_bind_methods() {
 	}
 
 	ClassDB::bind_method(D_METHOD("set_deferred", "property", "value"), &Object::set_deferred);
-
 	ClassDB::bind_method(D_METHOD("callv", "method", "arg_array"), &Object::callv);
-
 	ClassDB::bind_method(D_METHOD("has_method", "method"), &Object::has_method);
-
 	ClassDB::bind_method(D_METHOD("get_method_argument_count", "method"), &Object::_get_method_argument_count_bind);
-
 	ClassDB::bind_method(D_METHOD("has_signal", "signal"), &Object::has_signal);
 	ClassDB::bind_method(D_METHOD("get_signal_list"), &Object::_get_signal_list);
 	ClassDB::bind_method(D_METHOD("get_signal_connection_list", "signal"), &Object::_get_signal_connection_list);
 	ClassDB::bind_method(D_METHOD("get_incoming_connections"), &Object::_get_incoming_connections);
-
 	ClassDB::bind_method(D_METHOD("connect", "signal", "callable", "flags"), &Object::connect, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("disconnect", "signal", "callable"), &Object::disconnect);
 	ClassDB::bind_method(D_METHOD("is_connected", "signal", "callable"), &Object::is_connected);
 	ClassDB::bind_method(D_METHOD("has_connections", "signal"), &Object::has_connections);
-
 	ClassDB::bind_method(D_METHOD("set_block_signals", "enable"), &Object::set_block_signals);
 	ClassDB::bind_method(D_METHOD("is_blocking_signals"), &Object::is_blocking_signals);
 	ClassDB::bind_method(D_METHOD("notify_property_list_changed"), &Object::notify_property_list_changed);
-
 	ClassDB::bind_method(D_METHOD("set_message_translation", "enable"), &Object::set_message_translation);
 	ClassDB::bind_method(D_METHOD("can_translate_messages"), &Object::can_translate_messages);
 	ClassDB::bind_method(D_METHOD("tr", "message", "context"), &Object::tr, DEFVAL(StringName()));
 	ClassDB::bind_method(D_METHOD("tr_n", "message", "plural_message", "n", "context"), &Object::tr_n, DEFVAL(StringName()));
 	ClassDB::bind_method(D_METHOD("get_translation_domain"), &Object::get_translation_domain);
 	ClassDB::bind_method(D_METHOD("set_translation_domain", "domain"), &Object::set_translation_domain);
-
 	ClassDB::bind_method(D_METHOD("is_queued_for_deletion"), &Object::is_queued_for_deletion);
 	ClassDB::bind_method(D_METHOD("cancel_free"), &Object::cancel_free);
 
@@ -1814,7 +1760,6 @@ void Object::_bind_methods() {
 	}
 
 	BIND_OBJ_CORE_METHOD(MethodInfo(Variant::NIL, "_validate_property", PropertyInfo(Variant::DICTIONARY, "property")));
-
 	BIND_OBJ_CORE_METHOD(MethodInfo(Variant::BOOL, "_property_can_revert", PropertyInfo(Variant::STRING_NAME, "property")));
 
 	{
@@ -1825,9 +1770,7 @@ void Object::_bind_methods() {
 	}
 
 	// These are actually `Variant` methods, but that doesn't matter since scripts can't inherit built-in types.
-
 	BIND_OBJ_CORE_METHOD(MethodInfo(Variant::BOOL, "_iter_init", PropertyInfo(Variant::ARRAY, "iter")));
-
 	BIND_OBJ_CORE_METHOD(MethodInfo(Variant::BOOL, "_iter_next", PropertyInfo(Variant::ARRAY, "iter")));
 
 	{
@@ -1836,7 +1779,7 @@ void Object::_bind_methods() {
 		mi.return_val.usage |= PROPERTY_USAGE_NIL_IS_VARIANT;
 		BIND_OBJ_CORE_METHOD(mi);
 	}
-#endif
+#endif // TOOLS_ENABLED
 
 	BIND_CONSTANT(NOTIFICATION_POSTINITIALIZE);
 	BIND_CONSTANT(NOTIFICATION_PREDELETE);
@@ -1876,7 +1819,6 @@ Variant::Type Object::get_static_property_type(const StringName &p_property, boo
 	if (r_valid) {
 		*r_valid = false;
 	}
-
 	return Variant::NIL;
 }
 
@@ -1885,7 +1827,6 @@ Variant::Type Object::get_static_property_type_indexed(const Vector<StringName> 
 		if (r_valid) {
 			*r_valid = false;
 		}
-
 		return Variant::NIL;
 	}
 
@@ -1895,7 +1836,6 @@ Variant::Type Object::get_static_property_type_indexed(const Vector<StringName> 
 		if (r_valid) {
 			*r_valid = false;
 		}
-
 		return Variant::NIL;
 	}
 
@@ -1925,7 +1865,6 @@ Variant::Type Object::get_static_property_type_indexed(const Vector<StringName> 
 	if (r_valid) {
 		*r_valid = true;
 	}
-
 	return check.get_type();
 }
 
@@ -1946,7 +1885,7 @@ bool Object::is_edited() const {
 uint32_t Object::get_edited_version() const {
 	return _edited_version;
 }
-#endif
+#endif // TOOLS_ENABLED
 
 StringName Object::get_class_name_for_extension(const GDExtension *p_library) const {
 #ifdef TOOLS_ENABLED
@@ -1957,7 +1896,7 @@ StringName Object::get_class_name_for_extension(const GDExtension *p_library) co
 		const StringName *class_name = _get_class_namev();
 		return *class_name;
 	}
-#endif
+#endif // TOOLS_ENABLED
 
 	// Only return the class name per the extension if it matches the given p_library.
 	if (_extension && _extension->library == p_library) {
@@ -1978,7 +1917,6 @@ StringName Object::get_class_name_for_extension(const GDExtension *p_library) co
 		}
 		parent_class = ClassDB::get_parent_class(parent_class);
 	}
-
 	return SNAME("Object");
 }
 
@@ -2024,11 +1962,9 @@ void *Object::get_instance_binding(void *p_token, const GDExtensionInstanceBindi
 		if (!_extension && Engine::get_singleton()->is_extension_reloading_enabled()) {
 			GDExtensionManager::get_singleton()->track_instance_binding(p_token, this);
 		}
-#endif
-
+#endif // TOOLS_ENABLED
 		_instance_binding_count++;
 	}
-
 	return binding;
 }
 
@@ -2041,7 +1977,6 @@ bool Object::has_instance_binding(void *p_token) {
 			break;
 		}
 	}
-
 	return found;
 }
 
@@ -2109,7 +2044,7 @@ void Object::reset_internal_extension(ObjectGDExtension *p_extension) {
 		_extension = p_extension;
 	}
 }
-#endif
+#endif // TOOLS_ENABLED
 
 void Object::_construct_object(bool p_reference) {
 	type_is_reference = p_reference;
@@ -2117,7 +2052,7 @@ void Object::_construct_object(bool p_reference) {
 
 #ifdef DEBUG_ENABLED
 	_lock_index.init(1);
-#endif
+#endif // DEBUG_ENABLED
 }
 
 Object::Object(bool p_reference) {
@@ -2146,7 +2081,7 @@ Object::~Object() {
 		if (_extension->untrack_instance) {
 			_extension->untrack_instance(_extension->tracking_userdata, this);
 		}
-#endif
+#endif // TOOLS_ENABLED
 		if (_extension->free_instance) {
 			_extension->free_instance(_extension->class_userdata, _extension_instance);
 		}
@@ -2163,7 +2098,7 @@ Object::~Object() {
 			}
 		}
 	}
-#endif
+#endif // TOOLS_ENABLED
 
 	if (_emitting) {
 		//@todo this may need to actually reach the debugger prioritarily somehow because it may crash before
@@ -2182,7 +2117,6 @@ Object::~Object() {
 				target->connections.erase(slot_kv.value.cE);
 			}
 		}
-
 		signal_map.erase(E.key);
 	}
 
@@ -2281,7 +2215,7 @@ void Object::get_argument_options(const StringName &p_function, int p_idx, List<
 		}
 	}
 }
-#endif
+#endif // TOOLS_ENABLED
 
 SpinLock ObjectDB::spin_lock;
 uint32_t ObjectDB::slot_count = 0;
@@ -2344,7 +2278,6 @@ void ObjectDB::remove_instance(Object *p_object) {
 	spin_lock.lock();
 
 #ifdef DEBUG_ENABLED
-
 	if (object_slots[slot].object != p_object) {
 		spin_lock.unlock();
 		ERR_FAIL_COND(object_slots[slot].object != p_object);
@@ -2356,8 +2289,8 @@ void ObjectDB::remove_instance(Object *p_object) {
 			ERR_FAIL_COND(object_slots[slot].validator != validator);
 		}
 	}
+#endif // DEBUG_ENABLED
 
-#endif
 	//decrease slot count
 	slot_count--;
 	//set the free slot properly
@@ -2370,9 +2303,8 @@ void ObjectDB::remove_instance(Object *p_object) {
 	spin_lock.unlock();
 }
 
-void ObjectDB::setup() {
-	//nothing to do now
-}
+//nothing to do now
+void ObjectDB::setup() {}
 
 void ObjectDB::cleanup() {
 	spin_lock.lock();
@@ -2413,6 +2345,5 @@ void ObjectDB::cleanup() {
 	if (object_slots) {
 		memfree(object_slots);
 	}
-
 	spin_lock.unlock();
 }

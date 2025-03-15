@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_scene_tabs.cpp                                                 */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_scene_tabs.h"
-
 #include "editor/editor_main_screen.h"
 #include "editor/editor_node.h"
 #include "editor/editor_resource_preview.h"
@@ -53,13 +23,10 @@ void EditorSceneTabs::_notification(int p_what) {
 		case NOTIFICATION_THEME_CHANGED: {
 			tabbar_panel->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("tabbar_background"), SNAME("TabContainer")));
 			scene_tabs->add_theme_constant_override("icon_max_width", get_theme_constant(SNAME("class_icon_size"), EditorStringName(Editor)));
-
 			scene_tab_add->set_button_icon(get_editor_theme_icon(SNAME("Add")));
 			scene_tab_add->add_theme_color_override("icon_normal_color", Color(0.6f, 0.6f, 0.6f, 0.8f));
-
 			scene_tab_add_ph->set_custom_minimum_size(scene_tab_add->get_minimum_size());
 		} break;
-
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("interface/scene_tabs")) {
 				scene_tabs->set_tab_close_display_policy((TabBar::CloseButtonDisplayPolicy)EDITOR_GET("interface/scene_tabs/display_close_button").operator int());
@@ -203,7 +170,7 @@ void EditorSceneTabs::_update_context_menu() {
 		scene_tabs_context_menu->set_item_text(-1, TTR("Close Tab"));
 		scene_tabs_context_menu->add_shortcut(ED_GET_SHORTCUT("editor/reopen_closed_scene"), EditorNode::FILE_OPEN_PREV);
 		scene_tabs_context_menu->set_item_text(-1, TTR("Undo Close Tab"));
-		DISABLE_LAST_OPTION_IF(!EditorNode::get_singleton()->has_previous_scenes());
+		DISABLE_LAST_OPTION_IF(!EditorNode::get_singleton()->has_previous_closed_scenes());
 		scene_tabs_context_menu->add_item(TTR("Close Other Tabs"), SCENE_CLOSE_OTHERS);
 		DISABLE_LAST_OPTION_IF(EditorNode::get_editor_data().get_edited_scene_count() <= 1);
 		scene_tabs_context_menu->add_item(TTR("Close Tabs to the Right"), SCENE_CLOSE_RIGHT);
@@ -446,7 +413,6 @@ EditorSceneTabs::EditorSceneTabs() {
 	tabbar_container->add_child(scene_tab_add_ph);
 
 	// On-hover tab preview.
-
 	Control *tab_preview_anchor = memnew(Control);
 	tab_preview_anchor->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
 	add_child(tab_preview_anchor);

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  register_types.cpp                                                    */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "register_types.h"
-
 #include "action_map/openxr_action.h"
 #include "action_map/openxr_action_map.h"
 #include "action_map/openxr_action_set.h"
@@ -37,16 +7,13 @@
 #include "action_map/openxr_interaction_profile.h"
 #include "action_map/openxr_interaction_profile_metadata.h"
 #include "openxr_interface.h"
-
 #include "extensions/openxr_extension_wrapper_extension.h"
-
 #include "scene/openxr_composition_layer.h"
 #include "scene/openxr_composition_layer_cylinder.h"
 #include "scene/openxr_composition_layer_equirect.h"
 #include "scene/openxr_composition_layer_quad.h"
 #include "scene/openxr_hand.h"
 #include "scene/openxr_visibility_mask.h"
-
 #include "extensions/openxr_composition_layer_depth_extension.h"
 #include "extensions/openxr_composition_layer_extension.h"
 #include "extensions/openxr_debug_utils_extension.h"
@@ -67,25 +34,17 @@
 #include "extensions/openxr_valve_analog_threshold_extension.h"
 #include "extensions/openxr_visibility_mask_extension.h"
 #include "extensions/openxr_wmr_controller_extension.h"
-
 #ifdef TOOLS_ENABLED
 #include "editor/openxr_editor_plugin.h"
-#endif
-
-#ifdef ANDROID_ENABLED
-#include "extensions/platform/openxr_android_extension.h"
-#endif
-
-#include "core/config/project_settings.h"
-#include "main/main.h"
-
-#ifdef TOOLS_ENABLED
 #include "editor/editor_node.h"
-
 #include "editor/openxr_binding_modifier_editor.h"
 #include "editor/openxr_interaction_profile_editor.h"
-
-#endif
+#endif // TOOLS_ENABLED
+#ifdef ANDROID_ENABLED
+#include "extensions/platform/openxr_android_extension.h"
+#endif // ANDROID_ENABLED
+#include "core/config/project_settings.h"
+#include "main/main.h"
 
 static OpenXRAPI *openxr_api = nullptr;
 static OpenXRInteractionProfileMetadata *openxr_interaction_profile_metadata = nullptr;
@@ -101,12 +60,11 @@ static void _editor_init() {
 			openxr_interaction_profile_metadata = memnew(OpenXRInteractionProfileMetadata);
 			ERR_FAIL_NULL(openxr_interaction_profile_metadata);
 		}
-
 		OpenXREditorPlugin *openxr_plugin = memnew(OpenXREditorPlugin());
 		EditorNode::get_singleton()->add_editor_plugin(openxr_plugin);
 	}
 }
-#endif
+#endif // TOOLS_ENABLED
 
 void initialize_openxr_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
@@ -120,7 +78,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 			// Some of these wrappers will add functionality to our editor.
 #ifdef ANDROID_ENABLED
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRAndroidExtension));
-#endif
+#endif // ANDROID_ENABLED
 
 			// register our other extensions
 			OpenXRAPI::register_extension_wrapper(memnew(OpenXRPalmPoseExtension));
@@ -169,7 +127,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 						"Please check if your HMD is connected.\n"
 #ifdef WINDOWS_ENABLED
 						"When using Windows Mixed Reality, note that WMR only has DirectX support. Make sure SteamVR is your default OpenXR runtime.\n"
-#endif
+#endif // WINDOWS_ENABLED
 						"Godot will start in normal mode.\n";
 
 				WARN_PRINT(init_error_message);
@@ -188,7 +146,6 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 
 	if (p_level == MODULE_INITIALIZATION_LEVEL_SCENE) {
 		GDREGISTER_CLASS(OpenXRInterface);
-
 		GDREGISTER_CLASS(OpenXRAction);
 		GDREGISTER_CLASS(OpenXRActionSet);
 		GDREGISTER_CLASS(OpenXRActionMap);
@@ -209,9 +166,7 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(OpenXRCompositionLayerEquirect);
 		GDREGISTER_CLASS(OpenXRCompositionLayerCylinder);
 		GDREGISTER_CLASS(OpenXRCompositionLayerQuad);
-
 		GDREGISTER_CLASS(OpenXRHand);
-
 		GDREGISTER_CLASS(OpenXRVisibilityMask);
 
 		XRServer *xr_server = XRServer::get_singleton();
@@ -223,15 +178,17 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 				openxr_interface->initialize();
 			}
 		}
+	}
 
 #ifdef TOOLS_ENABLED
-		GDREGISTER_ABSTRACT_CLASS(OpenXRInteractionProfileEditorBase);
-		GDREGISTER_CLASS(OpenXRInteractionProfileEditor);
-		GDREGISTER_CLASS(OpenXRBindingModifierEditor);
+		if (p_level == MODULE_INITIALIZATION_LEVEL_EDITOR) {
+			GDREGISTER_ABSTRACT_CLASS(OpenXRInteractionProfileEditorBase);
+			GDREGISTER_CLASS(OpenXRInteractionProfileEditor);
+			GDREGISTER_CLASS(OpenXRBindingModifierEditor);
 
 		EditorNode::add_init_callback(_editor_init);
-#endif
 	}
+#endif // TOOLS_ENABLED
 }
 
 void uninitialize_openxr_module(ModuleInitializationLevel p_level) {
@@ -269,7 +226,6 @@ void uninitialize_openxr_module(ModuleInitializationLevel p_level) {
 		memdelete(openxr_interaction_profile_metadata);
 		openxr_interaction_profile_metadata = nullptr;
 	}
-
 	// cleanup our extension wrappers
 	OpenXRAPI::cleanup_extension_wrappers();
 }

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  engine_debugger.cpp                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "engine_debugger.h"
-
 #include "core/debugger/local_debugger.h"
 #include "core/debugger/remote_debugger.h"
 #include "core/debugger/remote_debugger_peer.h"
@@ -116,6 +86,7 @@ void EngineDebugger::iteration(uint64_t p_frame_ticks, uint64_t p_process_ticks,
 	process_time = USEC_TO_SEC(p_process_ticks);
 	physics_time = USEC_TO_SEC(p_physics_ticks);
 	physics_frame_time = p_physics_frame_time;
+
 	// Notify tick to running profilers
 	for (KeyValue<StringName, Profiler> &E : profilers) {
 		Profiler &p = E.value;
@@ -127,7 +98,7 @@ void EngineDebugger::iteration(uint64_t p_frame_ticks, uint64_t p_process_ticks,
 	singleton->poll_events(true);
 }
 
-void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, const Vector<String> &p_breakpoints, void (*p_allow_focus_steal_fn)()) {
+void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, bool p_ignore_error_breaks, const Vector<String> &p_breakpoints, void (*p_allow_focus_steal_fn)()) {
 	register_uri_handler("tcp://", RemoteDebuggerPeerTCP::create); // TCP is the default protocol. Platforms/modules can add more.
 	if (p_uri.is_empty()) {
 		return;
@@ -135,6 +106,7 @@ void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, co
 	if (p_uri == "local://") {
 		singleton = memnew(LocalDebugger);
 		script_debugger = memnew(ScriptDebugger);
+
 		// Tell the OS that we want to handle termination signals.
 		OS::get_singleton()->initialize_debugging();
 	} else if (p_uri.contains("://")) {
@@ -148,6 +120,7 @@ void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, co
 		}
 		singleton = memnew(RemoteDebugger(Ref<RemoteDebuggerPeer>(peer)));
 		script_debugger = memnew(ScriptDebugger);
+
 		// Notify editor of our pid (to allow focus stealing).
 		Array msg;
 		msg.push_back(OS::get_singleton()->get_process_id());
@@ -160,6 +133,7 @@ void EngineDebugger::initialize(const String &p_uri, bool p_skip_breakpoints, co
 	// There is a debugger, parse breakpoints.
 	ScriptDebugger *singleton_script_debugger = singleton->get_script_debugger();
 	singleton_script_debugger->set_skip_breakpoints(p_skip_breakpoints);
+	singleton_script_debugger->set_ignore_error_breaks(p_ignore_error_breaks);
 
 	for (int i = 0; i < p_breakpoints.size(); i++) {
 		const String &bp = p_breakpoints[i];
@@ -187,7 +161,6 @@ void EngineDebugger::deinitialize() {
 		memdelete(singleton);
 		singleton = nullptr;
 	}
-
 	// Clear profilers/captures/protocol handlers.
 	profilers.clear();
 	captures.clear();

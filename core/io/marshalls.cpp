@@ -1,40 +1,9 @@
-/**************************************************************************/
-/*  marshalls.cpp                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "marshalls.h"
-
 #include "core/io/resource_loader.h"
 #include "core/object/ref_counted.h"
 #include "core/object/script_language.h"
 #include "core/variant/container_type_validate.h"
-
 #include <limits.h>
 #include <stdio.h>
 
@@ -119,7 +88,6 @@ static Error _decode_string(const uint8_t *&buf, int &len, int *r_len, String &r
 	if (r_len) {
 		(*r_len) += 4 + strlen;
 	}
-
 	return OK;
 }
 
@@ -258,7 +226,6 @@ Error decode_variant(Variant &r_variant, const uint8_t *p_buffer, int p_len, int
 				return err;
 			}
 			r_variant = str;
-
 		} break;
 
 		// Math types.
@@ -1849,19 +1816,16 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 			}
 			r_len += 4;
 
-			List<Variant> keys;
-			dict.get_key_list(&keys);
-
-			for (const Variant &key : keys) {
+			for (const KeyValue<Variant, Variant> &kv : dict) {
 				int len;
-				Error err = encode_variant(key, buf, len, p_full_objects, p_depth + 1);
+				Error err = encode_variant(kv.key, buf, len, p_full_objects, p_depth + 1);
 				ERR_FAIL_COND_V(err, err);
 				ERR_FAIL_COND_V(len % 4, ERR_BUG);
 				r_len += len;
 				if (buf) {
 					buf += len;
 				}
-				const Variant *value = dict.getptr(key);
+				const Variant *value = dict.getptr(kv.key);
 				ERR_FAIL_NULL_V(value, ERR_BUG);
 				err = encode_variant(*value, buf, len, p_full_objects, p_depth + 1);
 				ERR_FAIL_COND_V(err, err);
@@ -2123,15 +2087,12 @@ Error encode_variant(const Variant &p_variant, uint8_t *r_buffer, int &r_len, bo
 					buf += sizeof(real_t) * 4;
 				}
 			}
-
 			r_len += sizeof(real_t) * 4 * len;
-
 		} break;
 		default: {
 			ERR_FAIL_V(ERR_BUG);
 		}
 	}
-
 	return OK;
 }
 

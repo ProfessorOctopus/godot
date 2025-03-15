@@ -1,40 +1,9 @@
-/**************************************************************************/
-/*  local_vector.h                                                        */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/error/error_macros.h"
 #include "core/os/memory.h"
 #include "core/templates/sort_array.h"
 #include "core/templates/vector.h"
-
 #include <initializer_list>
 #include <type_traits>
 
@@ -51,7 +20,6 @@ public:
 	_FORCE_INLINE_ T *ptr() { return data; }
 	_FORCE_INLINE_ const T *ptr() const { return data; }
 	_FORCE_INLINE_ U size() const { return count; }
-
 	_FORCE_INLINE_ Span<T> span() const { return Span(data, count); }
 	_FORCE_INLINE_ operator Span<T>() const { return span(); }
 
@@ -160,9 +128,7 @@ public:
 				CRASH_COND_MSG(!data, "Out of memory");
 			}
 			if constexpr (!std::is_trivially_constructible_v<T> && !force_trivial) {
-				for (U i = count; i < p_size; i++) {
-					memnew_placement(&data[i], T);
-				}
+				memnew_arr_placement(data + count, p_size - count);
 			}
 			count = p_size;
 		}
@@ -382,3 +348,7 @@ public:
 
 template <typename T, typename U = uint32_t, bool force_trivial = false>
 using TightLocalVector = LocalVector<T, U, force_trivial, true>;
+
+// Zero-constructing LocalVector initializes count, capacity and data to 0 and thus empty.
+template <typename T, typename U, bool force_trivial, bool tight>
+struct is_zero_constructible<LocalVector<T, U, force_trivial, tight>> : std::true_type {};

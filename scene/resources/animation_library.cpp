@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  animation_library.cpp                                                 */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "animation_library.h"
-
 #include "scene/scene_string_names.h"
 
 bool AnimationLibrary::is_valid_animation_name(const String &p_name) {
@@ -134,10 +104,8 @@ void AnimationLibrary::_set_data(const Dictionary &p_data) {
 		K.value->disconnect_changed(callable_mp(this, &AnimationLibrary::_animation_changed));
 	}
 	animations.clear();
-	List<Variant> keys;
-	p_data.get_key_list(&keys);
-	for (const Variant &K : keys) {
-		add_animation(K, p_data[K]);
+	for (const KeyValue<Variant, Variant> &kv : p_data) {
+		add_animation(kv.key, kv.value);
 	}
 }
 
@@ -161,7 +129,7 @@ void AnimationLibrary::get_argument_options(const StringName &p_function, int p_
 	}
 	Resource::get_argument_options(p_function, p_idx, r_options);
 }
-#endif
+#endif // TOOLS_ENABLED
 
 void AnimationLibrary::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_animation", "name", "animation"), &AnimationLibrary::add_animation);
@@ -171,7 +139,6 @@ void AnimationLibrary::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_animation", "name"), &AnimationLibrary::get_animation);
 	ClassDB::bind_method(D_METHOD("get_animation_list"), &AnimationLibrary::_get_animation_list);
 	ClassDB::bind_method(D_METHOD("get_animation_list_size"), &AnimationLibrary::get_animation_list_size);
-
 	ClassDB::bind_method(D_METHOD("_set_data", "data"), &AnimationLibrary::_set_data);
 	ClassDB::bind_method(D_METHOD("_get_data"), &AnimationLibrary::_get_data);
 
@@ -182,5 +149,5 @@ void AnimationLibrary::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("animation_renamed", PropertyInfo(Variant::STRING_NAME, "name"), PropertyInfo(Variant::STRING_NAME, "to_name")));
 	ADD_SIGNAL(MethodInfo("animation_changed", PropertyInfo(Variant::STRING_NAME, "name")));
 }
-AnimationLibrary::AnimationLibrary() {
-}
+
+AnimationLibrary::AnimationLibrary() {}

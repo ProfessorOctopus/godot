@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_properties.cpp                                                 */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_properties.h"
-
 #include "core/config/project_settings.h"
 #include "editor/create_dialog.h"
 #include "editor/editor_node.h"
@@ -58,9 +28,7 @@
 #include "scene/resources/visual_shader_nodes.h"
 
 ///////////////////// Nil /////////////////////////
-
-void EditorPropertyNil::update_property() {
-}
+void EditorPropertyNil::update_property() {}
 
 EditorPropertyNil::EditorPropertyNil() {
 	Label *prop_label = memnew(Label);
@@ -69,7 +37,6 @@ EditorPropertyNil::EditorPropertyNil() {
 }
 
 ///////////////////// TEXT /////////////////////////
-
 void EditorPropertyText::_set_read_only(bool p_read_only) {
 	text->set_editable(!p_read_only);
 }
@@ -145,7 +112,6 @@ EditorPropertyText::EditorPropertyText() {
 }
 
 ///////////////////// MULTILINE TEXT /////////////////////////
-
 void EditorPropertyMultilineText::_set_read_only(bool p_read_only) {
 	text->set_editable(!p_read_only);
 	open_big_text->set_disabled(p_read_only);
@@ -179,7 +145,6 @@ void EditorPropertyMultilineText::_open_big_text() {
 		big_text_dialog->set_title(TTR("Edit Text:"));
 		add_child(big_text_dialog);
 	}
-
 	big_text_dialog->popup_centered_clamped(Size2(1000, 900) * EDSCALE, 0.8);
 	big_text->set_text(text->get_text());
 	big_text->grab_focus();
@@ -250,7 +215,6 @@ EditorPropertyMultilineText::EditorPropertyMultilineText(bool p_expression) {
 }
 
 ///////////////////// TEXT ENUM /////////////////////////
-
 void EditorPropertyTextEnum::_set_read_only(bool p_read_only) {
 	option_button->set_disabled(p_read_only);
 	edit_button->set_disabled(p_read_only);
@@ -409,7 +373,6 @@ EditorPropertyTextEnum::EditorPropertyTextEnum() {
 }
 
 //////////////////// LOCALE ////////////////////////
-
 void EditorPropertyLocale::_locale_selected(const String &p_locale) {
 	emit_changed(get_edited_property(), p_locale);
 	update_property();
@@ -433,8 +396,7 @@ void EditorPropertyLocale::update_property() {
 	locale->set_tooltip_text(locale_code);
 }
 
-void EditorPropertyLocale::setup(const String &p_hint_text) {
-}
+void EditorPropertyLocale::setup(const String &p_hint_text) {}
 
 void EditorPropertyLocale::_notification(int p_what) {
 	switch (p_what) {
@@ -467,7 +429,6 @@ EditorPropertyLocale::EditorPropertyLocale() {
 }
 
 ///////////////////// PATH /////////////////////////
-
 void EditorPropertyPath::_set_read_only(bool p_read_only) {
 	path->set_editable(!p_read_only);
 	path_edit->set_disabled(p_read_only);
@@ -482,7 +443,6 @@ void EditorPropertyPath::_path_selected(const String &p_path) {
 			full_path = ResourceUID::get_singleton()->id_to_text(id);
 		}
 	}
-
 	emit_changed(get_edited_property(), full_path);
 	update_property();
 }
@@ -492,7 +452,6 @@ String EditorPropertyPath::_get_path_text() {
 	if (full_path.begins_with("uid://")) {
 		full_path = ResourceUID::uid_to_path(full_path);
 	}
-
 	return full_path;
 }
 
@@ -527,7 +486,6 @@ void EditorPropertyPath::_path_pressed() {
 		}
 		dialog->set_current_path(full_path);
 	}
-
 	dialog->popup_file_dialog();
 }
 
@@ -576,7 +534,6 @@ void EditorPropertyPath::_drop_data_fw(const Point2 &p_point, const Variant &p_d
 	if (filesPaths.size() == 0) {
 		return;
 	}
-
 	_path_selected(filesPaths[0]);
 }
 
@@ -598,7 +555,6 @@ bool EditorPropertyPath::_can_drop_data_fw(const Point2 &p_point, const Variant 
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -622,7 +578,6 @@ EditorPropertyPath::EditorPropertyPath() {
 }
 
 ///////////////////// CLASS NAME /////////////////////////
-
 void EditorPropertyClassName::_set_read_only(bool p_read_only) {
 	property->set_disabled(p_read_only);
 }
@@ -664,7 +619,6 @@ EditorPropertyClassName::EditorPropertyClassName() {
 }
 
 ///////////////////// CHECK /////////////////////////
-
 void EditorPropertyCheck::_set_read_only(bool p_read_only) {
 	checkbox->set_disabled(p_read_only);
 }
@@ -688,7 +642,6 @@ EditorPropertyCheck::EditorPropertyCheck() {
 }
 
 ///////////////////// ENUM /////////////////////////
-
 void EditorPropertyEnum::_set_read_only(bool p_read_only) {
 	options->set_disabled(p_read_only);
 }
@@ -751,7 +704,6 @@ EditorPropertyEnum::EditorPropertyEnum() {
 }
 
 ///////////////////// FLAGS /////////////////////////
-
 void EditorPropertyFlags::_set_read_only(bool p_read_only) {
 	for (CheckBox *check : flags) {
 		check->set_disabled(p_read_only);
@@ -765,7 +717,6 @@ void EditorPropertyFlags::_flag_toggled(int p_index) {
 	} else {
 		value &= ~flag_values[p_index];
 	}
-
 	emit_changed(get_edited_property(), value);
 }
 
@@ -822,7 +773,6 @@ EditorPropertyFlags::EditorPropertyFlags() {
 }
 
 ///////////////////// LAYERS /////////////////////////
-
 void EditorPropertyLayersGrid::_rename_pressed(int p_menu) {
 	// Show rename popup for active layer.
 	if (renamed_layer_index == INT32_MAX) {
@@ -886,7 +836,6 @@ Size2 EditorPropertyLayersGrid::get_minimum_size() const {
 			min_size.y += 2 * (bsize + 1) + 3;
 		}
 	}
-
 	return min_size;
 }
 
@@ -1787,7 +1736,6 @@ EditorPropertyRect2::EditorPropertyRect2(bool p_force_wide) {
 }
 
 ///////////////////// RECT2i /////////////////////////
-
 void EditorPropertyRect2i::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 4; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -1881,7 +1829,6 @@ EditorPropertyRect2i::EditorPropertyRect2i(bool p_force_wide) {
 }
 
 ///////////////////// PLANE /////////////////////////
-
 void EditorPropertyPlane::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 4; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -1965,7 +1912,6 @@ EditorPropertyPlane::EditorPropertyPlane(bool p_force_wide) {
 }
 
 ///////////////////// QUATERNION /////////////////////////
-
 void EditorPropertyQuaternion::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 4; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -2170,7 +2116,6 @@ EditorPropertyQuaternion::EditorPropertyQuaternion() {
 }
 
 ///////////////////// AABB /////////////////////////
-
 void EditorPropertyAABB::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 6; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -2242,7 +2187,6 @@ EditorPropertyAABB::EditorPropertyAABB() {
 }
 
 ///////////////////// TRANSFORM2D /////////////////////////
-
 void EditorPropertyTransform2D::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 6; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -2323,7 +2267,6 @@ EditorPropertyTransform2D::EditorPropertyTransform2D(bool p_include_origin) {
 }
 
 ///////////////////// BASIS /////////////////////////
-
 void EditorPropertyBasis::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 9; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -2403,7 +2346,6 @@ EditorPropertyBasis::EditorPropertyBasis() {
 }
 
 ///////////////////// TRANSFORM3D /////////////////////////
-
 void EditorPropertyTransform3D::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 12; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -2492,7 +2434,6 @@ EditorPropertyTransform3D::EditorPropertyTransform3D() {
 }
 
 ///////////////////// PROJECTION /////////////////////////
-
 void EditorPropertyProjection::_set_read_only(bool p_read_only) {
 	for (int i = 0; i < 12; i++) {
 		spin[i]->set_read_only(p_read_only);
@@ -2587,8 +2528,8 @@ EditorPropertyProjection::EditorPropertyProjection() {
 	}
 	set_bottom_editor(g);
 }
-////////////// COLOR PICKER //////////////////////
 
+////////////// COLOR PICKER //////////////////////
 void EditorPropertyColor::_set_read_only(bool p_read_only) {
 	picker->set_disabled(p_read_only);
 }
@@ -2602,7 +2543,6 @@ void EditorPropertyColor::_color_changed(const Color &p_color) {
 	if (((Color)get_edited_property_value()).is_equal_approx(p_color)) {
 		return;
 	}
-
 	// Preview color change, bypassing undo/redo.
 	get_edited_object()->set(get_edited_property(), p_color);
 }
@@ -2672,7 +2612,6 @@ EditorPropertyColor::EditorPropertyColor() {
 }
 
 ////////////// NODE PATH //////////////////////
-
 void EditorPropertyNodePath::_set_read_only(bool p_read_only) {
 	assign->set_disabled(p_read_only);
 	menu->set_disabled(p_read_only);
@@ -2857,7 +2796,6 @@ bool EditorPropertyNodePath::is_drop_valid(const Dictionary &p_drag_data) const 
 			}
 		}
 	}
-
 	return false;
 }
 
@@ -2972,7 +2910,6 @@ EditorPropertyNodePath::EditorPropertyNodePath() {
 }
 
 ///////////////////// RID /////////////////////////
-
 void EditorPropertyRID::update_property() {
 	RID rid = get_edited_property_value();
 	if (rid.is_valid()) {
@@ -2989,7 +2926,6 @@ EditorPropertyRID::EditorPropertyRID() {
 }
 
 ////////////// RESOURCE //////////////////////
-
 void EditorPropertyResource::_set_read_only(bool p_read_only) {
 	resource_picker->set_editable(!p_read_only);
 }
@@ -3036,15 +2972,14 @@ static bool _find_recursive_resources(const Variant &v, HashSet<Resource *> &res
 		} break;
 		case Variant::DICTIONARY: {
 			Dictionary d = v;
-			List<Variant> keys;
-			d.get_key_list(&keys);
-			for (const Variant &k : keys) {
+			for (const KeyValue<Variant, Variant> &kv : d) {
+				const Variant &k = kv.key;
+				const Variant &v2 = kv.value;
 				if (k.get_type() == Variant::ARRAY || k.get_type() == Variant::DICTIONARY || k.get_type() == Variant::OBJECT) {
 					if (_find_recursive_resources(k, resources_found)) {
 						return true;
 					}
 				}
-				Variant v2 = d[k];
 				if (v2.get_type() == Variant::ARRAY || v2.get_type() == Variant::DICTIONARY || v2.get_type() == Variant::OBJECT) {
 					if (_find_recursive_resources(v2, resources_found)) {
 						return true;
@@ -3228,8 +3163,8 @@ void EditorPropertyResource::_viewport_selected(const NodePath &p_path) {
 		return;
 	}
 
-	Ref<ViewportTexture> vt;
-	vt.instantiate();
+	Ref<ViewportTexture> vt = get_edited_property_value();
+	ERR_FAIL_COND(vt.is_null());
 	vt->set_viewport_path_in_scene(get_tree()->get_edited_scene_root()->get_path_to(to_node));
 
 	emit_changed(get_edited_property(), vt);
@@ -3426,7 +3361,6 @@ EditorPropertyResource::EditorPropertyResource() {
 }
 
 ////////////// DEFAULT PLUGIN //////////////////////
-
 bool EditorInspectorDefaultPlugin::can_handle(Object *p_object) {
 	return true; // Can handle everything.
 }
@@ -3823,10 +3757,8 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 						}
 					}
 				}
-
 				return editor;
 			}
-
 		} break;
 		case Variant::CALLABLE: {
 			EditorPropertyCallable *editor = memnew(EditorPropertyCallable);
@@ -3904,6 +3836,5 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 		default: {
 		}
 	}
-
 	return nullptr;
 }

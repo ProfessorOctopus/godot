@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_data.cpp                                                       */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_data.h"
-
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/io/file_access.h"
@@ -83,15 +53,12 @@ void EditorSelectionHistory::cleanup_history() {
 						continue;
 					}
 				} // Else: object not valid - not alive.
-
 				fail = true;
 			}
-
 			if (fail) {
 				break;
 			}
 		}
-
 		if (fail) {
 			history.remove_at(i);
 			i--;
@@ -180,7 +147,6 @@ bool EditorSelectionHistory::next() {
 	} else {
 		return false;
 	}
-
 	return true;
 }
 
@@ -192,7 +158,6 @@ bool EditorSelectionHistory::previous() {
 	} else {
 		return false;
 	}
-
 	return true;
 }
 
@@ -200,7 +165,6 @@ bool EditorSelectionHistory::is_current_inspector_only() const {
 	if (current_elem_idx < 0 || current_elem_idx >= history.size()) {
 		return false;
 	}
-
 	const HistoryElement &h = history[current_elem_idx];
 	return h.path[h.level].inspector_only;
 }
@@ -209,7 +173,6 @@ ObjectID EditorSelectionHistory::get_current() {
 	if (current_elem_idx < 0 || current_elem_idx >= history.size()) {
 		return ObjectID();
 	}
-
 	Object *obj = ObjectDB::get_instance(get_history_obj(current_elem_idx));
 	return obj ? obj->get_instance_id() : ObjectID();
 }
@@ -218,7 +181,6 @@ int EditorSelectionHistory::get_path_size() const {
 	if (current_elem_idx < 0 || current_elem_idx >= history.size()) {
 		return 0;
 	}
-
 	return history[current_elem_idx].path.size();
 }
 
@@ -237,7 +199,6 @@ String EditorSelectionHistory::get_path_property(int p_index) const {
 	if (current_elem_idx < 0 || current_elem_idx >= history.size()) {
 		return "";
 	}
-
 	ERR_FAIL_INDEX_V(p_index, history[current_elem_idx].path.size(), "");
 	return history[current_elem_idx].path[p_index].property;
 }
@@ -251,8 +212,6 @@ EditorSelectionHistory::EditorSelectionHistory() {
 	current_elem_idx = -1;
 }
 
-////////////////////////////////////////////////////////////
-
 EditorPlugin *EditorData::get_handling_main_editor(Object *p_object) {
 	// We need to iterate backwards so that we can check user-created plugins first.
 	// Otherwise, it would not be possible for plugins to handle CanvasItem and Spatial nodes.
@@ -261,7 +220,6 @@ EditorPlugin *EditorData::get_handling_main_editor(Object *p_object) {
 			return editor_plugins[i];
 		}
 	}
-
 	return nullptr;
 }
 
@@ -281,7 +239,6 @@ EditorPlugin *EditorData::get_editor_by_name(const String &p_name) {
 			return editor_plugins[i];
 		}
 	}
-
 	return nullptr;
 }
 
@@ -318,7 +275,6 @@ Dictionary EditorData::get_editor_plugin_states() const {
 		}
 		metadata[editor_plugins[i]->get_plugin_name()] = state;
 	}
-
 	return metadata;
 }
 
@@ -335,13 +291,8 @@ void EditorData::set_editor_plugin_states(const Dictionary &p_states) {
 		}
 		return;
 	}
-
-	List<Variant> keys;
-	p_states.get_key_list(&keys);
-
-	List<Variant>::Element *E = keys.front();
-	for (; E; E = E->next()) {
-		String name = E->get();
+	for (const KeyValue<Variant, Variant> &kv : p_states) {
+		String name = kv.key;
 		int idx = -1;
 		for (int i = 0; i < editor_plugins.size(); i++) {
 			if (editor_plugins[i]->get_plugin_name() == name) {
@@ -353,7 +304,7 @@ void EditorData::set_editor_plugin_states(const Dictionary &p_states) {
 		if (idx == -1) {
 			continue;
 		}
-		editor_plugins[idx]->set_state(p_states[name]);
+		editor_plugins[idx]->set_state(kv.value);
 	}
 }
 
@@ -552,7 +503,6 @@ Variant EditorData::instantiate_custom_type(const String &p_type, const String &
 			}
 		}
 	}
-
 	return Variant();
 }
 
@@ -685,7 +635,6 @@ bool EditorData::_find_updated_instances(Node *p_root, Node *p_node, HashSet<Str
 			if (modified_time != ss->get_last_modified_time()) {
 				return true; //external scene changed
 			}
-
 			checked_paths.insert(path);
 		}
 	}
@@ -696,7 +645,6 @@ bool EditorData::_find_updated_instances(Node *p_root, Node *p_node, HashSet<Str
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -732,7 +680,6 @@ bool EditorData::check_and_update_scene(int p_idx) {
 				new_selection.push_back(new_node);
 			}
 		}
-
 		new_scene->set_scene_file_path(edited_scene[p_idx].root->get_scene_file_path());
 		Node *old_root = edited_scene[p_idx].root;
 		EditorNode::get_singleton()->set_edited_scene(new_scene);
@@ -741,7 +688,6 @@ bool EditorData::check_and_update_scene(int p_idx) {
 
 		return true;
 	}
-
 	return false;
 }
 
@@ -800,7 +746,6 @@ Vector<EditorData::EditedScene> EditorData::get_edited_scenes() const {
 	for (int i = 0; i < edited_scene.size(); i++) {
 		out_edited_scenes_list.push_back(edited_scene[i]);
 	}
-
 	return out_edited_scenes_list;
 }
 
@@ -879,7 +824,6 @@ String EditorData::get_scene_title(int p_idx, bool p_always_strip_extension) con
 			return filename;
 		}
 	}
-
 	// Else, return just the basename as there's no ambiguity.
 	return basename;
 }
@@ -904,7 +848,6 @@ String EditorData::get_scene_path(int p_idx) const {
 			return edited_scene[p_idx].root->get_scene_file_path();
 		}
 	}
-
 	return edited_scene[p_idx].path;
 }
 
@@ -1073,17 +1016,16 @@ void EditorData::script_class_load_icon_paths() {
 		Dictionary d = GLOBAL_GET("_global_script_class_icons");
 		List<Variant> keys;
 		d.get_key_list(&keys);
-
-		for (const Variant &E : keys) {
-			String name = E.operator String();
-			_script_class_icon_paths[name] = d[name];
+		for (const KeyValue<Variant, Variant> &kv : d) {
+			String name = kv.key.operator String();
+			_script_class_icon_paths[name] = kv.value;
 
 			String path = ScriptServer::get_global_class_path(name);
 			script_class_set_name(path, name);
 		}
 		ProjectSettings::get_singleton()->clear("_global_script_class_icons");
 	}
-#endif
+#endif // DISABLE_DEPRECATED
 
 	Array script_classes = ProjectSettings::get_singleton()->get_global_class_list();
 	for (int i = 0; i < script_classes.size(); i++) {
@@ -1321,7 +1263,6 @@ TypedArray<Node> EditorSelection::_get_transformable_selected_nodes() {
 	for (const Node *E : selected_node_list) {
 		ret.push_back(E);
 	}
-
 	return ret;
 }
 
@@ -1331,7 +1272,6 @@ TypedArray<Node> EditorSelection::get_selected_nodes() {
 	for (const KeyValue<Node *, Object *> &E : selection) {
 		ret.push_back(E.key);
 	}
-
 	return ret;
 }
 
@@ -1349,7 +1289,6 @@ List<Node *> EditorSelection::get_full_selected_node_list() {
 	for (const KeyValue<Node *, Object *> &E : selection) {
 		node_list.push_back(E.key);
 	}
-
 	return node_list;
 }
 
@@ -1357,13 +1296,11 @@ void EditorSelection::clear() {
 	while (!selection.is_empty()) {
 		remove_node(selection.begin()->key);
 	}
-
 	changed = true;
 	node_list_changed = true;
 }
 
-EditorSelection::EditorSelection() {
-}
+EditorSelection::EditorSelection() {}
 
 EditorSelection::~EditorSelection() {
 	clear();

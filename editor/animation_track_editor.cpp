@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  animation_track_editor.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "animation_track_editor.h"
-
 #include "animation_track_editor_plugins.h"
 #include "core/error/error_macros.h"
 #include "core/input/input.h"
@@ -5096,7 +5066,7 @@ void AnimationTrackEditor::_update_nearest_fps_label() {
 		nearest_fps_label->hide();
 	} else {
 		nearest_fps_label->show();
-		nearest_fps_label->set_text("Nearest FPS: " + itos(nearest_fps));
+		nearest_fps_label->set_text(vformat(TTR("Nearest FPS: %d"), nearest_fps));
 	}
 }
 
@@ -7696,6 +7666,7 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	fps_compat->connect(SceneStringName(toggled), callable_mp(this, &AnimationTrackEditor::_update_fps_compat_mode));
 
 	nearest_fps_label = memnew(Label);
+	nearest_fps_label->set_auto_translate_mode(AUTO_TRANSLATE_MODE_DISABLED);
 	bottom_hf->add_child(nearest_fps_label);
 
 	step = memnew(EditorSpinSlider);
@@ -7775,7 +7746,6 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/move_last_selected_key_to_cursor", TTRC("Move Last Selected Key to Cursor"), Key::BRACKETRIGHT), EDIT_MOVE_LAST_SELECTED_KEY_TO_CURSOR);
 	edit->get_popup()->add_separator();
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/delete_selection", TTRC("Delete Selection"), Key::KEY_DELETE), EDIT_DELETE_SELECTION);
-
 	edit->get_popup()->add_separator();
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/goto_next_step", TTRC("Go to Next Step"), KeyModifierMask::CMD_OR_CTRL | Key::RIGHT), EDIT_GOTO_NEXT_STEP);
 	edit->get_popup()->add_shortcut(ED_SHORTCUT("animation_editor/goto_prev_step", TTRC("Go to Previous Step"), KeyModifierMask::CMD_OR_CTRL | Key::LEFT), EDIT_GOTO_PREV_STEP);
@@ -7828,13 +7798,11 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	box_selection->connect(SceneStringName(draw), callable_mp(this, &AnimationTrackEditor::_box_selection_draw));
 
 	// Default Plugins.
-
 	Ref<AnimationTrackEditDefaultPlugin> def_plugin;
 	def_plugin.instantiate();
 	add_track_edit_plugin(def_plugin);
 
 	// Dialogs.
-
 	optimize_dialog = memnew(ConfirmationDialog);
 	add_child(optimize_dialog);
 	optimize_dialog->set_title(TTR("Animation Optimizer"));
@@ -7863,7 +7831,6 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	optimize_dialog->set_ok_button_text(TTR("Optimize"));
 	optimize_dialog->connect(SceneStringName(confirmed), callable_mp(this, &AnimationTrackEditor::_edit_menu_pressed).bind(EDIT_OPTIMIZE_ANIMATION_CONFIRM));
 
-	//
 	cleanup_dialog = memnew(ConfirmationDialog);
 	add_child(cleanup_dialog);
 	VBoxContainer *cleanup_vb = memnew(VBoxContainer);
@@ -7898,7 +7865,6 @@ AnimationTrackEditor::AnimationTrackEditor() {
 
 	cleanup_dialog->connect(SceneStringName(confirmed), callable_mp(this, &AnimationTrackEditor::_edit_menu_pressed).bind(EDIT_CLEAN_UP_ANIMATION_CONFIRM));
 
-	//
 	scale_dialog = memnew(ConfirmationDialog);
 	VBoxContainer *vbc = memnew(VBoxContainer);
 	scale_dialog->add_child(vbc);
@@ -7914,7 +7880,6 @@ AnimationTrackEditor::AnimationTrackEditor() {
 
 	scale_dialog->register_text_enter(scale->get_line_edit());
 
-	//
 	ease_dialog = memnew(ConfirmationDialog);
 	ease_dialog->set_title(TTR("Select Transition and Easing"));
 	ease_dialog->connect(SceneStringName(confirmed), callable_mp(this, &AnimationTrackEditor::_edit_menu_pressed).bind(EDIT_EASE_CONFIRM));
@@ -7956,7 +7921,6 @@ AnimationTrackEditor::AnimationTrackEditor() {
 	ease_grid->add_child(memnew(Label(TTR("FPS:"))));
 	ease_grid->add_child(ease_fps);
 
-	//
 	bake_dialog = memnew(ConfirmationDialog);
 	bake_dialog->set_title(TTR("Animation Baker"));
 	bake_dialog->connect(SceneStringName(confirmed), callable_mp(this, &AnimationTrackEditor::_edit_menu_pressed).bind(EDIT_BAKE_ANIMATION_CONFIRM));
@@ -8016,7 +7980,6 @@ AnimationTrackEditor::~AnimationTrackEditor() {
 }
 
 // AnimationTrackKeyEditEditorPlugin.
-
 void AnimationTrackKeyEditEditor::_time_edit_spun() {
 	_time_edit_entered();
 	_time_edit_exited();
@@ -8075,7 +8038,6 @@ void AnimationTrackKeyEditEditor::_time_edit_exited() {
 		undo_redo->add_do_method(ape, "_animation_update_key_frame");
 		undo_redo->add_undo_method(ape, "_animation_update_key_frame");
 	}
-
 	undo_redo->commit_action();
 }
 
@@ -8111,15 +8073,13 @@ AnimationTrackKeyEditEditor::AnimationTrackKeyEditEditor(Ref<Animation> p_animat
 		spinner->set_value(key_ofs);
 		spinner->set_max(animation->get_length());
 	}
-
 	spinner->connect("grabbed", callable_mp(this, &AnimationTrackKeyEditEditor::_time_edit_entered), CONNECT_DEFERRED);
 	spinner->connect("ungrabbed", callable_mp(this, &AnimationTrackKeyEditEditor::_time_edit_exited), CONNECT_DEFERRED);
 	spinner->connect("value_focus_entered", callable_mp(this, &AnimationTrackKeyEditEditor::_time_edit_entered), CONNECT_DEFERRED);
 	spinner->connect("value_focus_exited", callable_mp(this, &AnimationTrackKeyEditEditor::_time_edit_exited), CONNECT_DEFERRED);
 }
 
-AnimationTrackKeyEditEditor::~AnimationTrackKeyEditEditor() {
-}
+AnimationTrackKeyEditEditor::~AnimationTrackKeyEditEditor() {}
 
 void AnimationMarkerEdit::_zoom_changed() {
 	queue_redraw();
@@ -8232,7 +8192,6 @@ bool AnimationMarkerEdit::_try_select_at_ui_pos(const Point2 &p_pos, bool p_aggr
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -8250,7 +8209,6 @@ bool AnimationMarkerEdit::_is_ui_pos_in_current_section(const Point2 &p_pos) {
 			return p_pos.x >= start_offset && p_pos.x <= end_offset;
 		}
 	}
-
 	return false;
 }
 
@@ -8314,7 +8272,6 @@ void AnimationMarkerEdit::_clear_key_edit() {
 		if (InspectorDock::get_inspector_singleton()->get_edited_object() == multi_key_edit) {
 			EditorNode::get_singleton()->push_item(nullptr);
 		}
-
 		memdelete(multi_key_edit);
 		multi_key_edit = nullptr;
 	}
@@ -8348,7 +8305,6 @@ void AnimationMarkerEdit::_notification(int p_what) {
 			Color color = get_theme_color(SceneStringName(font_color), SNAME("Label"));
 
 			// SECTION PREVIEW //
-
 			{
 				float scale = timeline->get_zoom_scale();
 				int limit_end = get_size().width - timeline->get_buttons_width();
@@ -8384,7 +8340,6 @@ void AnimationMarkerEdit::_notification(int p_what) {
 			}
 
 			// KEYFRAMES //
-
 			draw_bg(limit, get_size().width - timeline->get_buttons_width());
 
 			{
@@ -8499,7 +8454,6 @@ void AnimationMarkerEdit::gui_input(const Ref<InputEvent> &p_event) {
 					accept_event();
 				}
 			}
-
 			moving_selection = false;
 			select_single_attempt = StringName();
 		}
@@ -8526,16 +8480,12 @@ void AnimationMarkerEdit::gui_input(const Ref<InputEvent> &p_event) {
 					menu->add_icon_item(get_editor_theme_icon(SNAME("Edit")), TTR("Rename Marker"), MENU_KEY_RENAME);
 					menu->add_icon_item(get_editor_theme_icon(SNAME("Remove")), TTR("Delete Marker(s)"), MENU_KEY_DELETE);
 				}
-
 				menu->add_icon_item(get_editor_theme_icon(should_show_all_marker_names ? SNAME("GuiChecked") : SNAME("GuiUnchecked")), TTR("Show All Marker Names"), MENU_KEY_TOGGLE_MARKER_NAMES);
 				menu->reset_size();
-
 				moving_selection_attempt = false;
 				moving_selection = false;
-
 				menu->set_position(get_screen_position() + get_local_mouse_position());
 				menu->popup();
-
 				insert_at_pos = offset + timeline->get_value();
 				accept_event();
 			}
@@ -8551,6 +8501,7 @@ void AnimationMarkerEdit::gui_input(const Ref<InputEvent> &p_event) {
 		const float scale = timeline->get_zoom_scale();
 		const int limit = timeline->get_name_limit();
 		const int limit_end = get_size().width - timeline->get_buttons_width();
+
 		// Left Border including space occupied by keyframes on t=0.
 		const int limit_start_hitbox = limit - type_icon->get_width();
 		const Point2 pos = mm->get_position();
@@ -8612,7 +8563,6 @@ void AnimationMarkerEdit::gui_input(const Ref<InputEvent> &p_event) {
 			offset = snapped_time - moving_selection_pivot;
 			moving_selection_effective = true;
 		}
-
 		_move_selection(offset);
 	}
 }
@@ -8624,6 +8574,7 @@ String AnimationMarkerEdit::get_tooltip(const Point2 &p_pos) const {
 
 	int limit = timeline->get_name_limit();
 	int limit_end = get_size().width - timeline->get_buttons_width();
+
 	// Left Border including space occupied by keyframes on t=0.
 	int limit_start_hitbox = limit - type_icon->get_width();
 
@@ -8662,7 +8613,6 @@ String AnimationMarkerEdit::get_tooltip(const Point2 &p_pos) const {
 			return text;
 		}
 	}
-
 	return Control::get_tooltip(p_pos);
 }
 
@@ -8670,7 +8620,6 @@ int AnimationMarkerEdit::get_key_height() const {
 	if (animation.is_null()) {
 		return 0;
 	}
-
 	return type_icon->get_height();
 }
 
@@ -8707,7 +8656,6 @@ PackedStringArray AnimationMarkerEdit::get_selected_section() const {
 		}
 		return arr;
 	}
-
 	return PackedStringArray();
 }
 
@@ -8744,11 +8692,9 @@ void AnimationMarkerEdit::draw_key(const StringName &p_name, float p_pixels_sec,
 			p_name == hovering_marker ? get_theme_color(SNAME("folder_icon_color"), SNAME("FileDialog")) : marker_color);
 }
 
-void AnimationMarkerEdit::draw_bg(int p_clip_left, int p_clip_right) {
-}
+void AnimationMarkerEdit::draw_bg(int p_clip_left, int p_clip_right) {}
 
-void AnimationMarkerEdit::draw_fg(int p_clip_left, int p_clip_right) {
-}
+void AnimationMarkerEdit::draw_fg(int p_clip_left, int p_clip_right) {}
 
 Ref<Animation> AnimationMarkerEdit::get_animation() const {
 	return animation;
@@ -8891,7 +8837,6 @@ void AnimationMarkerEdit::_clear_selection(bool p_update) {
 	if (p_update) {
 		queue_redraw();
 	}
-
 	_clear_key_edit();
 }
 
@@ -8899,7 +8844,6 @@ void AnimationMarkerEdit::_clear_selection_for_anim(const Ref<Animation> &p_anim
 	if (animation != p_anim) {
 		return;
 	}
-
 	_clear_selection(true);
 }
 
@@ -8921,7 +8865,6 @@ void AnimationMarkerEdit::_select_key(const StringName &p_name, bool is_single) 
 			player->reset_section();
 		}
 	}
-
 	queue_redraw();
 	_update_key_edit();
 
@@ -8942,7 +8885,6 @@ void AnimationMarkerEdit::_deselect_key(const StringName &p_name) {
 			player->reset_section();
 		}
 	}
-
 	queue_redraw();
 	_update_key_edit();
 }
@@ -8969,7 +8911,6 @@ void AnimationMarkerEdit::_insert_marker(float p_ofs) {
 		base = attempt;
 		break;
 	}
-
 	marker_insert_new_name->set_text(base);
 	_marker_insert_new_name_changed(base);
 	marker_insert_ofs = p_ofs;
@@ -9001,10 +8942,8 @@ void AnimationMarkerEdit::_marker_insert_confirmed() {
 		undo_redo->add_undo_method(animation.ptr(), "set_marker_color", existing_marker, animation->get_marker_color(existing_marker));
 	}
 	undo_redo->add_do_method(animation.ptr(), "set_marker_color", name, marker_insert_color->get_pick_color());
-
 	undo_redo->add_do_method(this, "queue_redraw");
 	undo_redo->add_undo_method(this, "queue_redraw");
-
 	undo_redo->commit_action();
 
 	marker_insert_confirm->hide();
@@ -9109,8 +9048,7 @@ AnimationMarkerEdit::AnimationMarkerEdit() {
 	marker_rename_confirm->add_child(marker_rename_error_dialog);
 }
 
-AnimationMarkerEdit::~AnimationMarkerEdit() {
-}
+AnimationMarkerEdit::~AnimationMarkerEdit() {}
 
 float AnimationMarkerKeyEdit::get_time() const {
 	return animation->get_marker_time(marker_name);
@@ -9144,7 +9082,6 @@ bool AnimationMarkerKeyEdit::_set(const StringName &p_name, const Variant &p_val
 		}
 		return true;
 	}
-
 	return false;
 }
 
@@ -9158,7 +9095,6 @@ bool AnimationMarkerKeyEdit::_get(const StringName &p_name, Variant &r_ret) cons
 		r_ret = animation->get_marker_color(marker_name);
 		return true;
 	}
-
 	return false;
 }
 
@@ -9166,7 +9102,6 @@ void AnimationMarkerKeyEdit::_get_property_list(List<PropertyInfo> *p_list) cons
 	if (animation.is_null()) {
 		return;
 	}
-
 	p_list->push_back(PropertyInfo(Variant::STRING_NAME, "name", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY | PROPERTY_USAGE_EDITOR));
 	p_list->push_back(PropertyInfo(Variant::COLOR, "color", PROPERTY_HINT_COLOR_NO_ALPHA));
 }
@@ -9196,7 +9131,6 @@ bool AnimationMultiMarkerKeyEdit::_set(const StringName &p_name, const Variant &
 
 		return true;
 	}
-
 	return false;
 }
 
@@ -9205,7 +9139,6 @@ bool AnimationMultiMarkerKeyEdit::_get(const StringName &p_name, Variant &r_ret)
 		r_ret = animation->get_marker_color(marker_names[0]);
 		return true;
 	}
-
 	return false;
 }
 
@@ -9213,12 +9146,10 @@ void AnimationMultiMarkerKeyEdit::_get_property_list(List<PropertyInfo> *p_list)
 	if (animation.is_null()) {
 		return;
 	}
-
 	p_list->push_back(PropertyInfo(Variant::COLOR, "color", PROPERTY_HINT_COLOR_NO_ALPHA));
 }
 
 // AnimationMarkerKeyEditEditorPlugin
-
 void AnimationMarkerKeyEditEditor::_time_edit_exited() {
 	real_t new_time = spinner->get_value();
 
@@ -9300,5 +9231,4 @@ AnimationMarkerKeyEditEditor::AnimationMarkerKeyEditEditor(Ref<Animation> p_anim
 	spinner->connect("value_focus_exited", callable_mp(this, &AnimationMarkerKeyEditEditor::_time_edit_exited), CONNECT_DEFERRED);
 }
 
-AnimationMarkerKeyEditEditor::~AnimationMarkerKeyEditEditor() {
-}
+AnimationMarkerKeyEditEditor::~AnimationMarkerKeyEditEditor() {}

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  dependency_editor.cpp                                                 */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "dependency_editor.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/file_access.h"
 #include "core/io/resource_loader.h"
@@ -116,7 +86,6 @@ void DependencyEditor::_fix_and_find(EditorFileSystemDirectory *efsd, HashMap<St
 
 			if (current_score > existing_score) {
 				//if it was the same, could track distance to new path but..
-
 				E.value = path; //replace by more accurate
 			}
 		}
@@ -216,10 +185,8 @@ void DependencyEditor::_update_list() {
 			missing.push_back(path);
 			broken = true;
 		}
-
 		item->add_button(1, folder, 0);
 	}
-
 	fixdeps->set_disabled(!broken);
 }
 
@@ -281,12 +248,10 @@ DependencyEditor::DependencyEditor() {
 	add_child(search);
 }
 
-/////////////////////////////////////
 void DependencyEditorOwners::_list_rmb_clicked(int p_item, const Vector2 &p_pos, MouseButton p_mouse_button_index) {
 	if (p_mouse_button_index != MouseButton::RIGHT) {
 		return;
 	}
-
 	file_options->clear();
 	file_options->reset_size();
 	if (p_item >= 0) {
@@ -309,7 +274,6 @@ void DependencyEditorOwners::_list_rmb_clicked(int p_item, const Vector2 &p_pos,
 			return;
 		}
 	}
-
 	file_options->set_position(owners->get_screen_position() + p_pos);
 	file_options->reset_size();
 	file_options->popup();
@@ -317,12 +281,8 @@ void DependencyEditorOwners::_list_rmb_clicked(int p_item, const Vector2 &p_pos,
 
 void DependencyEditorOwners::_select_file(int p_idx) {
 	String fpath = owners->get_item_text(p_idx);
+	EditorNode::get_singleton()->load_scene_or_resource(fpath);
 
-	if (ResourceLoader::get_resource_type(fpath) == "PackedScene") {
-		EditorNode::get_singleton()->open_request(fpath);
-	} else {
-		EditorNode::get_singleton()->load_resource(fpath);
-	}
 	hide();
 	emit_signal(SceneStringName(confirmed));
 }
@@ -331,7 +291,6 @@ void DependencyEditorOwners::_empty_clicked(const Vector2 &p_pos, MouseButton p_
 	if (p_mouse_button_index != MouseButton::LEFT) {
 		return;
 	}
-
 	owners->deselect_all();
 }
 
@@ -371,9 +330,7 @@ void DependencyEditorOwners::_fill_owners(EditorFileSystemDirectory *efsd) {
 		if (!found) {
 			continue;
 		}
-
 		Ref<Texture2D> icon = EditorNode::get_singleton()->get_class_icon(efsd->get_file_type(i));
-
 		owners->add_item(efsd->get_file_path(i), icon);
 	}
 }
@@ -401,8 +358,6 @@ DependencyEditorOwners::DependencyEditorOwners() {
 	owners->set_allow_rmb_select(true);
 	add_child(owners);
 }
-
-///////////////////////
 
 void DependencyRemoveDialog::_find_files_in_removed_folder(EditorFileSystemDirectory *efsd, const String &p_folder) {
 	if (!efsd) {
@@ -556,7 +511,6 @@ void DependencyRemoveDialog::show(const Vector<String> &p_folders, const Vector<
 		all_remove_files[p_files[i]] = String();
 		files_to_delete.push_back(p_files[i]);
 	}
-
 	_show_files_to_delete_list();
 
 	Vector<RemovedDependency> removed_deps;
@@ -574,7 +528,6 @@ void DependencyRemoveDialog::show(const Vector<String> &p_folders, const Vector<
 		text->set_text(TTR("The files being removed are required by other resources in order for them to work.\nRemove them anyway? (Cannot be undone.)\nDepending on your filesystem configuration, the files will either be moved to the system trash or deleted permanently."));
 		popup_centered(Size2(500, 350));
 	}
-
 	EditorFileSystem::get_singleton()->scan_changes();
 }
 
@@ -633,7 +586,6 @@ void DependencyRemoveDialog::ok_pressed() {
 				emit_signal(SNAME("folder_removed"), dirs_to_delete[i]);
 			}
 		}
-
 		EditorFileSystem::get_singleton()->scan_changes();
 	}
 
@@ -711,10 +663,7 @@ DependencyRemoveDialog::DependencyRemoveDialog() {
 	}
 }
 
-//////////////
-
-void DependencyErrorDialog::show(Mode p_mode, const String &p_for_file, const Vector<String> &report) {
-	mode = p_mode;
+void DependencyErrorDialog::show(const String &p_for_file, const Vector<String> &report) {
 	for_file = p_for_file;
 	set_title(TTR("Error loading:") + " " + p_for_file.get_file());
 	files->clear();
@@ -734,19 +683,11 @@ void DependencyErrorDialog::show(Mode p_mode, const String &p_for_file, const Ve
 		ti->set_text(0, dep);
 		ti->set_icon(0, icon);
 	}
-
 	popup_centered();
 }
 
 void DependencyErrorDialog::ok_pressed() {
-	switch (mode) {
-		case MODE_SCENE:
-			EditorNode::get_singleton()->load_scene(for_file, true);
-			break;
-		case MODE_RESOURCE:
-			EditorNode::get_singleton()->load_resource(for_file, true);
-			break;
-	}
+	EditorNode::get_singleton()->load_scene_or_resource(for_file, true);
 }
 
 void DependencyErrorDialog::custom_action(const String &) {
@@ -771,14 +712,10 @@ DependencyErrorDialog::DependencyErrorDialog() {
 	vb->add_child(text);
 	text->set_text(TTR("Which action should be taken?"));
 
-	mode = Mode::MODE_RESOURCE;
-
 	fdep = add_button(TTR("Fix Dependencies"), true, "fixdeps");
 
 	set_title(TTR("Errors loading!"));
 }
-
-//////////////////////////////////////////////////////////////////////
 
 void OrphanResourcesDialog::ok_pressed() {
 	paths.clear();
@@ -787,7 +724,6 @@ void OrphanResourcesDialog::ok_pressed() {
 	if (paths.is_empty()) {
 		return;
 	}
-
 	delete_confirm->set_text(vformat(TTR("Permanently delete %d item(s)? (No undo!)"), paths.size()));
 	delete_confirm->popup_centered();
 }
@@ -847,7 +783,6 @@ bool OrphanResourcesDialog::_fill_owners(EditorFileSystemDirectory *efsd, HashMa
 			}
 		}
 	}
-
 	return has_children;
 }
 
@@ -873,7 +808,6 @@ void OrphanResourcesDialog::_find_to_delete(TreeItem *p_item, List<String> &r_pa
 		if (p_item->get_first_child()) {
 			_find_to_delete(p_item->get_first_child(), r_paths);
 		}
-
 		p_item = p_item->get_next();
 	}
 }

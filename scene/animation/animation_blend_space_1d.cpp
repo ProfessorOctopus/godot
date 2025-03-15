@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  animation_blend_space_1d.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "animation_blend_space_1d.h"
-
 #include "animation_blend_tree.h"
 
 void AnimationNodeBlendSpace1D::get_parameter_list(List<PropertyInfo> *r_list) const {
@@ -85,25 +55,18 @@ void AnimationNodeBlendSpace1D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_blend_point_node", "point"), &AnimationNodeBlendSpace1D::get_blend_point_node);
 	ClassDB::bind_method(D_METHOD("remove_blend_point", "point"), &AnimationNodeBlendSpace1D::remove_blend_point);
 	ClassDB::bind_method(D_METHOD("get_blend_point_count"), &AnimationNodeBlendSpace1D::get_blend_point_count);
-
 	ClassDB::bind_method(D_METHOD("set_min_space", "min_space"), &AnimationNodeBlendSpace1D::set_min_space);
 	ClassDB::bind_method(D_METHOD("get_min_space"), &AnimationNodeBlendSpace1D::get_min_space);
-
 	ClassDB::bind_method(D_METHOD("set_max_space", "max_space"), &AnimationNodeBlendSpace1D::set_max_space);
 	ClassDB::bind_method(D_METHOD("get_max_space"), &AnimationNodeBlendSpace1D::get_max_space);
-
 	ClassDB::bind_method(D_METHOD("set_snap", "snap"), &AnimationNodeBlendSpace1D::set_snap);
 	ClassDB::bind_method(D_METHOD("get_snap"), &AnimationNodeBlendSpace1D::get_snap);
-
 	ClassDB::bind_method(D_METHOD("set_value_label", "text"), &AnimationNodeBlendSpace1D::set_value_label);
 	ClassDB::bind_method(D_METHOD("get_value_label"), &AnimationNodeBlendSpace1D::get_value_label);
-
 	ClassDB::bind_method(D_METHOD("set_blend_mode", "mode"), &AnimationNodeBlendSpace1D::set_blend_mode);
 	ClassDB::bind_method(D_METHOD("get_blend_mode"), &AnimationNodeBlendSpace1D::get_blend_mode);
-
 	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeBlendSpace1D::set_use_sync);
 	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeBlendSpace1D::is_using_sync);
-
 	ClassDB::bind_method(D_METHOD("_add_blend_point", "index", "node"), &AnimationNodeBlendSpace1D::_add_blend_point);
 
 	for (int i = 0; i < MAX_BLEND_POINTS; i++) {
@@ -148,7 +111,6 @@ void AnimationNodeBlendSpace1D::add_blend_point(const Ref<AnimationRootNode> &p_
 
 	blend_points[p_at_index].node = p_node;
 	blend_points[p_at_index].position = p_position;
-
 	blend_points[p_at_index].node->connect("tree_changed", callable_mp(this, &AnimationNodeBlendSpace1D::_tree_changed), CONNECT_REFERENCE_COUNTED);
 	blend_points[p_at_index].node->connect("animation_node_renamed", callable_mp(this, &AnimationNodeBlendSpace1D::_animation_node_renamed), CONNECT_REFERENCE_COUNTED);
 	blend_points[p_at_index].node->connect("animation_node_removed", callable_mp(this, &AnimationNodeBlendSpace1D::_animation_node_removed), CONNECT_REFERENCE_COUNTED);
@@ -332,11 +294,8 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace1D::_process(const AnimationM
 			// figure out weights, then blend the animations
 
 			float distance_between_points = pos_higher - pos_lower;
-
 			float current_pos_inbetween = blend_pos - pos_lower;
-
 			float blend_percentage = current_pos_inbetween / distance_between_points;
-
 			float blend_lower = 1.0 - blend_percentage;
 			float blend_higher = blend_percentage;
 
@@ -376,12 +335,18 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace1D::_process(const AnimationM
 		if (new_closest != cur_closest && new_closest != -1) {
 			if (blend_mode == BLEND_MODE_DISCRETE_CARRY && cur_closest != -1) {
 				NodeTimeInfo from;
+
 				// For ping-pong loop.
 				Ref<AnimationNodeAnimation> na_c = static_cast<Ref<AnimationNodeAnimation>>(blend_points[cur_closest].node);
 				Ref<AnimationNodeAnimation> na_n = static_cast<Ref<AnimationNodeAnimation>>(blend_points[new_closest].node);
 				if (na_c.is_valid() && na_n.is_valid()) {
+					na_n->process_state = process_state;
+					na_c->process_state = process_state;
 					na_n->set_backward(na_c->is_backward());
+					na_n = nullptr;
+					na_c = nullptr;
 				}
+
 				// See how much animation remains.
 				pi.seeked = false;
 				pi.weight = 0;
@@ -422,5 +387,4 @@ AnimationNodeBlendSpace1D::AnimationNodeBlendSpace1D() {
 	}
 }
 
-AnimationNodeBlendSpace1D::~AnimationNodeBlendSpace1D() {
-}
+AnimationNodeBlendSpace1D::~AnimationNodeBlendSpace1D() {}

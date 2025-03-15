@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_settings_dialog.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_settings_dialog.h"
-
 #include "core/input/input_map.h"
 #include "core/os/keyboard.h"
 #include "editor/debugger/editor_debugger_node.h"
@@ -56,20 +26,19 @@ void EditorSettingsDialog::ok_pressed() {
 	if (!EditorSettings::get_singleton()) {
 		return;
 	}
-
 	_settings_save();
-	timer->stop();
 }
 
 void EditorSettingsDialog::_settings_changed() {
-	timer->start();
+	if (is_visible()) {
+		timer->start();
+	}
 }
 
 void EditorSettingsDialog::_settings_property_edited(const String &p_name) {
 	String full_name = inspector->get_full_item_path(p_name);
 
 	// Set theme presets to Custom when controlled settings change.
-
 	if (full_name == "interface/theme/accent_color" || full_name == "interface/theme/base_color" || full_name == "interface/theme/contrast" || full_name == "interface/theme/draw_extra_borders") {
 		EditorSettings::get_singleton()->set_manually("interface/theme/preset", "Custom");
 	} else if (full_name == "interface/theme/base_spacing" || full_name == "interface/theme/additional_spacing") {
@@ -174,6 +143,9 @@ void EditorSettingsDialog::_set_shortcut_input(const String &p_name, Ref<InputEv
 }
 
 void EditorSettingsDialog::_settings_save() {
+	if (!timer->is_stopped()) {
+		timer->stop();
+	}
 	EditorSettings::get_singleton()->notify_changes();
 	EditorSettings::get_singleton()->save();
 }
@@ -182,7 +154,6 @@ void EditorSettingsDialog::cancel_pressed() {
 	if (!EditorSettings::get_singleton()) {
 		return;
 	}
-
 	EditorSettings::get_singleton()->notify_changes();
 }
 
@@ -208,7 +179,6 @@ void EditorSettingsDialog::popup_edit_settings() {
 	} else {
 		popup_centered_clamped(Size2(900, 700) * EDSCALE, 0.8);
 	}
-
 	_focus_current_search_box();
 }
 
@@ -386,7 +356,6 @@ Array EditorSettingsDialog::_event_list_to_array_helper(const List<Ref<InputEven
 			events.append(E->get());
 		}
 	}
-
 	return events;
 }
 
@@ -454,7 +423,6 @@ TreeItem *EditorSettingsDialog::_create_shortcut_treeitem(TreeItem *p_parent, co
 		event_item->set_meta("type", "event");
 		event_item->set_meta("event_index", i);
 	}
-
 	return shortcut_item;
 }
 
@@ -484,7 +452,6 @@ bool EditorSettingsDialog::_should_display_shortcut(const String &p_name, const 
 	if (p_match_localized_name && search_text.is_subsequence_ofn(TTR(p_name))) {
 		return true;
 	}
-
 	return false;
 }
 
@@ -514,7 +481,6 @@ void EditorSettingsDialog::_update_shortcuts() {
 					ti_next = ti_next->get_next();
 				}
 			}
-
 			ti = ti_next;
 		}
 	}
@@ -561,7 +527,6 @@ void EditorSettingsDialog::_update_shortcuts() {
 	}
 
 	// Editor Shortcuts
-
 	List<String> slist;
 	EditorSettings::get_singleton()->get_shortcut_list(&slist);
 	slist.sort(); // Sort alphabetically.
@@ -887,7 +852,6 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	add_child(tabs);
 
 	// General Tab
-
 	tab_general = memnew(VBoxContainer);
 	tabs->add_child(tab_general);
 	tab_general->set_name(TTR("General"));
@@ -939,7 +903,6 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	restart_container->hide();
 
 	// Shortcuts Tab
-
 	tab_shortcuts = memnew(VBoxContainer);
 
 	tabs->add_child(tab_shortcuts);
@@ -1001,5 +964,4 @@ EditorSettingsDialog::EditorSettingsDialog() {
 	set_ok_button_text(TTR("Close"));
 }
 
-EditorSettingsDialog::~EditorSettingsDialog() {
-}
+EditorSettingsDialog::~EditorSettingsDialog() {}

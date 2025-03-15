@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  tree.cpp                                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "tree.h"
-
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/math/math_funcs.h"
@@ -39,7 +9,6 @@
 #include "scene/gui/text_edit.h"
 #include "scene/main/window.h"
 #include "scene/theme/theme_db.h"
-
 #include <limits.h>
 
 Size2 TreeItem::Cell::get_icon_size() const {
@@ -144,10 +113,8 @@ void TreeItem::_change_tree(Tree *p_tree) {
 			tree->edited_item = nullptr;
 			tree->pressing_for_editor = false;
 		}
-
 		tree->queue_redraw();
 	}
-
 	tree = p_tree;
 
 	if (tree) {
@@ -281,7 +248,6 @@ String TreeItem::atr(int p_column, const String &p_text) const {
 			return p_text;
 		} break;
 	}
-
 	ERR_FAIL_V_MSG(tree->atr(p_text), "Unexpected auto translate mode: " + itos(cells[p_column].auto_translate_mode));
 }
 
@@ -2241,10 +2207,18 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 					}
 
 					if (p_item->cells[0].selected) {
-						if (has_focus()) {
-							theme_cache.selected_focus->draw(ci, row_rect);
+						if (is_row_hovered) {
+							if (has_focus()) {
+								theme_cache.hovered_selected_focus->draw(ci, row_rect);
+							} else {
+								theme_cache.hovered_selected->draw(ci, row_rect);
+							}
 						} else {
-							theme_cache.selected->draw(ci, row_rect);
+							if (has_focus()) {
+								theme_cache.selected_focus->draw(ci, row_rect);
+							} else {
+								theme_cache.selected->draw(ci, row_rect);
+							}
 						}
 					} else if (!drop_mode_flags) {
 						if (is_cell_button_hovered) {
@@ -2281,10 +2255,18 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 						r.position.x = get_size().width - r.position.x - r.size.x;
 					}
 					if (p_item->cells[i].selected) {
-						if (has_focus()) {
-							theme_cache.selected_focus->draw(ci, r);
+						if (is_cell_hovered) {
+							if (has_focus()) {
+								theme_cache.hovered_selected_focus->draw(ci, r);
+							} else {
+								theme_cache.hovered_selected->draw(ci, r);
+							}
 						} else {
-							theme_cache.selected->draw(ci, r);
+							if (has_focus()) {
+								theme_cache.selected_focus->draw(ci, r);
+							} else {
+								theme_cache.selected->draw(ci, r);
+							}
 						}
 					}
 				} else {
@@ -2347,7 +2329,7 @@ int Tree::draw_item(const Point2i &p_pos, const Point2 &p_draw_ofs, const Size2 
 			} else {
 				bool draw_as_hover = !drop_mode_flags && (select_mode == SELECT_ROW ? is_row_hovered : is_cell_hovered);
 				bool draw_as_hover_dim = draw_as_hover && is_cell_button_hovered;
-				cell_color = p_item->cells[i].selected ? theme_cache.font_selected_color : (draw_as_hover_dim ? theme_cache.font_hovered_dimmed_color : (draw_as_hover ? theme_cache.font_hovered_color : theme_cache.font_color));
+				cell_color = p_item->cells[i].selected && draw_as_hover ? theme_cache.font_hovered_selected_color : (p_item->cells[i].selected ? theme_cache.font_selected_color : (draw_as_hover_dim ? theme_cache.font_hovered_dimmed_color : (draw_as_hover ? theme_cache.font_hovered_color : theme_cache.font_color)));
 			}
 
 			Color font_outline_color = theme_cache.font_outline_color;
@@ -3012,6 +2994,9 @@ int Tree::propagate_mouse_event(const Point2i &p_pos, int x_ofs, int y_ofs, int 
 						int icount = _count_selected_items(root);
 
 						if (select_mode == SELECT_MULTI && icount > 1 && p_button != MouseButton::RIGHT) {
+							if (!already_selected) {
+								select_single_item(p_item, root, col);
+							}
 							single_select_defer = p_item;
 							single_select_defer_column = col;
 						} else {
@@ -4104,22 +4089,26 @@ bool Tree::edit_selected(bool p_force_edit) {
 		Rect2 popup_rect;
 
 		int value_editor_height = c.mode == TreeItem::CELL_MODE_RANGE ? value_editor->get_minimum_size().height : 0;
+
 		// "floor()" centers vertically.
 		Vector2 ofs(0, Math::floor((MAX(line_editor->get_minimum_size().height, rect.size.height - value_editor_height) - rect.size.height) / 2));
 
-		popup_rect.position = get_screen_position() + rect.position - ofs;
-		popup_rect.size = rect.size;
-
 		// Account for icon.
 		Size2 icon_size = _get_cell_icon_size(c) * popup_scale;
-		popup_rect.position.x += icon_size.x;
-		popup_rect.size.x -= icon_size.x;
+		popup_rect.size = rect.size;
+		popup_rect.size.x -= icon_size.x + theme_cache.h_separation;
+
+		popup_rect.position = rect.position - ofs;
+		popup_rect.position.x += icon_size.x + theme_cache.h_separation;
+		if (cache.rtl) {
+			popup_rect.position.x = get_size().width - popup_rect.position.x - popup_rect.size.x;
+		}
+		popup_rect.position += get_screen_position();
 
 		line_editor->clear();
 		line_editor->set_text(c.mode == TreeItem::CELL_MODE_STRING ? c.text : String::num(c.val, Math::range_step_decimals(c.step)));
 		line_editor->select_all();
 		line_editor->show();
-
 		text_editor->hide();
 
 		if (c.mode == TreeItem::CELL_MODE_RANGE) {
@@ -5782,7 +5771,6 @@ bool Tree::is_auto_tooltip_enabled() const {
 void Tree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("clear"), &Tree::clear);
 	ClassDB::bind_method(D_METHOD("create_item", "parent", "index"), &Tree::create_item, DEFVAL(Variant()), DEFVAL(-1));
-
 	ClassDB::bind_method(D_METHOD("get_root"), &Tree::get_root);
 	ClassDB::bind_method(D_METHOD("set_column_custom_minimum_width", "column", "min_width"), &Tree::set_column_custom_minimum_width);
 	ClassDB::bind_method(D_METHOD("set_column_expand", "column", "expand"), &Tree::set_column_expand);
@@ -5791,9 +5779,7 @@ void Tree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_column_expanding", "column"), &Tree::is_column_expanding);
 	ClassDB::bind_method(D_METHOD("is_column_clipping_content", "column"), &Tree::is_column_clipping_content);
 	ClassDB::bind_method(D_METHOD("get_column_expand_ratio", "column"), &Tree::get_column_expand_ratio);
-
 	ClassDB::bind_method(D_METHOD("get_column_width", "column"), &Tree::get_column_width);
-
 	ClassDB::bind_method(D_METHOD("set_hide_root", "enable"), &Tree::set_hide_root);
 	ClassDB::bind_method(D_METHOD("is_root_hidden"), &Tree::is_root_hidden);
 	ClassDB::bind_method(D_METHOD("get_next_selected", "from"), &Tree::get_next_selected);
@@ -5804,10 +5790,8 @@ void Tree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_select_mode", "mode"), &Tree::set_select_mode);
 	ClassDB::bind_method(D_METHOD("get_select_mode"), &Tree::get_select_mode);
 	ClassDB::bind_method(D_METHOD("deselect_all"), &Tree::deselect_all);
-
 	ClassDB::bind_method(D_METHOD("set_columns", "amount"), &Tree::set_columns);
 	ClassDB::bind_method(D_METHOD("get_columns"), &Tree::get_columns);
-
 	ClassDB::bind_method(D_METHOD("get_edited"), &Tree::get_edited);
 	ClassDB::bind_method(D_METHOD("get_edited_column"), &Tree::get_edited_column);
 	ClassDB::bind_method(D_METHOD("edit_selected", "force_edit"), &Tree::edit_selected, DEFVAL(false));
@@ -5817,51 +5801,35 @@ void Tree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_column_at_position", "position"), &Tree::get_column_at_position);
 	ClassDB::bind_method(D_METHOD("get_drop_section_at_position", "position"), &Tree::get_drop_section_at_position);
 	ClassDB::bind_method(D_METHOD("get_button_id_at_position", "position"), &Tree::get_button_id_at_position);
-
 	ClassDB::bind_method(D_METHOD("ensure_cursor_is_visible"), &Tree::ensure_cursor_is_visible);
-
 	ClassDB::bind_method(D_METHOD("set_column_titles_visible", "visible"), &Tree::set_column_titles_visible);
 	ClassDB::bind_method(D_METHOD("are_column_titles_visible"), &Tree::are_column_titles_visible);
-
 	ClassDB::bind_method(D_METHOD("set_column_title", "column", "title"), &Tree::set_column_title);
 	ClassDB::bind_method(D_METHOD("get_column_title", "column"), &Tree::get_column_title);
-
 	ClassDB::bind_method(D_METHOD("set_column_title_alignment", "column", "title_alignment"), &Tree::set_column_title_alignment);
 	ClassDB::bind_method(D_METHOD("get_column_title_alignment", "column"), &Tree::get_column_title_alignment);
-
 	ClassDB::bind_method(D_METHOD("set_column_title_direction", "column", "direction"), &Tree::set_column_title_direction);
 	ClassDB::bind_method(D_METHOD("get_column_title_direction", "column"), &Tree::get_column_title_direction);
-
 	ClassDB::bind_method(D_METHOD("set_column_title_language", "column", "language"), &Tree::set_column_title_language);
 	ClassDB::bind_method(D_METHOD("get_column_title_language", "column"), &Tree::get_column_title_language);
-
 	ClassDB::bind_method(D_METHOD("get_scroll"), &Tree::get_scroll);
 	ClassDB::bind_method(D_METHOD("scroll_to_item", "item", "center_on_item"), &Tree::scroll_to_item, DEFVAL(false));
-
 	ClassDB::bind_method(D_METHOD("set_h_scroll_enabled", "h_scroll"), &Tree::set_h_scroll_enabled);
 	ClassDB::bind_method(D_METHOD("is_h_scroll_enabled"), &Tree::is_h_scroll_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_v_scroll_enabled", "h_scroll"), &Tree::set_v_scroll_enabled);
 	ClassDB::bind_method(D_METHOD("is_v_scroll_enabled"), &Tree::is_v_scroll_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_hide_folding", "hide"), &Tree::set_hide_folding);
 	ClassDB::bind_method(D_METHOD("is_folding_hidden"), &Tree::is_folding_hidden);
-
 	ClassDB::bind_method(D_METHOD("set_enable_recursive_folding", "enable"), &Tree::set_enable_recursive_folding);
 	ClassDB::bind_method(D_METHOD("is_recursive_folding_enabled"), &Tree::is_recursive_folding_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_drop_mode_flags", "flags"), &Tree::set_drop_mode_flags);
 	ClassDB::bind_method(D_METHOD("get_drop_mode_flags"), &Tree::get_drop_mode_flags);
-
 	ClassDB::bind_method(D_METHOD("set_allow_rmb_select", "allow"), &Tree::set_allow_rmb_select);
 	ClassDB::bind_method(D_METHOD("get_allow_rmb_select"), &Tree::get_allow_rmb_select);
-
 	ClassDB::bind_method(D_METHOD("set_allow_reselect", "allow"), &Tree::set_allow_reselect);
 	ClassDB::bind_method(D_METHOD("get_allow_reselect"), &Tree::get_allow_reselect);
-
 	ClassDB::bind_method(D_METHOD("set_allow_search", "allow"), &Tree::set_allow_search);
 	ClassDB::bind_method(D_METHOD("get_allow_search"), &Tree::get_allow_search);
-
 	ClassDB::bind_method(D_METHOD("set_auto_tooltip", "enable"), &Tree::set_auto_tooltip);
 	ClassDB::bind_method(D_METHOD("is_auto_tooltip_enabled"), &Tree::is_auto_tooltip_enabled);
 
@@ -5898,7 +5866,6 @@ void Tree::_bind_methods() {
 	BIND_ENUM_CONSTANT(SELECT_SINGLE);
 	BIND_ENUM_CONSTANT(SELECT_ROW);
 	BIND_ENUM_CONSTANT(SELECT_MULTI);
-
 	BIND_ENUM_CONSTANT(DROP_MODE_DISABLED);
 	BIND_ENUM_CONSTANT(DROP_MODE_ON_ITEM);
 	BIND_ENUM_CONSTANT(DROP_MODE_INBETWEEN);
@@ -5913,13 +5880,14 @@ void Tree::_bind_methods() {
 
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, hovered);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, hovered_dimmed);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, hovered_selected);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, hovered_selected_focus);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, selected);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, selected_focus);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, cursor);
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_STYLEBOX, Tree, cursor_unfocus, "cursor_unfocused");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, button_hover);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, button_pressed);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, Tree, checked);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, Tree, unchecked);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, Tree, checked_disabled);
@@ -5931,15 +5899,14 @@ void Tree::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, Tree, arrow_collapsed_mirrored);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, Tree, select_arrow);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, Tree, updown);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, custom_button);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, custom_button_hover);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, custom_button_pressed);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, custom_button_font_highlight);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_hovered_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_hovered_dimmed_color);
+	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_hovered_selected_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_selected_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_disabled_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, drop_position_color);
@@ -5952,10 +5919,8 @@ void Tree::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, item_margin);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, button_margin);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, icon_max_width);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, font_outline_color);
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_CONSTANT, Tree, font_outline_size, "outline_size");
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, draw_guides);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, guide_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, draw_relationship_lines);
@@ -5966,17 +5931,14 @@ void Tree::_bind_methods() {
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, relationship_line_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, parent_hl_line_color);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, Tree, children_hl_line_color);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scroll_border);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scroll_speed);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scrollbar_margin_top);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scrollbar_margin_right);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scrollbar_margin_bottom);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scrollbar_margin_left);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scrollbar_h_separation);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, Tree, scrollbar_v_separation);
-
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_STYLEBOX, Tree, title_button, "title_button_normal");
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, title_button_pressed);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, Tree, title_button_hover);
@@ -6034,9 +5996,7 @@ Tree::Tree() {
 	value_editor->connect(SceneStringName(value_changed), callable_mp(this, &Tree::value_editor_changed));
 
 	set_notify_transform(true);
-
 	set_mouse_filter(MOUSE_FILTER_STOP);
-
 	set_clip_contents(true);
 }
 

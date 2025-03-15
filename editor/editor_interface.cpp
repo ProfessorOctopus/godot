@@ -1,36 +1,6 @@
-/**************************************************************************/
-/*  editor_interface.cpp                                                  */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_interface.h"
 #include "editor_interface.compat.inc"
-
 #include "core/config/project_settings.h"
 #include "editor/create_dialog.h"
 #include "editor/editor_command_palette.h"
@@ -70,7 +40,6 @@ void EditorInterface::restart_editor(bool p_save) {
 }
 
 // Editor tools.
-
 EditorCommandPalette *EditorInterface::get_command_palette() const {
 	return EditorCommandPalette::get_singleton();
 }
@@ -120,7 +89,6 @@ AABB EditorInterface::_calculate_aabb_for_scene(Node *p_node, AABB &p_scene_aabb
 	for (int i = 0; i < p_node->get_child_count(); i++) {
 		p_scene_aabb = _calculate_aabb_for_scene(p_node->get_child(i), p_scene_aabb);
 	}
-
 	return p_scene_aabb;
 }
 
@@ -136,7 +104,6 @@ TypedArray<Texture2D> EditorInterface::_make_mesh_previews(const TypedArray<Mesh
 	for (int i = 0; i < textures.size(); i++) {
 		ret.push_back(textures[i]);
 	}
-
 	return ret;
 }
 
@@ -217,7 +184,6 @@ Vector<Ref<Texture2D>> EditorInterface::make_mesh_previews(const Vector<Ref<Mesh
 
 		textures.push_back(it);
 	}
-
 	RS::get_singleton()->free(viewport);
 	RS::get_singleton()->free(light);
 	RS::get_singleton()->free(light_instance);
@@ -369,7 +335,6 @@ bool EditorInterface::is_plugin_enabled(const String &p_plugin) const {
 }
 
 // Editor GUI.
-
 Ref<Theme> EditorInterface::get_editor_theme() const {
 	return EditorNode::get_singleton()->get_editor_theme();
 }
@@ -440,7 +405,6 @@ void EditorInterface::set_current_feature_profile(const String &p_profile_name) 
 }
 
 // Editor dialogs.
-
 void EditorInterface::popup_node_selector(const Callable &p_callback, const TypedArray<StringName> &p_valid_types, Node *p_current_value) {
 	if (!node_selector) {
 		node_selector = memnew(SceneTreeDialog);
@@ -600,7 +564,6 @@ void EditorInterface::_call_dialog_callback(const Callable &p_callback, const Va
 }
 
 // Editor docks.
-
 FileSystemDock *EditorInterface::get_file_system_dock() const {
 	return FileSystemDock::get_singleton();
 }
@@ -626,7 +589,6 @@ EditorInspector *EditorInterface::get_inspector() const {
 }
 
 // Object/Resource/Node editing.
-
 void EditorInterface::inspect_object(Object *p_obj, const String &p_for_property, bool p_inspector_only) {
 	EditorNode::get_singleton()->push_item(p_obj, p_for_property, p_inspector_only);
 }
@@ -647,8 +609,7 @@ void EditorInterface::open_scene_from_path(const String &scene_path, bool p_set_
 	if (EditorNode::get_singleton()->is_changing_scene()) {
 		return;
 	}
-
-	EditorNode::get_singleton()->open_request(scene_path, p_set_inherited);
+	EditorNode::get_singleton()->load_scene(scene_path, false, p_set_inherited);
 }
 
 void EditorInterface::reload_scene_from_path(const String &scene_path) {
@@ -696,7 +657,6 @@ Error EditorInterface::save_scene() {
 	if (get_edited_scene_root()->get_scene_file_path().is_empty()) {
 		return ERR_CANT_CREATE;
 	}
-
 	save_scene_as(get_edited_scene_root()->get_scene_file_path());
 	return OK;
 }
@@ -715,7 +675,6 @@ void EditorInterface::save_all_scenes() {
 }
 
 // Scene playback.
-
 void EditorInterface::play_main_scene() {
 	EditorRunBar::get_singleton()->play_main_scene();
 }
@@ -764,15 +723,13 @@ void EditorInterface::get_argument_options(const StringName &p_function, int p_i
 	}
 	Object::get_argument_options(p_function, p_idx, r_options);
 }
-#endif
+#endif // TOOLS_ENABLED
 
 // Base.
-
 void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("restart_editor", "save"), &EditorInterface::restart_editor, DEFVAL(true));
 
 	// Editor tools.
-
 	ClassDB::bind_method(D_METHOD("get_command_palette"), &EditorInterface::get_command_palette);
 	ClassDB::bind_method(D_METHOD("get_resource_filesystem"), &EditorInterface::get_resource_file_system);
 	ClassDB::bind_method(D_METHOD("get_editor_paths"), &EditorInterface::get_editor_paths);
@@ -781,40 +738,32 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_editor_settings"), &EditorInterface::get_editor_settings);
 	ClassDB::bind_method(D_METHOD("get_editor_toaster"), &EditorInterface::get_editor_toaster);
 	ClassDB::bind_method(D_METHOD("get_editor_undo_redo"), &EditorInterface::get_editor_undo_redo);
-
 	ClassDB::bind_method(D_METHOD("make_mesh_previews", "meshes", "preview_size"), &EditorInterface::_make_mesh_previews);
-
 	ClassDB::bind_method(D_METHOD("set_plugin_enabled", "plugin", "enabled"), &EditorInterface::set_plugin_enabled);
 	ClassDB::bind_method(D_METHOD("is_plugin_enabled", "plugin"), &EditorInterface::is_plugin_enabled);
 
 	// Editor GUI.
-
 	ClassDB::bind_method(D_METHOD("get_editor_theme"), &EditorInterface::get_editor_theme);
 	ClassDB::bind_method(D_METHOD("get_base_control"), &EditorInterface::get_base_control);
 	ClassDB::bind_method(D_METHOD("get_editor_main_screen"), &EditorInterface::get_editor_main_screen);
 	ClassDB::bind_method(D_METHOD("get_script_editor"), &EditorInterface::get_script_editor);
 	ClassDB::bind_method(D_METHOD("get_editor_viewport_2d"), &EditorInterface::get_editor_viewport_2d);
 	ClassDB::bind_method(D_METHOD("get_editor_viewport_3d", "idx"), &EditorInterface::get_editor_viewport_3d, DEFVAL(0));
-
 	ClassDB::bind_method(D_METHOD("set_main_screen_editor", "name"), &EditorInterface::set_main_screen_editor);
 	ClassDB::bind_method(D_METHOD("set_distraction_free_mode", "enter"), &EditorInterface::set_distraction_free_mode);
 	ClassDB::bind_method(D_METHOD("is_distraction_free_mode_enabled"), &EditorInterface::is_distraction_free_mode_enabled);
 	ClassDB::bind_method(D_METHOD("is_multi_window_enabled"), &EditorInterface::is_multi_window_enabled);
-
 	ClassDB::bind_method(D_METHOD("get_editor_scale"), &EditorInterface::get_editor_scale);
-
 	ClassDB::bind_method(D_METHOD("popup_dialog", "dialog", "rect"), &EditorInterface::popup_dialog, DEFVAL(Rect2i()));
 	ClassDB::bind_method(D_METHOD("popup_dialog_centered", "dialog", "minsize"), &EditorInterface::popup_dialog_centered, DEFVAL(Size2i()));
 	ClassDB::bind_method(D_METHOD("popup_dialog_centered_ratio", "dialog", "ratio"), &EditorInterface::popup_dialog_centered_ratio, DEFVAL(0.8));
 	ClassDB::bind_method(D_METHOD("popup_dialog_centered_clamped", "dialog", "minsize", "fallback_ratio"), &EditorInterface::popup_dialog_centered_clamped, DEFVAL(Size2i()), DEFVAL(0.75));
-
 	ClassDB::bind_method(D_METHOD("get_current_feature_profile"), &EditorInterface::get_current_feature_profile);
 	ClassDB::bind_method(D_METHOD("set_current_feature_profile", "profile_name"), &EditorInterface::set_current_feature_profile);
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "distraction_free_mode"), "set_distraction_free_mode", "is_distraction_free_mode_enabled");
 
 	// Editor dialogs.
-
 	ClassDB::bind_method(D_METHOD("popup_node_selector", "callback", "valid_types", "current_value"), &EditorInterface::popup_node_selector, DEFVAL(TypedArray<StringName>()), DEFVAL(Variant()));
 	ClassDB::bind_method(D_METHOD("popup_property_selector", "object", "callback", "type_filter", "current_value"), &EditorInterface::popup_property_selector, DEFVAL(PackedInt32Array()), DEFVAL(String()));
 	ClassDB::bind_method(D_METHOD("popup_method_selector", "object", "callback", "current_value"), &EditorInterface::popup_method_selector, DEFVAL(String()));
@@ -822,44 +771,35 @@ void EditorInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("popup_create_dialog", "callback", "base_type", "current_type", "dialog_title", "type_blocklist"), &EditorInterface::popup_create_dialog, DEFVAL(""), DEFVAL(""), DEFVAL(""), DEFVAL(TypedArray<StringName>()));
 
 	// Editor docks.
-
 	ClassDB::bind_method(D_METHOD("get_file_system_dock"), &EditorInterface::get_file_system_dock);
 	ClassDB::bind_method(D_METHOD("select_file", "file"), &EditorInterface::select_file);
 	ClassDB::bind_method(D_METHOD("get_selected_paths"), &EditorInterface::get_selected_paths);
 	ClassDB::bind_method(D_METHOD("get_current_path"), &EditorInterface::get_current_path);
 	ClassDB::bind_method(D_METHOD("get_current_directory"), &EditorInterface::get_current_directory);
-
 	ClassDB::bind_method(D_METHOD("get_inspector"), &EditorInterface::get_inspector);
 
 	// Object/Resource/Node editing.
-
 	ClassDB::bind_method(D_METHOD("inspect_object", "object", "for_property", "inspector_only"), &EditorInterface::inspect_object, DEFVAL(String()), DEFVAL(false));
-
 	ClassDB::bind_method(D_METHOD("edit_resource", "resource"), &EditorInterface::edit_resource);
 	ClassDB::bind_method(D_METHOD("edit_node", "node"), &EditorInterface::edit_node);
 	ClassDB::bind_method(D_METHOD("edit_script", "script", "line", "column", "grab_focus"), &EditorInterface::edit_script, DEFVAL(-1), DEFVAL(0), DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("open_scene_from_path", "scene_filepath", "set_inherited"), &EditorInterface::open_scene_from_path, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("reload_scene_from_path", "scene_filepath"), &EditorInterface::reload_scene_from_path);
-
 	ClassDB::bind_method(D_METHOD("get_open_scenes"), &EditorInterface::get_open_scenes);
 	ClassDB::bind_method(D_METHOD("get_open_scene_roots"), &EditorInterface::get_open_scene_roots);
 	ClassDB::bind_method(D_METHOD("get_edited_scene_root"), &EditorInterface::get_edited_scene_root);
-
 	ClassDB::bind_method(D_METHOD("save_scene"), &EditorInterface::save_scene);
 	ClassDB::bind_method(D_METHOD("save_scene_as", "path", "with_preview"), &EditorInterface::save_scene_as, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("save_all_scenes"), &EditorInterface::save_all_scenes);
-
 	ClassDB::bind_method(D_METHOD("mark_scene_as_unsaved"), &EditorInterface::mark_scene_as_unsaved);
 
 	// Scene playback.
-
 	ClassDB::bind_method(D_METHOD("play_main_scene"), &EditorInterface::play_main_scene);
 	ClassDB::bind_method(D_METHOD("play_current_scene"), &EditorInterface::play_current_scene);
 	ClassDB::bind_method(D_METHOD("play_custom_scene", "scene_filepath"), &EditorInterface::play_custom_scene);
 	ClassDB::bind_method(D_METHOD("stop_playing_scene"), &EditorInterface::stop_playing_scene);
 	ClassDB::bind_method(D_METHOD("is_playing_scene"), &EditorInterface::is_playing_scene);
 	ClassDB::bind_method(D_METHOD("get_playing_scene"), &EditorInterface::get_playing_scene);
-
 	ClassDB::bind_method(D_METHOD("set_movie_maker_enabled", "enabled"), &EditorInterface::set_movie_maker_enabled);
 	ClassDB::bind_method(D_METHOD("is_movie_maker_enabled"), &EditorInterface::is_movie_maker_enabled);
 

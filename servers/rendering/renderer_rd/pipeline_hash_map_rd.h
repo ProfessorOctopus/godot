@@ -1,6 +1,5 @@
 //========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "servers/rendering/rendering_device.h"
 #include "servers/rendering_server.h"
 

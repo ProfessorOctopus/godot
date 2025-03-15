@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  syntax_highlighter.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "syntax_highlighter.h"
-
 #include "scene/gui/text_edit.h"
 
 Dictionary SyntaxHighlighter::get_line_syntax_highlighting(int p_line) {
@@ -45,7 +15,6 @@ Dictionary SyntaxHighlighter::get_line_syntax_highlighting(int p_line) {
 	if (!GDVIRTUAL_CALL(_get_line_syntax_highlighting, p_line, color_map)) {
 		color_map = _get_line_syntax_highlighting_impl(p_line);
 	}
-
 	highlighting_cache[p_line] = color_map;
 	return color_map;
 }
@@ -112,8 +81,6 @@ void SyntaxHighlighter::_bind_methods() {
 	GDVIRTUAL_BIND(_clear_highlighting_cache)
 	GDVIRTUAL_BIND(_update_cache)
 }
-
-////////////////////////////////////////////////////////////////////////////////
 
 Dictionary CodeHighlighter::_get_line_syntax_highlighting_impl(int p_line) {
 	Dictionary color_map;
@@ -537,16 +504,12 @@ bool CodeHighlighter::has_color_region(const String &p_start_key) const {
 void CodeHighlighter::set_color_regions(const Dictionary &p_color_regions) {
 	color_regions.clear();
 
-	List<Variant> keys;
-	p_color_regions.get_key_list(&keys);
-
-	for (const Variant &E : keys) {
-		String key = E;
-
+	for (const KeyValue<Variant, Variant> &kv : p_color_regions) {
+		String key = kv.key;
 		String start_key = key.get_slicec(' ', 0);
 		String end_key = key.get_slice_count(" ") > 1 ? key.get_slicec(' ', 1) : String();
 
-		add_color_region(start_key, end_key, p_color_regions[key], end_key.is_empty());
+		add_color_region(start_key, end_key, kv.value, end_key.is_empty());
 	}
 	clear_highlighting_cache();
 }
@@ -570,37 +533,28 @@ void CodeHighlighter::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("remove_keyword_color", "keyword"), &CodeHighlighter::remove_keyword_color);
 	ClassDB::bind_method(D_METHOD("has_keyword_color", "keyword"), &CodeHighlighter::has_keyword_color);
 	ClassDB::bind_method(D_METHOD("get_keyword_color", "keyword"), &CodeHighlighter::get_keyword_color);
-
 	ClassDB::bind_method(D_METHOD("set_keyword_colors", "keywords"), &CodeHighlighter::set_keyword_colors);
 	ClassDB::bind_method(D_METHOD("clear_keyword_colors"), &CodeHighlighter::clear_keyword_colors);
 	ClassDB::bind_method(D_METHOD("get_keyword_colors"), &CodeHighlighter::get_keyword_colors);
-
 	ClassDB::bind_method(D_METHOD("add_member_keyword_color", "member_keyword", "color"), &CodeHighlighter::add_member_keyword_color);
 	ClassDB::bind_method(D_METHOD("remove_member_keyword_color", "member_keyword"), &CodeHighlighter::remove_member_keyword_color);
 	ClassDB::bind_method(D_METHOD("has_member_keyword_color", "member_keyword"), &CodeHighlighter::has_member_keyword_color);
 	ClassDB::bind_method(D_METHOD("get_member_keyword_color", "member_keyword"), &CodeHighlighter::get_member_keyword_color);
-
 	ClassDB::bind_method(D_METHOD("set_member_keyword_colors", "member_keyword"), &CodeHighlighter::set_member_keyword_colors);
 	ClassDB::bind_method(D_METHOD("clear_member_keyword_colors"), &CodeHighlighter::clear_member_keyword_colors);
 	ClassDB::bind_method(D_METHOD("get_member_keyword_colors"), &CodeHighlighter::get_member_keyword_colors);
-
 	ClassDB::bind_method(D_METHOD("add_color_region", "start_key", "end_key", "color", "line_only"), &CodeHighlighter::add_color_region, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("remove_color_region", "start_key"), &CodeHighlighter::remove_color_region);
 	ClassDB::bind_method(D_METHOD("has_color_region", "start_key"), &CodeHighlighter::has_color_region);
-
 	ClassDB::bind_method(D_METHOD("set_color_regions", "color_regions"), &CodeHighlighter::set_color_regions);
 	ClassDB::bind_method(D_METHOD("clear_color_regions"), &CodeHighlighter::clear_color_regions);
 	ClassDB::bind_method(D_METHOD("get_color_regions"), &CodeHighlighter::get_color_regions);
-
 	ClassDB::bind_method(D_METHOD("set_function_color", "color"), &CodeHighlighter::set_function_color);
 	ClassDB::bind_method(D_METHOD("get_function_color"), &CodeHighlighter::get_function_color);
-
 	ClassDB::bind_method(D_METHOD("set_number_color", "color"), &CodeHighlighter::set_number_color);
 	ClassDB::bind_method(D_METHOD("get_number_color"), &CodeHighlighter::get_number_color);
-
 	ClassDB::bind_method(D_METHOD("set_symbol_color", "color"), &CodeHighlighter::set_symbol_color);
 	ClassDB::bind_method(D_METHOD("get_symbol_color"), &CodeHighlighter::get_symbol_color);
-
 	ClassDB::bind_method(D_METHOD("set_member_variable_color", "color"), &CodeHighlighter::set_member_variable_color);
 	ClassDB::bind_method(D_METHOD("get_member_variable_color"), &CodeHighlighter::get_member_variable_color);
 
@@ -608,7 +562,6 @@ void CodeHighlighter::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "symbol_color"), "set_symbol_color", "get_symbol_color");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "function_color"), "set_function_color", "get_function_color");
 	ADD_PROPERTY(PropertyInfo(Variant::COLOR, "member_variable_color"), "set_member_variable_color", "get_member_variable_color");
-
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "keyword_colors"), "set_keyword_colors", "get_keyword_colors");
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "member_keyword_colors"), "set_member_keyword_colors", "get_member_keyword_colors");
 	ADD_PROPERTY(PropertyInfo(Variant::DICTIONARY, "color_regions"), "set_color_regions", "get_color_regions");

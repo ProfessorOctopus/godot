@@ -1,43 +1,11 @@
-/**************************************************************************/
-/*  jolt_height_map_shape_3d.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "jolt_height_map_shape_3d.h"
-
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_type_conversions.h"
-
 #include "Jolt/Physics/Collision/Shape/HeightFieldShape.h"
 #include "Jolt/Physics/Collision/Shape/MeshShape.h"
 
 namespace {
-
 bool _is_vertex_hole(const JPH::VertexList &p_vertices, int p_index) {
 	const float height = p_vertices[(size_t)p_index].y;
 	return height == FLT_MAX || Math::is_nan(height);
@@ -46,7 +14,6 @@ bool _is_vertex_hole(const JPH::VertexList &p_vertices, int p_index) {
 bool _is_triangle_hole(const JPH::VertexList &p_vertices, int p_index0, int p_index1, int p_index2) {
 	return _is_vertex_hole(p_vertices, p_index0) || _is_vertex_hole(p_vertices, p_index1) || _is_vertex_hole(p_vertices, p_index2);
 }
-
 } // namespace
 
 JPH::ShapeRefC JoltHeightMapShape3D::_build() const {
@@ -106,7 +73,7 @@ JPH::ShapeRefC JoltHeightMapShape3D::_build_height_field() const {
 	JPH::HeightFieldShapeSettings shape_settings(heights_rev.ptr(), JPH::Vec3(offset_x, 0, offset_y), JPH::Vec3::sReplicate(1.0f), (JPH::uint32)width);
 
 	shape_settings.mBitsPerSample = shape_settings.CalculateBitsPerSampleForError(0.0f);
-	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::get_active_edge_threshold();
+	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::active_edge_threshold_cos;
 
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics height map shape with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));
@@ -160,7 +127,7 @@ JPH::ShapeRefC JoltHeightMapShape3D::_build_mesh() const {
 	}
 
 	JPH::MeshShapeSettings shape_settings(std::move(vertices), std::move(indices));
-	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::get_active_edge_threshold();
+	shape_settings.mActiveEdgeCosThresholdAngle = JoltProjectSettings::active_edge_threshold_cos;
 
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
 	ERR_FAIL_COND_V_MSG(shape_result.HasError(), nullptr, vformat("Failed to build Jolt Physics height map shape (as polygon) with %s. It returned the following error: '%s'. This shape belongs to %s.", to_string(), to_godot(shape_result.GetError()), _owners_to_string()));

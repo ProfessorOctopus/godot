@@ -1,41 +1,9 @@
-/**************************************************************************/
-/*  audio_effect_pitch_shift.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "audio_effect_pitch_shift.h"
-
 #include "core/math/math_funcs.h"
 #include "servers/audio_server.h"
-
 /* Thirdparty code, so disable clang-format with Godot style */
 /* clang-format off */
-
 /****************************************************************************
 *
 * NAME: smbPitchShift.cpp
@@ -73,7 +41,6 @@
 * ANY KIND. See https://dspguru.com/wide-open-license/ for more information.
 *
 *****************************************************************************/
-
 void SMBPitchShift::PitchShift(float pitchShift, long numSampsToProcess, long fftFrameSize, long osamp, float sampleRate, float *indata, float *outdata,int stride) {
 
 
@@ -83,7 +50,6 @@ void SMBPitchShift::PitchShift(float pitchShift, long numSampsToProcess, long ff
 		Time Fourier Transform.
 		Author: (c)1999-2015 Stephan M. Bernsee <s.bernsee [AT] zynaptiq [DOT] com>
 	*/
-
 	double magn, phase, tmp, window, real, imag;
 	double freqPerBin, expct;
 	long i,k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
@@ -281,13 +247,14 @@ void SMBPitchShift::smbFft(float *fftBuffer, long fftFrameSize, long sign)
 	}
 }
 
-
 /* Godot code again */
 /* clang-format on */
-
 void AudioEffectPitchShiftInstance::process(const AudioFrame *p_src_frames, AudioFrame *p_dst_frames, int p_frame_count) {
 	// Avoid distortion by skipping processing if pitch_scale is 1.0.
 	if (Math::is_equal_approx(base->pitch_scale, 1.0f)) {
+		for (int i = 0; i < p_frame_count; i++) {
+			p_dst_frames[i] = p_src_frames[i];
+		}
 		return;
 	}
 
@@ -343,10 +310,8 @@ AudioEffectPitchShift::FFTSize AudioEffectPitchShift::get_fft_size() const {
 void AudioEffectPitchShift::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_pitch_scale", "rate"), &AudioEffectPitchShift::set_pitch_scale);
 	ClassDB::bind_method(D_METHOD("get_pitch_scale"), &AudioEffectPitchShift::get_pitch_scale);
-
 	ClassDB::bind_method(D_METHOD("set_oversampling", "amount"), &AudioEffectPitchShift::set_oversampling);
 	ClassDB::bind_method(D_METHOD("get_oversampling"), &AudioEffectPitchShift::get_oversampling);
-
 	ClassDB::bind_method(D_METHOD("set_fft_size", "size"), &AudioEffectPitchShift::set_fft_size);
 	ClassDB::bind_method(D_METHOD("get_fft_size"), &AudioEffectPitchShift::get_fft_size);
 

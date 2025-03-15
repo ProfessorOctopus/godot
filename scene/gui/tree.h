@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  tree.h                                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "scene/gui/control.h"
 #include "scene/gui/line_edit.h"
 #include "scene/gui/popup_menu.h"
@@ -120,7 +90,6 @@ private:
 			text_buf.instantiate();
 			text_buf->set_text_overrun_behavior(TextServer::OVERRUN_TRIM_ELLIPSIS);
 		}
-
 		Size2 get_icon_size() const;
 		void draw_icon(const RID &p_where, const Point2 &p_pos, const Size2 &p_size = Size2(), const Color &p_color = Color()) const;
 	};
@@ -550,6 +519,8 @@ private:
 
 		Ref<StyleBox> hovered;
 		Ref<StyleBox> hovered_dimmed;
+		Ref<StyleBox> hovered_selected;
+		Ref<StyleBox> hovered_selected_focus;
 		Ref<StyleBox> selected;
 		Ref<StyleBox> selected_focus;
 		Ref<StyleBox> cursor;
@@ -580,6 +551,7 @@ private:
 		Color font_color;
 		Color font_hovered_color;
 		Color font_hovered_dimmed_color;
+		Color font_hovered_selected_color;
 		Color font_selected_color;
 		Color font_disabled_color;
 		Color guide_color;

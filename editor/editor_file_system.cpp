@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_file_system.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_file_system.h"
-
 #include "core/config/project_settings.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/io/dir_access.h"
@@ -2171,6 +2141,7 @@ void EditorFileSystem::_update_script_documentation() {
 
 		if (!efd || index < 0) {
 			// The file was removed
+			EditorHelp::remove_script_doc_by_path(path);
 			continue;
 		}
 
@@ -2188,7 +2159,7 @@ void EditorFileSystem::_update_script_documentation() {
 					scr->reload_from_file();
 				}
 				for (const DocData::ClassDoc &cd : scr->get_documentation()) {
-					EditorHelp::get_doc_data()->add_doc(cd);
+					EditorHelp::add_doc(cd);
 					if (!first_scan) {
 						// Update the documentation in the Script Editor if it is open.
 						ScriptEditor::get_singleton()->update_doc(cd.name);
@@ -2824,11 +2795,8 @@ Error EditorFileSystem::_reimport_file(const String &p_file, const HashMap<Strin
 	if (load_default && ProjectSettings::get_singleton()->has_setting("importer_defaults/" + importer->get_importer_name())) {
 		//use defaults if exist
 		Dictionary d = GLOBAL_GET("importer_defaults/" + importer->get_importer_name());
-		List<Variant> v;
-		d.get_key_list(&v);
-
-		for (const Variant &E : v) {
-			params[E] = d[E];
+		for (const KeyValue<Variant, Variant> &kv : d) {
+			params[kv.key] = kv.value;
 		}
 	}
 
@@ -3107,8 +3075,10 @@ void EditorFileSystem::_refresh_filesystem() {
 }
 
 void EditorFileSystem::_reimport_thread(uint32_t p_index, ImportThreadData *p_import_data) {
+	ResourceLoader::set_is_import_thread(true);
 	int file_idx = p_import_data->reimport_from + int(p_index);
 	_reimport_file(p_import_data->reimport_files[file_idx].path);
+	ResourceLoader::set_is_import_thread(false);
 	p_import_data->imported_sem->post();
 }
 

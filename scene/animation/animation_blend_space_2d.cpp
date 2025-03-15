@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  animation_blend_space_2d.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "animation_blend_space_2d.h"
-
 #include "animation_blend_tree.h"
 #include "core/math/geometry_2d.h"
 
@@ -82,7 +52,6 @@ void AnimationNodeBlendSpace2D::add_blend_point(const Ref<AnimationRootNode> &p_
 	}
 	blend_points[p_at_index].node = p_node;
 	blend_points[p_at_index].position = p_position;
-
 	blend_points[p_at_index].node->connect("tree_changed", callable_mp(this, &AnimationNodeBlendSpace2D::_tree_changed), CONNECT_REFERENCE_COUNTED);
 	blend_points[p_at_index].node->connect("animation_node_renamed", callable_mp(this, &AnimationNodeBlendSpace2D::_animation_node_renamed), CONNECT_REFERENCE_COUNTED);
 	blend_points[p_at_index].node->connect("animation_node_removed", callable_mp(this, &AnimationNodeBlendSpace2D::_animation_node_removed), CONNECT_REFERENCE_COUNTED);
@@ -396,7 +365,6 @@ Vector2 AnimationNodeBlendSpace2D::get_closest_point(const Vector2 &p_point) {
 			}
 		}
 	}
-
 	return best_point;
 }
 
@@ -557,7 +525,11 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace2D::_process(const AnimationM
 				Ref<AnimationNodeAnimation> na_c = static_cast<Ref<AnimationNodeAnimation>>(blend_points[cur_closest].node);
 				Ref<AnimationNodeAnimation> na_n = static_cast<Ref<AnimationNodeAnimation>>(blend_points[new_closest].node);
 				if (na_c.is_valid() && na_n.is_valid()) {
+					na_n->process_state = process_state;
+					na_c->process_state = process_state;
 					na_n->set_backward(na_c->is_backward());
+					na_n = nullptr;
+					na_c = nullptr;
 				}
 				// See how much animation remains.
 				pi.seeked = false;
@@ -584,7 +556,6 @@ AnimationNode::NodeTimeInfo AnimationNodeBlendSpace2D::_process(const AnimationM
 			}
 		}
 	}
-
 	set_parameter(closest, cur_closest);
 	return mind;
 }
@@ -659,38 +630,27 @@ void AnimationNodeBlendSpace2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_blend_point_node", "point"), &AnimationNodeBlendSpace2D::get_blend_point_node);
 	ClassDB::bind_method(D_METHOD("remove_blend_point", "point"), &AnimationNodeBlendSpace2D::remove_blend_point);
 	ClassDB::bind_method(D_METHOD("get_blend_point_count"), &AnimationNodeBlendSpace2D::get_blend_point_count);
-
 	ClassDB::bind_method(D_METHOD("add_triangle", "x", "y", "z", "at_index"), &AnimationNodeBlendSpace2D::add_triangle, DEFVAL(-1));
 	ClassDB::bind_method(D_METHOD("get_triangle_point", "triangle", "point"), &AnimationNodeBlendSpace2D::get_triangle_point);
 	ClassDB::bind_method(D_METHOD("remove_triangle", "triangle"), &AnimationNodeBlendSpace2D::remove_triangle);
 	ClassDB::bind_method(D_METHOD("get_triangle_count"), &AnimationNodeBlendSpace2D::get_triangle_count);
-
 	ClassDB::bind_method(D_METHOD("set_min_space", "min_space"), &AnimationNodeBlendSpace2D::set_min_space);
 	ClassDB::bind_method(D_METHOD("get_min_space"), &AnimationNodeBlendSpace2D::get_min_space);
-
 	ClassDB::bind_method(D_METHOD("set_max_space", "max_space"), &AnimationNodeBlendSpace2D::set_max_space);
 	ClassDB::bind_method(D_METHOD("get_max_space"), &AnimationNodeBlendSpace2D::get_max_space);
-
 	ClassDB::bind_method(D_METHOD("set_snap", "snap"), &AnimationNodeBlendSpace2D::set_snap);
 	ClassDB::bind_method(D_METHOD("get_snap"), &AnimationNodeBlendSpace2D::get_snap);
-
 	ClassDB::bind_method(D_METHOD("set_x_label", "text"), &AnimationNodeBlendSpace2D::set_x_label);
 	ClassDB::bind_method(D_METHOD("get_x_label"), &AnimationNodeBlendSpace2D::get_x_label);
-
 	ClassDB::bind_method(D_METHOD("set_y_label", "text"), &AnimationNodeBlendSpace2D::set_y_label);
 	ClassDB::bind_method(D_METHOD("get_y_label"), &AnimationNodeBlendSpace2D::get_y_label);
-
 	ClassDB::bind_method(D_METHOD("_add_blend_point", "index", "node"), &AnimationNodeBlendSpace2D::_add_blend_point);
-
 	ClassDB::bind_method(D_METHOD("_set_triangles", "triangles"), &AnimationNodeBlendSpace2D::_set_triangles);
 	ClassDB::bind_method(D_METHOD("_get_triangles"), &AnimationNodeBlendSpace2D::_get_triangles);
-
 	ClassDB::bind_method(D_METHOD("set_auto_triangles", "enable"), &AnimationNodeBlendSpace2D::set_auto_triangles);
 	ClassDB::bind_method(D_METHOD("get_auto_triangles"), &AnimationNodeBlendSpace2D::get_auto_triangles);
-
 	ClassDB::bind_method(D_METHOD("set_blend_mode", "mode"), &AnimationNodeBlendSpace2D::set_blend_mode);
 	ClassDB::bind_method(D_METHOD("get_blend_mode"), &AnimationNodeBlendSpace2D::get_blend_mode);
-
 	ClassDB::bind_method(D_METHOD("set_use_sync", "enable"), &AnimationNodeBlendSpace2D::set_use_sync);
 	ClassDB::bind_method(D_METHOD("is_using_sync"), &AnimationNodeBlendSpace2D::is_using_sync);
 
@@ -702,7 +662,6 @@ void AnimationNodeBlendSpace2D::_bind_methods() {
 	}
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_INT32_ARRAY, "triangles", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_triangles", "_get_triangles");
-
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "min_space", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_min_space", "get_min_space");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "max_space", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_max_space", "get_max_space");
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR2, "snap", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_snap", "get_snap");
@@ -723,5 +682,4 @@ AnimationNodeBlendSpace2D::AnimationNodeBlendSpace2D() {
 	}
 }
 
-AnimationNodeBlendSpace2D::~AnimationNodeBlendSpace2D() {
-}
+AnimationNodeBlendSpace2D::~AnimationNodeBlendSpace2D() {}

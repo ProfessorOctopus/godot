@@ -1,38 +1,8 @@
-/**************************************************************************/
-/*  memory.h                                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/error/error_macros.h"
 #include "core/templates/safe_refcount.h"
-
+#include <cstring>
 #include <stddef.h>
 #include <new>
 #include <type_traits>
@@ -52,7 +22,6 @@ public:
 	//             │ alloc size      │░░│ element count  │░░│ data
 	//             └─────────────────┴──┴────────────────┴──┴───────────...
 	// Offset:     ↑ SIZE_OFFSET        ↑ ELEMENT_OFFSET    ↑ DATA_OFFSET
-
 	static constexpr size_t SIZE_OFFSET = 0;
 	static constexpr size_t ELEMENT_OFFSET = ((SIZE_OFFSET + sizeof(uint64_t)) % alignof(uint64_t) == 0) ? (SIZE_OFFSET + sizeof(uint64_t)) : ((SIZE_OFFSET + sizeof(uint64_t)) + alignof(uint64_t) - ((SIZE_OFFSET + sizeof(uint64_t)) % alignof(uint64_t)));
 	static constexpr size_t DATA_OFFSET = ((ELEMENT_OFFSET + sizeof(uint64_t)) % alignof(max_align_t) == 0) ? (ELEMENT_OFFSET + sizeof(uint64_t)) : ((ELEMENT_OFFSET + sizeof(uint64_t)) + alignof(max_align_t) - ((ELEMENT_OFFSET + sizeof(uint64_t)) % alignof(max_align_t)));
@@ -98,7 +67,6 @@ public:
 
 void *operator new(size_t p_size, const char *p_description); ///< operator new that takes a description and uses MemoryStaticPool
 void *operator new(size_t p_size, void *(*p_allocfunc)(size_t p_size)); ///< operator new that takes a description and uses MemoryStaticPool
-
 void *operator new(size_t p_size, void *p_pointer, size_t check, const char *p_description); ///< operator new that takes a description and uses a pointer to the preallocated memory
 
 #ifdef _MSC_VER
@@ -172,9 +140,9 @@ T *memnew_arr_template(size_t p_elements) {
 	if (p_elements == 0) {
 		return nullptr;
 	}
+
 	/** overloading operator new[] cannot be done , because it may not return the real allocated address (it may pad the 'element count' before the actual array). Because of that, it must be done by hand. This is the
 	same strategy used by std::vector, and the Vector class, so it should be safe.*/
-
 	size_t len = sizeof(T) * p_elements;
 	uint8_t *mem = (uint8_t *)Memory::alloc_static(len, true);
 	T *failptr = nullptr; //get rid of a warning
@@ -191,15 +159,29 @@ T *memnew_arr_template(size_t p_elements) {
 			::new (&elems[i]) T;
 		}
 	}
-
 	return (T *)mem;
+}
+
+// Fast alternative to a loop constructor pattern.
+template <bool p_ensure_zero = false, typename T>
+_FORCE_INLINE_ void memnew_arr_placement(T *p_start, size_t p_num) {
+	if constexpr (std::is_trivially_constructible_v<T> && !p_ensure_zero) {
+		// Don't need to do anything :)
+	} else if constexpr (is_zero_constructible_v<T>) {
+		// Can optimize with memset.
+		memset(static_cast<void *>(p_start), 0, p_num * sizeof(T));
+	} else {
+		// Need to use a for loop.
+		for (size_t i = 0; i < p_num; i++) {
+			memnew_placement(p_start + i, T);
+		}
+	}
 }
 
 /**
  * Wonders of having own array functions, you can actually check the length of
  * an allocated-with memnew_arr() array
  */
-
 template <typename T>
 size_t memarr_len(const T *p_class) {
 	uint8_t *ptr = (uint8_t *)p_class;

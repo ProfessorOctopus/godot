@@ -1,36 +1,6 @@
-/**************************************************************************/
-/*  cpu_particles_2d.cpp                                                  */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "cpu_particles_2d.h"
 #include "cpu_particles_2d.compat.inc"
-
 #include "core/math/random_number_generator.h"
 #include "core/math/transform_interpolator.h"
 #include "scene/2d/gpu_particles_2d.h"
@@ -58,6 +28,7 @@ void CPUParticles2D::set_emitting(bool p_emitting) {
 void CPUParticles2D::_set_emitting() {
 	active = true;
 	set_process_internal(true);
+
 	// first update before rendering to avoid one frame delay after emitting starts
 	if (time == 0) {
 		_update_internal();
@@ -116,13 +87,11 @@ void CPUParticles2D::set_use_local_coordinates(bool p_enable) {
 
 	// We only need NOTIFICATION_TRANSFORM_CHANGED
 	// when following an interpolated target.
-
 #ifdef TOOLS_ENABLED
 	set_notify_transform(_interpolation_data.interpolated_follow || (Engine::get_singleton()->is_editor_hint() && !local_coords));
 #else
 	set_notify_transform(_interpolation_data.interpolated_follow);
-#endif
-
+#endif // TOOLS_ENABLED
 	queue_redraw();
 }
 
@@ -307,7 +276,6 @@ PackedStringArray CPUParticles2D::get_configuration_warnings() const {
 			warnings.push_back(RTR("CPUParticles2D animation requires the usage of a CanvasItemMaterial with \"Particles Animation\" enabled."));
 		}
 	}
-
 	return warnings;
 }
 
@@ -328,7 +296,6 @@ void CPUParticles2D::restart(bool p_keep_seed) {
 	if (!p_keep_seed && !use_fixed_seed) {
 		seed = Math::rand();
 	}
-
 	emitting = true;
 	_set_emitting();
 }
@@ -371,7 +338,6 @@ void CPUParticles2D::set_param_max(Parameter p_param, real_t p_value) {
 	if (parameters_min[p_param] > parameters_max[p_param]) {
 		set_param_min(p_param, p_value);
 	}
-
 	update_configuration_warnings();
 }
 
@@ -386,7 +352,6 @@ static void _adjust_curve_range(const Ref<Curve> &p_curve, real_t p_min, real_t 
 	if (curve.is_null()) {
 		return;
 	}
-
 	curve->ensure_default_setup(p_min, p_max);
 }
 
@@ -433,7 +398,6 @@ void CPUParticles2D::set_param_curve(Parameter p_param, const Ref<Curve> &p_curv
 		default: {
 		}
 	}
-
 	update_configuration_warnings();
 }
 
@@ -485,7 +449,7 @@ void CPUParticles2D::set_emission_shape(EmissionShape p_shape) {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		queue_redraw();
 	}
-#endif
+#endif // TOOLS_ENABLED
 }
 
 void CPUParticles2D::set_emission_sphere_radius(real_t p_radius) {
@@ -497,7 +461,7 @@ void CPUParticles2D::set_emission_sphere_radius(real_t p_radius) {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		queue_redraw();
 	}
-#endif
+#endif // TOOLS_ENABLED
 }
 
 void CPUParticles2D::set_emission_rect_extents(Vector2 p_extents) {
@@ -509,7 +473,7 @@ void CPUParticles2D::set_emission_rect_extents(Vector2 p_extents) {
 	if (Engine::get_singleton()->is_editor_hint()) {
 		queue_redraw();
 	}
-#endif
+#endif // TOOLS_ENABLED
 }
 
 void CPUParticles2D::set_emission_points(const Vector<Vector2> &p_points) {
@@ -605,7 +569,7 @@ void CPUParticles2D::set_show_gizmos(bool p_show_gizmos) {
 	show_gizmos = p_show_gizmos;
 	queue_redraw();
 }
-#endif
+#endif // TOOLS_ENABLED
 
 uint32_t CPUParticles2D::get_seed() const {
 	return seed;
@@ -619,34 +583,27 @@ void CPUParticles2D::_validate_property(PropertyInfo &p_property) const {
 	if (p_property.name == "emitting") {
 		p_property.hint = one_shot ? PROPERTY_HINT_ONESHOT : PROPERTY_HINT_NONE;
 	}
-
 	if (p_property.name == "emission_sphere_radius" && (emission_shape != EMISSION_SHAPE_SPHERE && emission_shape != EMISSION_SHAPE_SPHERE_SURFACE)) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
-
 	if (p_property.name == "emission_rect_extents" && emission_shape != EMISSION_SHAPE_RECTANGLE) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
-
 	if ((p_property.name == "emission_point_texture" || p_property.name == "emission_color_texture") && (emission_shape < EMISSION_SHAPE_POINTS)) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
-
 	if (p_property.name == "emission_normals" && emission_shape != EMISSION_SHAPE_DIRECTED_POINTS) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
-
 	if (p_property.name == "emission_points" && emission_shape != EMISSION_SHAPE_POINTS && emission_shape != EMISSION_SHAPE_DIRECTED_POINTS) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
-
 	if (p_property.name == "emission_colors" && emission_shape != EMISSION_SHAPE_POINTS && emission_shape != EMISSION_SHAPE_DIRECTED_POINTS) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
 	if (p_property.name.begins_with("scale_curve_") && !split_scale) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
-
 	if (p_property.name == "seed" && !use_fixed_seed) {
 		p_property.usage = PROPERTY_USAGE_NONE;
 	}
@@ -736,7 +693,6 @@ void CPUParticles2D::_update_internal() {
 	} else {
 		_particles_process(delta);
 	}
-
 	_update_particle_data_buffer();
 }
 
@@ -841,11 +797,6 @@ void CPUParticles2D::_particles_process(double p_delta) {
 			}
 			p.active = true;
 
-			/*real_t tex_linear_velocity = 0;
-			if (curve_parameters[PARAM_INITIAL_LINEAR_VELOCITY].is_valid()) {
-				tex_linear_velocity = curve_parameters[PARAM_INITIAL_LINEAR_VELOCITY]->sample(0);
-			}*/
-
 			real_t tex_angle = 1.0;
 			if (curve_parameters[PARAM_ANGLE].is_valid()) {
 				tex_angle = curve_parameters[PARAM_ANGLE]->sample(tv);
@@ -858,7 +809,6 @@ void CPUParticles2D::_particles_process(double p_delta) {
 
 			p.seed = seed + uint32_t(i) + i + cycle;
 			rng->set_seed(p.seed);
-
 			p.angle_rand = rng->randf();
 			p.scale_rand = rng->randf();
 			p.hue_rot_rand = rng->randf();
@@ -1041,7 +991,6 @@ void CPUParticles2D::_particles_process(double p_delta) {
 		}
 		//apply color
 		//apply hue rotation
-
 		Vector2 tex_scale = Vector2(1.0, 1.0);
 		if (split_scale) {
 			if (scale_curve_x.is_valid()) {
@@ -1116,7 +1065,6 @@ void CPUParticles2D::_particles_process(double p_delta) {
 		}
 		p.transform.columns[0] *= base_scale.x;
 		p.transform.columns[1] *= base_scale.y;
-
 		p.transform[2] += p.velocity * local_delta;
 
 		should_be_active = true;
@@ -1131,10 +1079,8 @@ void CPUParticles2D::_update_particle_data_buffer() {
 	MutexLock lock(update_mutex);
 
 	int pc = particles.size();
-
 	int *ow;
 	int *order = nullptr;
-
 	float *w = particle_data.ptrw();
 	const Particle *r = particles.ptr();
 	float *ptr = w;
@@ -1182,12 +1128,10 @@ void CPUParticles2D::_update_particle_data_buffer() {
 		ptr[9] = c.g;
 		ptr[10] = c.b;
 		ptr[11] = c.a;
-
 		ptr[12] = r[idx].custom[0];
 		ptr[13] = r[idx].custom[1];
 		ptr[14] = r[idx].custom[2];
 		ptr[15] = r[idx].custom[3];
-
 		ptr += 16;
 	}
 }
@@ -1204,18 +1148,15 @@ void CPUParticles2D::_set_do_redraw(bool p_do_redraw) {
 		if (do_redraw) {
 			RS::get_singleton()->connect("frame_pre_draw", callable_mp(this, &CPUParticles2D::_update_render_thread));
 			RS::get_singleton()->canvas_item_set_update_when_visible(get_canvas_item(), true);
-
 			RS::get_singleton()->multimesh_set_visible_instances(multimesh, -1);
 		} else {
 			if (RS::get_singleton()->is_connected("frame_pre_draw", callable_mp(this, &CPUParticles2D::_update_render_thread))) {
 				RS::get_singleton()->disconnect("frame_pre_draw", callable_mp(this, &CPUParticles2D::_update_render_thread));
 			}
 			RS::get_singleton()->canvas_item_set_update_when_visible(get_canvas_item(), false);
-
 			RS::get_singleton()->multimesh_set_visible_instances(multimesh, 0);
 		}
 	}
-
 	queue_redraw(); // redraw to update render list
 }
 
@@ -1231,8 +1172,6 @@ void CPUParticles2D::_notification(int p_what) {
 			set_process_internal(emitting);
 
 			_refresh_interpolation_state();
-
-			set_physics_process_internal(emitting && _interpolation_data.interpolated_follow);
 
 			// If we are interpolated following, then reset physics interpolation
 			// when first appearing. This won't be called by canvas item, as in the
@@ -1267,7 +1206,7 @@ void CPUParticles2D::_notification(int p_what) {
 			if (show_gizmos) {
 				_draw_emission_gizmo();
 			}
-#endif
+#endif // TOOLS_ENABLED
 
 		} break;
 
@@ -1294,7 +1233,7 @@ void CPUParticles2D::_notification(int p_what) {
 			if (!local_coords) {
 				queue_redraw();
 			}
-#endif
+#endif // TOOLS_ENABLED
 		} break;
 
 		case NOTIFICATION_RESET_PHYSICS_INTERPOLATION: {
@@ -1327,7 +1266,7 @@ void CPUParticles2D::_draw_emission_gizmo() {
 			break;
 	}
 }
-#endif
+#endif // TOOLS_ENABLED
 
 void CPUParticles2D::convert_from_particles(Node *p_particles) {
 	GPUParticles2D *gpu_particles = Object::cast_to<GPUParticles2D>(p_particles);
@@ -1428,7 +1367,6 @@ void CPUParticles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_fractional_delta", "enable"), &CPUParticles2D::set_fractional_delta);
 	ClassDB::bind_method(D_METHOD("set_speed_scale", "scale"), &CPUParticles2D::set_speed_scale);
 	ClassDB::bind_method(D_METHOD("request_particles_process", "process_time"), &CPUParticles2D::request_particles_process);
-
 	ClassDB::bind_method(D_METHOD("is_emitting"), &CPUParticles2D::is_emitting);
 	ClassDB::bind_method(D_METHOD("get_amount"), &CPUParticles2D::get_amount);
 	ClassDB::bind_method(D_METHOD("get_lifetime"), &CPUParticles2D::get_lifetime);
@@ -1443,17 +1381,12 @@ void CPUParticles2D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_speed_scale"), &CPUParticles2D::get_speed_scale);
 	ClassDB::bind_method(D_METHOD("set_use_fixed_seed", "use_fixed_seed"), &CPUParticles2D::set_use_fixed_seed);
 	ClassDB::bind_method(D_METHOD("get_use_fixed_seed"), &CPUParticles2D::get_use_fixed_seed);
-
 	ClassDB::bind_method(D_METHOD("set_seed", "seed"), &CPUParticles2D::set_seed);
 	ClassDB::bind_method(D_METHOD("get_seed"), &CPUParticles2D::get_seed);
-
 	ClassDB::bind_method(D_METHOD("set_draw_order", "order"), &CPUParticles2D::set_draw_order);
-
 	ClassDB::bind_method(D_METHOD("get_draw_order"), &CPUParticles2D::get_draw_order);
-
 	ClassDB::bind_method(D_METHOD("set_texture", "texture"), &CPUParticles2D::set_texture);
 	ClassDB::bind_method(D_METHOD("get_texture"), &CPUParticles2D::get_texture);
-
 	ClassDB::bind_method(D_METHOD("restart", "keep_seed"), &CPUParticles2D::restart, DEFVAL(false));
 
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "emitting", PROPERTY_HINT_ONESHOT), "set_emitting", "is_emitting");
@@ -1472,6 +1405,7 @@ void CPUParticles2D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "fixed_fps", PROPERTY_HINT_RANGE, "0,1000,1,suffix:FPS"), "set_fixed_fps", "get_fixed_fps");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "fract_delta"), "set_fractional_delta", "get_fractional_delta");
 	ADD_GROUP("Drawing", "");
+
 	// No visibility_rect property contrarily to Particles2D, it's updated automatically.
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "local_coords"), "set_use_local_coordinates", "get_use_local_coordinates");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "draw_order", PROPERTY_HINT_ENUM, "Index,Lifetime"), "set_draw_order", "get_draw_order");
@@ -1481,65 +1415,44 @@ void CPUParticles2D::_bind_methods() {
 
 	ADD_PROPERTY_DEFAULT("seed", 0);
 
-	////////////////////////////////
-
 	ClassDB::bind_method(D_METHOD("set_direction", "direction"), &CPUParticles2D::set_direction);
 	ClassDB::bind_method(D_METHOD("get_direction"), &CPUParticles2D::get_direction);
-
 	ClassDB::bind_method(D_METHOD("set_spread", "spread"), &CPUParticles2D::set_spread);
 	ClassDB::bind_method(D_METHOD("get_spread"), &CPUParticles2D::get_spread);
-
 	ClassDB::bind_method(D_METHOD("set_param_min", "param", "value"), &CPUParticles2D::set_param_min);
 	ClassDB::bind_method(D_METHOD("get_param_min", "param"), &CPUParticles2D::get_param_min);
-
 	ClassDB::bind_method(D_METHOD("set_param_max", "param", "value"), &CPUParticles2D::set_param_max);
 	ClassDB::bind_method(D_METHOD("get_param_max", "param"), &CPUParticles2D::get_param_max);
-
 	ClassDB::bind_method(D_METHOD("set_param_curve", "param", "curve"), &CPUParticles2D::set_param_curve);
 	ClassDB::bind_method(D_METHOD("get_param_curve", "param"), &CPUParticles2D::get_param_curve);
-
 	ClassDB::bind_method(D_METHOD("set_color", "color"), &CPUParticles2D::set_color);
 	ClassDB::bind_method(D_METHOD("get_color"), &CPUParticles2D::get_color);
-
 	ClassDB::bind_method(D_METHOD("set_color_ramp", "ramp"), &CPUParticles2D::set_color_ramp);
 	ClassDB::bind_method(D_METHOD("get_color_ramp"), &CPUParticles2D::get_color_ramp);
-
 	ClassDB::bind_method(D_METHOD("set_color_initial_ramp", "ramp"), &CPUParticles2D::set_color_initial_ramp);
 	ClassDB::bind_method(D_METHOD("get_color_initial_ramp"), &CPUParticles2D::get_color_initial_ramp);
-
 	ClassDB::bind_method(D_METHOD("set_particle_flag", "particle_flag", "enable"), &CPUParticles2D::set_particle_flag);
 	ClassDB::bind_method(D_METHOD("get_particle_flag", "particle_flag"), &CPUParticles2D::get_particle_flag);
-
 	ClassDB::bind_method(D_METHOD("set_emission_shape", "shape"), &CPUParticles2D::set_emission_shape);
 	ClassDB::bind_method(D_METHOD("get_emission_shape"), &CPUParticles2D::get_emission_shape);
-
 	ClassDB::bind_method(D_METHOD("set_emission_sphere_radius", "radius"), &CPUParticles2D::set_emission_sphere_radius);
 	ClassDB::bind_method(D_METHOD("get_emission_sphere_radius"), &CPUParticles2D::get_emission_sphere_radius);
-
 	ClassDB::bind_method(D_METHOD("set_emission_rect_extents", "extents"), &CPUParticles2D::set_emission_rect_extents);
 	ClassDB::bind_method(D_METHOD("get_emission_rect_extents"), &CPUParticles2D::get_emission_rect_extents);
-
 	ClassDB::bind_method(D_METHOD("set_emission_points", "array"), &CPUParticles2D::set_emission_points);
 	ClassDB::bind_method(D_METHOD("get_emission_points"), &CPUParticles2D::get_emission_points);
-
 	ClassDB::bind_method(D_METHOD("set_emission_normals", "array"), &CPUParticles2D::set_emission_normals);
 	ClassDB::bind_method(D_METHOD("get_emission_normals"), &CPUParticles2D::get_emission_normals);
-
 	ClassDB::bind_method(D_METHOD("set_emission_colors", "array"), &CPUParticles2D::set_emission_colors);
 	ClassDB::bind_method(D_METHOD("get_emission_colors"), &CPUParticles2D::get_emission_colors);
-
 	ClassDB::bind_method(D_METHOD("get_gravity"), &CPUParticles2D::get_gravity);
 	ClassDB::bind_method(D_METHOD("set_gravity", "accel_vec"), &CPUParticles2D::set_gravity);
-
 	ClassDB::bind_method(D_METHOD("get_split_scale"), &CPUParticles2D::get_split_scale);
 	ClassDB::bind_method(D_METHOD("set_split_scale", "split_scale"), &CPUParticles2D::set_split_scale);
-
 	ClassDB::bind_method(D_METHOD("get_scale_curve_x"), &CPUParticles2D::get_scale_curve_x);
 	ClassDB::bind_method(D_METHOD("set_scale_curve_x", "scale_curve"), &CPUParticles2D::set_scale_curve_x);
-
 	ClassDB::bind_method(D_METHOD("get_scale_curve_y"), &CPUParticles2D::get_scale_curve_y);
 	ClassDB::bind_method(D_METHOD("set_scale_curve_y", "scale_curve"), &CPUParticles2D::set_scale_curve_y);
-
 	ClassDB::bind_method(D_METHOD("convert_from_particles", "particles"), &CPUParticles2D::convert_from_particles);
 
 	ADD_SIGNAL(MethodInfo("finished"));
@@ -1627,12 +1540,10 @@ void CPUParticles2D::_bind_methods() {
 	BIND_ENUM_CONSTANT(PARAM_ANIM_SPEED);
 	BIND_ENUM_CONSTANT(PARAM_ANIM_OFFSET);
 	BIND_ENUM_CONSTANT(PARAM_MAX);
-
 	BIND_ENUM_CONSTANT(PARTICLE_FLAG_ALIGN_Y_TO_VELOCITY);
 	BIND_ENUM_CONSTANT(PARTICLE_FLAG_ROTATE_Y); // Unused, but exposed for consistency with 3D.
 	BIND_ENUM_CONSTANT(PARTICLE_FLAG_DISABLE_Z); // Unused, but exposed for consistency with 3D.
 	BIND_ENUM_CONSTANT(PARTICLE_FLAG_MAX);
-
 	BIND_ENUM_CONSTANT(EMISSION_SHAPE_POINT);
 	BIND_ENUM_CONSTANT(EMISSION_SHAPE_SPHERE);
 	BIND_ENUM_CONSTANT(EMISSION_SHAPE_SPHERE_SURFACE);
@@ -1666,7 +1577,6 @@ CPUParticles2D::CPUParticles2D() {
 	set_param_min(PARAM_HUE_VARIATION, 0);
 	set_param_min(PARAM_ANIM_SPEED, 0);
 	set_param_min(PARAM_ANIM_OFFSET, 0);
-
 	set_param_max(PARAM_INITIAL_LINEAR_VELOCITY, 0);
 	set_param_max(PARAM_ANGULAR_VELOCITY, 0);
 	set_param_max(PARAM_ORBIT_VELOCITY, 0);

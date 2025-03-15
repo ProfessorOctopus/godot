@@ -1,5 +1,4 @@
 #[vertex]
-
 #version 450
 
 #VERSION_DEFINES
@@ -19,15 +18,12 @@ layout(location = 7) in vec4 custom1_attrib;
 
 layout(location = 10) in uvec4 bone_attrib;
 layout(location = 11) in vec4 weight_attrib;
-
 #endif
 
 #include "canvas_uniforms_inc.glsl"
 
 #ifndef USE_ATTRIBUTES
-
 layout(location = 4) out flat uint instance_index_interp;
-
 #endif // !USE_ATTRIBUTES
 
 layout(location = 0) out vec2 uv_interp;
@@ -35,9 +31,7 @@ layout(location = 1) out vec4 color_interp;
 layout(location = 2) out vec2 vertex_interp;
 
 #ifdef USE_NINEPATCH
-
 layout(location = 3) out vec2 pixel_size_interp;
-
 #endif
 
 #ifdef MATERIAL_UNIFORMS_USED
@@ -306,6 +300,7 @@ vec4 light_compute(
 		vec2 screen_uv,
 		vec2 uv,
 		vec4 color, bool is_directional) {
+	const InstanceData draw_data = instances.data[instance_index];
 	vec4 light = vec4(0.0);
 	vec3 light_direction = vec3(0.0);
 
@@ -317,14 +312,11 @@ vec4 light_compute(
 	}
 
 #CODE : LIGHT
-
 	return light;
 }
-
 #endif
 
 #ifdef USE_NINEPATCH
-
 float map_ninepatch_axis(float pixel, float draw_size, float tex_pixel_size, float margin_begin, float margin_end, int np_repeat, inout int draw_center) {
 	const InstanceData draw_data = instances.data[instance_index];
 

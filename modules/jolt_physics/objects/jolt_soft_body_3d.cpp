@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  jolt_soft_body_3d.cpp                                                 */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "jolt_soft_body_3d.h"
-
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_type_conversions.h"
 #include "../spaces/jolt_broad_phase_layer.h"
@@ -37,7 +7,6 @@
 #include "jolt_area_3d.h"
 #include "jolt_body_3d.h"
 #include "jolt_group_filter.h"
-
 #include "servers/rendering_server.h"
 
 #include "Jolt/Physics/SoftBody/SoftBodyMotionProperties.h"
@@ -115,7 +84,7 @@ void JoltSoftBody3D::_add_to_space() {
 	jolt_settings->mUserData = reinterpret_cast<JPH::uint64>(this);
 	jolt_settings->mObjectLayer = _get_object_layer();
 	jolt_settings->mCollisionGroup = JPH::CollisionGroup(nullptr, group_id, sub_group_id);
-	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::get_max_linear_velocity();
+	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::max_linear_velocity;
 
 	const JPH::BodyID new_jolt_id = space->add_soft_body(*this, *jolt_settings);
 	if (new_jolt_id.IsInvalid()) {
@@ -148,7 +117,7 @@ bool JoltSoftBody3D::_ref_shared_data() {
 		LocalVector<int> &mesh_to_physics = iter_shared_data->value.mesh_to_physics;
 
 		JPH::SoftBodySharedSettings &settings = *iter_shared_data->value.settings;
-		settings.mVertexRadius = JoltProjectSettings::get_soft_body_point_radius();
+		settings.mVertexRadius = JoltProjectSettings::soft_body_point_radius;
 
 		JPH::Array<JPH::SoftBodySharedSettings::Vertex> &physics_vertices = settings.mVertices;
 		JPH::Array<JPH::SoftBodySharedSettings::Face> &physics_faces = settings.mFaces;

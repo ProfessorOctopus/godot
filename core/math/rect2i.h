@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  rect2i.h                                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/error/error_macros.h"
 #include "core/math/vector2i.h"
 
@@ -44,7 +14,6 @@ struct [[nodiscard]] Rect2i {
 	void set_position(const Point2i &p_position) { position = p_position; }
 	const Size2i &get_size() const { return size; }
 	void set_size(const Size2i &p_size) { size = p_size; }
-
 	int get_area() const { return size.width * size.height; }
 
 	_FORCE_INLINE_ Vector2i get_center() const { return position + (size / 2); }
@@ -67,7 +36,6 @@ struct [[nodiscard]] Rect2i {
 		if ((position.y + size.height) <= p_rect.position.y) {
 			return false;
 		}
-
 		return true;
 	}
 
@@ -113,9 +81,7 @@ struct [[nodiscard]] Rect2i {
 		Rect2i new_rect;
 
 		new_rect.position = p_rect.position.min(position);
-
 		new_rect.size = (p_rect.position + p_rect.size).max(position + size);
-
 		new_rect.size = new_rect.size - new_rect.position; // Make relative again.
 
 		return new_rect;
@@ -236,3 +202,6 @@ struct [[nodiscard]] Rect2i {
 			size(p_size) {
 	}
 };
+
+template <>
+struct is_zero_constructible<Rect2i> : std::true_type {};

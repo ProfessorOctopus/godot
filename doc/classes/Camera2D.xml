@@ -139,6 +139,9 @@
 		<member name="ignore_rotation" type="bool" setter="set_ignore_rotation" getter="is_ignoring_rotation" default="true">
 			If [code]true[/code], the camera's rendered view is not affected by its [member Node2D.rotation] and [member Node2D.global_rotation].
 		</member>
+		<member name="limit_enabled" type="bool" setter="set_limit_enabled" getter="is_limit_enabled" default="true">
+ 			If [code]true[/code], the limits will be enabled. Disabling this will allow the camera to focus anywhere, when the four [code]limit_*[/code] properties will not work.
+ 		</member>
 		<member name="limit_bottom" type="int" setter="set_limit" getter="get_limit" default="10000000">
 			Bottom scroll limit in pixels. The camera stops moving when reaching this value, but [member offset] can push the view past the limit.
 		</member>

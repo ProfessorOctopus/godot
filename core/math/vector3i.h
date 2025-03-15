@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  vector3i.h                                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/error/error_macros.h"
 #include "core/math/math_funcs.h"
 
@@ -51,7 +21,6 @@ struct [[nodiscard]] Vector3i {
 			int32_t y;
 			int32_t z;
 		};
-
 		int32_t coord[3] = { 0 };
 	};
 
@@ -100,7 +69,6 @@ struct [[nodiscard]] Vector3i {
 	_FORCE_INLINE_ int64_t distance_squared_to(const Vector3i &p_to) const;
 
 	/* Operators */
-
 	_FORCE_INLINE_ Vector3i &operator+=(const Vector3i &p_v);
 	_FORCE_INLINE_ Vector3i operator+(const Vector3i &p_v) const;
 	_FORCE_INLINE_ Vector3i &operator-=(const Vector3i &p_v);
@@ -111,16 +79,13 @@ struct [[nodiscard]] Vector3i {
 	_FORCE_INLINE_ Vector3i operator/(const Vector3i &p_v) const;
 	_FORCE_INLINE_ Vector3i &operator%=(const Vector3i &p_v);
 	_FORCE_INLINE_ Vector3i operator%(const Vector3i &p_v) const;
-
 	_FORCE_INLINE_ Vector3i &operator*=(int32_t p_scalar);
 	_FORCE_INLINE_ Vector3i operator*(int32_t p_scalar) const;
 	_FORCE_INLINE_ Vector3i &operator/=(int32_t p_scalar);
 	_FORCE_INLINE_ Vector3i operator/(int32_t p_scalar) const;
 	_FORCE_INLINE_ Vector3i &operator%=(int32_t p_scalar);
 	_FORCE_INLINE_ Vector3i operator%(int32_t p_scalar) const;
-
 	_FORCE_INLINE_ Vector3i operator-() const;
-
 	_FORCE_INLINE_ bool operator==(const Vector3i &p_v) const;
 	_FORCE_INLINE_ bool operator!=(const Vector3i &p_v) const;
 	_FORCE_INLINE_ bool operator<(const Vector3i &p_v) const;
@@ -164,7 +129,6 @@ int64_t Vector3i::distance_squared_to(const Vector3i &p_to) const {
 }
 
 /* Operators */
-
 Vector3i &Vector3i::operator+=(const Vector3i &p_v) {
 	x += p_v.x;
 	y += p_v.y;
@@ -334,3 +298,6 @@ bool Vector3i::operator>=(const Vector3i &p_v) const {
 void Vector3i::zero() {
 	x = y = z = 0;
 }
+
+template <>
+struct is_zero_constructible<Vector3i> : std::true_type {};

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  translation.cpp                                                       */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "translation.h"
-
 #include "core/os/os.h"
 #include "core/os/thread.h"
 #include "core/string/translation_server.h"
@@ -50,7 +20,6 @@ Vector<String> Translation::_get_message_list() const {
 		msgs.set(idx, E.key);
 		idx += 1;
 	}
-
 	return msgs;
 }
 
@@ -62,15 +31,12 @@ Vector<String> Translation::get_translated_message_list() const {
 		msgs.set(idx, E.value);
 		idx += 1;
 	}
-
 	return msgs;
 }
 
 void Translation::_set_messages(const Dictionary &p_messages) {
-	List<Variant> keys;
-	p_messages.get_key_list(&keys);
-	for (const Variant &E : keys) {
-		translation_map[E] = p_messages[E];
+	for (const KeyValue<Variant, Variant> &kv : p_messages) {
+		translation_map[kv.key] = kv.value;
 	}
 }
 
@@ -117,7 +83,6 @@ StringName Translation::get_message(const StringName &p_src_text, const StringNa
 	if (!E) {
 		return StringName();
 	}
-
 	return E->value;
 }
 

@@ -1,39 +1,8 @@
-/**************************************************************************/
-/*  spring_bone_simulator_3d.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "spring_bone_simulator_3d.h"
-
 #include "scene/3d/spring_bone_collision_3d.h"
 
 // Original VRM Spring Bone movement logic was distributed by (c) VRM Consortium. Licensed under the MIT license.
-
 bool SpringBoneSimulator3D::_set(const StringName &p_path, const Variant &p_value) {
 	String path = p_path;
 
@@ -1098,25 +1067,30 @@ LocalVector<ObjectID> SpringBoneSimulator3D::get_valid_collision_instance_ids(in
 	return settings[p_index]->cached_collisions;
 }
 
+void SpringBoneSimulator3D::set_external_force(const Vector3 &p_force) {
+	external_force = p_force;
+}
+
+Vector3 SpringBoneSimulator3D::get_external_force() const {
+	return external_force;
+}
+
 void SpringBoneSimulator3D::_bind_methods() {
 	// Setting.
 	ClassDB::bind_method(D_METHOD("set_root_bone_name", "index", "bone_name"), &SpringBoneSimulator3D::set_root_bone_name);
 	ClassDB::bind_method(D_METHOD("get_root_bone_name", "index"), &SpringBoneSimulator3D::get_root_bone_name);
 	ClassDB::bind_method(D_METHOD("set_root_bone", "index", "bone"), &SpringBoneSimulator3D::set_root_bone);
 	ClassDB::bind_method(D_METHOD("get_root_bone", "index"), &SpringBoneSimulator3D::get_root_bone);
-
 	ClassDB::bind_method(D_METHOD("set_end_bone_name", "index", "bone_name"), &SpringBoneSimulator3D::set_end_bone_name);
 	ClassDB::bind_method(D_METHOD("get_end_bone_name", "index"), &SpringBoneSimulator3D::get_end_bone_name);
 	ClassDB::bind_method(D_METHOD("set_end_bone", "index", "bone"), &SpringBoneSimulator3D::set_end_bone);
 	ClassDB::bind_method(D_METHOD("get_end_bone", "index"), &SpringBoneSimulator3D::get_end_bone);
-
 	ClassDB::bind_method(D_METHOD("set_extend_end_bone", "index", "enabled"), &SpringBoneSimulator3D::set_extend_end_bone);
 	ClassDB::bind_method(D_METHOD("is_end_bone_extended", "index"), &SpringBoneSimulator3D::is_end_bone_extended);
 	ClassDB::bind_method(D_METHOD("set_end_bone_direction", "index", "bone_direction"), &SpringBoneSimulator3D::set_end_bone_direction);
 	ClassDB::bind_method(D_METHOD("get_end_bone_direction", "index"), &SpringBoneSimulator3D::get_end_bone_direction);
 	ClassDB::bind_method(D_METHOD("set_end_bone_length", "index", "length"), &SpringBoneSimulator3D::set_end_bone_length);
 	ClassDB::bind_method(D_METHOD("get_end_bone_length", "index"), &SpringBoneSimulator3D::get_end_bone_length);
-
 	ClassDB::bind_method(D_METHOD("set_center_from", "index", "center_from"), &SpringBoneSimulator3D::set_center_from);
 	ClassDB::bind_method(D_METHOD("get_center_from", "index"), &SpringBoneSimulator3D::get_center_from);
 	ClassDB::bind_method(D_METHOD("set_center_node", "index", "node_path"), &SpringBoneSimulator3D::set_center_node);
@@ -1125,7 +1099,6 @@ void SpringBoneSimulator3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_center_bone_name", "index"), &SpringBoneSimulator3D::get_center_bone_name);
 	ClassDB::bind_method(D_METHOD("set_center_bone", "index", "bone"), &SpringBoneSimulator3D::set_center_bone);
 	ClassDB::bind_method(D_METHOD("get_center_bone", "index"), &SpringBoneSimulator3D::get_center_bone);
-
 	ClassDB::bind_method(D_METHOD("set_radius", "index", "radius"), &SpringBoneSimulator3D::set_radius);
 	ClassDB::bind_method(D_METHOD("get_radius", "index"), &SpringBoneSimulator3D::get_radius);
 	ClassDB::bind_method(D_METHOD("set_rotation_axis", "index", "axis"), &SpringBoneSimulator3D::set_rotation_axis);
@@ -1146,7 +1119,6 @@ void SpringBoneSimulator3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_gravity_damping_curve", "index"), &SpringBoneSimulator3D::get_gravity_damping_curve);
 	ClassDB::bind_method(D_METHOD("set_gravity_direction", "index", "gravity_direction"), &SpringBoneSimulator3D::set_gravity_direction);
 	ClassDB::bind_method(D_METHOD("get_gravity_direction", "index"), &SpringBoneSimulator3D::get_gravity_direction);
-
 	ClassDB::bind_method(D_METHOD("set_setting_count", "count"), &SpringBoneSimulator3D::set_setting_count);
 	ClassDB::bind_method(D_METHOD("get_setting_count"), &SpringBoneSimulator3D::get_setting_count);
 	ClassDB::bind_method(D_METHOD("clear_settings"), &SpringBoneSimulator3D::clear_settings);
@@ -1154,7 +1126,6 @@ void SpringBoneSimulator3D::_bind_methods() {
 	// Individual joints.
 	ClassDB::bind_method(D_METHOD("set_individual_config", "index", "enabled"), &SpringBoneSimulator3D::set_individual_config);
 	ClassDB::bind_method(D_METHOD("is_config_individual", "index"), &SpringBoneSimulator3D::is_config_individual);
-
 	ClassDB::bind_method(D_METHOD("get_joint_bone_name", "index", "joint"), &SpringBoneSimulator3D::get_joint_bone_name);
 	ClassDB::bind_method(D_METHOD("get_joint_bone", "index", "joint"), &SpringBoneSimulator3D::get_joint_bone);
 	ClassDB::bind_method(D_METHOD("set_joint_rotation_axis", "index", "joint", "axis"), &SpringBoneSimulator3D::set_joint_rotation_axis);
@@ -1169,29 +1140,28 @@ void SpringBoneSimulator3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_joint_gravity", "index", "joint"), &SpringBoneSimulator3D::get_joint_gravity);
 	ClassDB::bind_method(D_METHOD("set_joint_gravity_direction", "index", "joint", "gravity_direction"), &SpringBoneSimulator3D::set_joint_gravity_direction);
 	ClassDB::bind_method(D_METHOD("get_joint_gravity_direction", "index", "joint"), &SpringBoneSimulator3D::get_joint_gravity_direction);
-
 	ClassDB::bind_method(D_METHOD("get_joint_count", "index"), &SpringBoneSimulator3D::get_joint_count);
 
 	// Individual collisions.
 	ClassDB::bind_method(D_METHOD("set_enable_all_child_collisions", "index", "enabled"), &SpringBoneSimulator3D::set_enable_all_child_collisions);
 	ClassDB::bind_method(D_METHOD("are_all_child_collisions_enabled", "index"), &SpringBoneSimulator3D::are_all_child_collisions_enabled);
-
 	ClassDB::bind_method(D_METHOD("set_exclude_collision_path", "index", "collision", "node_path"), &SpringBoneSimulator3D::set_exclude_collision_path);
 	ClassDB::bind_method(D_METHOD("get_exclude_collision_path", "index", "collision"), &SpringBoneSimulator3D::get_exclude_collision_path);
-
 	ClassDB::bind_method(D_METHOD("set_exclude_collision_count", "index", "count"), &SpringBoneSimulator3D::set_exclude_collision_count);
 	ClassDB::bind_method(D_METHOD("get_exclude_collision_count", "index"), &SpringBoneSimulator3D::get_exclude_collision_count);
 	ClassDB::bind_method(D_METHOD("clear_exclude_collisions", "index"), &SpringBoneSimulator3D::clear_exclude_collisions);
-
 	ClassDB::bind_method(D_METHOD("set_collision_path", "index", "collision", "node_path"), &SpringBoneSimulator3D::set_collision_path);
 	ClassDB::bind_method(D_METHOD("get_collision_path", "index", "collision"), &SpringBoneSimulator3D::get_collision_path);
-
 	ClassDB::bind_method(D_METHOD("set_collision_count", "index", "count"), &SpringBoneSimulator3D::set_collision_count);
 	ClassDB::bind_method(D_METHOD("get_collision_count", "index"), &SpringBoneSimulator3D::get_collision_count);
 	ClassDB::bind_method(D_METHOD("clear_collisions", "index"), &SpringBoneSimulator3D::clear_collisions);
+	ClassDB::bind_method(D_METHOD("set_external_force", "force"), &SpringBoneSimulator3D::set_external_force);
+	ClassDB::bind_method(D_METHOD("get_external_force"), &SpringBoneSimulator3D::get_external_force);
 
 	// To process manually.
 	ClassDB::bind_method(D_METHOD("reset"), &SpringBoneSimulator3D::reset);
+
+	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "external_force", PROPERTY_HINT_RANGE, "-99999,99999,or_greater,or_less,hide_slider,suffix:m/s"), "set_external_force", "get_external_force");
 
 	ADD_ARRAY_COUNT("Settings", "setting_count", "set_setting_count", "get_setting_count", "settings/");
 
@@ -1202,11 +1172,9 @@ void SpringBoneSimulator3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(BONE_DIRECTION_PLUS_Z);
 	BIND_ENUM_CONSTANT(BONE_DIRECTION_MINUS_Z);
 	BIND_ENUM_CONSTANT(BONE_DIRECTION_FROM_PARENT);
-
 	BIND_ENUM_CONSTANT(CENTER_FROM_WORLD_ORIGIN);
 	BIND_ENUM_CONSTANT(CENTER_FROM_NODE);
 	BIND_ENUM_CONSTANT(CENTER_FROM_BONE);
-
 	BIND_ENUM_CONSTANT(ROTATION_AXIS_X);
 	BIND_ENUM_CONSTANT(ROTATION_AXIS_Y);
 	BIND_ENUM_CONSTANT(ROTATION_AXIS_Z);
@@ -1580,7 +1548,7 @@ void SpringBoneSimulator3D::_process_joints(double p_delta, Skeleton3D *p_skelet
 		Transform3D current_world_pose = p_center_transform * current_global_pose;
 		Quaternion current_rot = current_global_pose.basis.get_rotation_quaternion();
 		Vector3 current_origin = p_center_transform.xform(current_global_pose.origin);
-		Vector3 external = p_inverted_center_rotation.xform(p_joints[i]->gravity_direction * p_joints[i]->gravity * p_delta);
+		Vector3 external = p_inverted_center_rotation.xform((external_force + p_joints[i]->gravity_direction * p_joints[i]->gravity) * p_delta);
 
 		// Integration of velocity by verlet.
 		Vector3 next_tail = verlet->current_tail +

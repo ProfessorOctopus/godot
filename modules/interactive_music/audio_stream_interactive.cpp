@@ -1,39 +1,8 @@
-/**************************************************************************/
-/*  audio_stream_interactive.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "audio_stream_interactive.h"
-
 #include "core/math/math_funcs.h"
 
-AudioStreamInteractive::AudioStreamInteractive() {
-}
+AudioStreamInteractive::AudioStreamInteractive() {}
 
 Ref<AudioStreamPlayback> AudioStreamInteractive::instantiate_playback() {
 	Ref<AudioStreamPlaybackInteractive> playback_transitioner;
@@ -76,7 +45,7 @@ void AudioStreamInteractive::set_clip_count(int p_count) {
 			initial_clip = 0;
 		}
 	}
-#endif
+#endif // TOOLS_ENABLED
 	clip_count = p_count;
 	AudioServer::get_singleton()->unlock();
 
@@ -134,13 +103,10 @@ void AudioStreamInteractive::set_clip_stream(int p_clip, const Ref<AudioStream> 
 			}
 		}
 	}
-#endif
-
-#ifdef TOOLS_ENABLED
 	stream_name_cache = "";
 	notify_property_list_changed(); // Hints change if stream changes.
 	emit_signal(SNAME("parameter_list_changed"));
-#endif
+#endif // TOOLS_ENABLED
 }
 
 Ref<AudioStream> AudioStreamInteractive::get_clip_stream(int p_clip) const {
@@ -171,13 +137,10 @@ int AudioStreamInteractive::get_clip_auto_advance_next_clip(int p_clip) const {
 }
 
 // TRANSITIONS
-
 void AudioStreamInteractive::_set_transitions(const Dictionary &p_transitions) {
-	List<Variant> keys;
-	p_transitions.get_key_list(&keys);
-	for (const Variant &K : keys) {
-		Vector2i k = K;
-		Dictionary data = p_transitions[K];
+	for (const KeyValue<Variant, Variant> &kv : p_transitions) {
+		Vector2i k = kv.key;
+		Dictionary data = kv.value;
 		ERR_CONTINUE(!data.has("from_time"));
 		ERR_CONTINUE(!data.has("to_time"));
 		ERR_CONTINUE(!data.has("fade_mode"));
@@ -216,7 +179,6 @@ Dictionary AudioStreamInteractive::_get_transitions() const {
 		if (tr.hold_previous) {
 			data["hold_previous"] = true;
 		}
-
 		ret[keys[i]] = data;
 	}
 	return ret;
@@ -311,7 +273,6 @@ bool AudioStreamInteractive::is_transition_holding_previous(int p_from_clip, int
 }
 
 #ifdef TOOLS_ENABLED
-
 PackedStringArray AudioStreamInteractive::_get_linked_undo_properties(const String &p_property, const Variant &p_new_value) const {
 	PackedStringArray ret;
 
@@ -416,8 +377,8 @@ String AudioStreamInteractive::_get_streams_hint() const {
 
 	return stream_name_cache;
 }
+#endif // TOOLS_ENABLED
 
-#endif
 void AudioStreamInteractive::_validate_property(PropertyInfo &r_property) const {
 	String prop = r_property.name;
 
@@ -426,12 +387,12 @@ void AudioStreamInteractive::_validate_property(PropertyInfo &r_property) const 
 		r_property.hint_string = _get_streams_hint();
 		return;
 	}
-#endif
+#endif // TOOLS_ENABLED
 
 	if (prop == "initial_clip") {
 #ifdef TOOLS_ENABLED
 		r_property.hint_string = _get_streams_hint();
-#endif
+#endif // TOOLS_ENABLED
 	} else if (prop.begins_with("clip_") && prop != "clip_count") {
 		int clip = prop.get_slicec('_', 1).to_int();
 		if (clip >= clip_count) {
@@ -442,7 +403,7 @@ void AudioStreamInteractive::_validate_property(PropertyInfo &r_property) const 
 			} else {
 #ifdef TOOLS_ENABLED
 				r_property.hint_string = _get_streams_hint();
-#endif
+#endif // TOOLS_ENABLED
 			}
 		}
 	}
@@ -461,25 +422,19 @@ void AudioStreamInteractive::_bind_methods() {
 #ifdef TOOLS_ENABLED
 	ClassDB::bind_method(D_METHOD("_get_linked_undo_properties", "for_property", "for_value"), &AudioStreamInteractive::_get_linked_undo_properties);
 	ClassDB::bind_method(D_METHOD("_inspector_array_swap_clip", "a", "b"), &AudioStreamInteractive::_inspector_array_swap_clip);
-#endif
+#endif // TOOLS_ENABLED
 
 	// CLIPS
-
 	ClassDB::bind_method(D_METHOD("set_clip_count", "clip_count"), &AudioStreamInteractive::set_clip_count);
 	ClassDB::bind_method(D_METHOD("get_clip_count"), &AudioStreamInteractive::get_clip_count);
-
 	ClassDB::bind_method(D_METHOD("set_initial_clip", "clip_index"), &AudioStreamInteractive::set_initial_clip);
 	ClassDB::bind_method(D_METHOD("get_initial_clip"), &AudioStreamInteractive::get_initial_clip);
-
 	ClassDB::bind_method(D_METHOD("set_clip_name", "clip_index", "name"), &AudioStreamInteractive::set_clip_name);
 	ClassDB::bind_method(D_METHOD("get_clip_name", "clip_index"), &AudioStreamInteractive::get_clip_name);
-
 	ClassDB::bind_method(D_METHOD("set_clip_stream", "clip_index", "stream"), &AudioStreamInteractive::set_clip_stream);
 	ClassDB::bind_method(D_METHOD("get_clip_stream", "clip_index"), &AudioStreamInteractive::get_clip_stream);
-
 	ClassDB::bind_method(D_METHOD("set_clip_auto_advance", "clip_index", "mode"), &AudioStreamInteractive::set_clip_auto_advance);
 	ClassDB::bind_method(D_METHOD("get_clip_auto_advance", "clip_index"), &AudioStreamInteractive::get_clip_auto_advance);
-
 	ClassDB::bind_method(D_METHOD("set_clip_auto_advance_next_clip", "clip_index", "auto_advance_next_clip"), &AudioStreamInteractive::set_clip_auto_advance_next_clip);
 	ClassDB::bind_method(D_METHOD("get_clip_auto_advance_next_clip", "clip_index"), &AudioStreamInteractive::get_clip_auto_advance_next_clip);
 
@@ -495,12 +450,10 @@ void AudioStreamInteractive::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "initial_clip", PROPERTY_HINT_ENUM, "", PROPERTY_USAGE_DEFAULT), "set_initial_clip", "get_initial_clip");
 
 	// TRANSITIONS
-
 	ClassDB::bind_method(D_METHOD("add_transition", "from_clip", "to_clip", "from_time", "to_time", "fade_mode", "fade_beats", "use_filler_clip", "filler_clip", "hold_previous"), &AudioStreamInteractive::add_transition, DEFVAL(false), DEFVAL(-1), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("has_transition", "from_clip", "to_clip"), &AudioStreamInteractive::has_transition);
 	ClassDB::bind_method(D_METHOD("erase_transition", "from_clip", "to_clip"), &AudioStreamInteractive::erase_transition);
 	ClassDB::bind_method(D_METHOD("get_transition_list"), &AudioStreamInteractive::get_transition_list);
-
 	ClassDB::bind_method(D_METHOD("get_transition_from_time", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_from_time);
 	ClassDB::bind_method(D_METHOD("get_transition_to_time", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_to_time);
 	ClassDB::bind_method(D_METHOD("get_transition_fade_mode", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_fade_mode);
@@ -508,7 +461,6 @@ void AudioStreamInteractive::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("is_transition_using_filler_clip", "from_clip", "to_clip"), &AudioStreamInteractive::is_transition_using_filler_clip);
 	ClassDB::bind_method(D_METHOD("get_transition_filler_clip", "from_clip", "to_clip"), &AudioStreamInteractive::get_transition_filler_clip);
 	ClassDB::bind_method(D_METHOD("is_transition_holding_previous", "from_clip", "to_clip"), &AudioStreamInteractive::is_transition_holding_previous);
-
 	ClassDB::bind_method(D_METHOD("_set_transitions", "transitions"), &AudioStreamInteractive::_set_transitions);
 	ClassDB::bind_method(D_METHOD("_get_transitions"), &AudioStreamInteractive::_get_transitions);
 
@@ -518,7 +470,6 @@ void AudioStreamInteractive::_bind_methods() {
 	BIND_ENUM_CONSTANT(TRANSITION_FROM_TIME_NEXT_BEAT);
 	BIND_ENUM_CONSTANT(TRANSITION_FROM_TIME_NEXT_BAR);
 	BIND_ENUM_CONSTANT(TRANSITION_FROM_TIME_END);
-
 	BIND_ENUM_CONSTANT(TRANSITION_TO_TIME_SAME_POSITION);
 	BIND_ENUM_CONSTANT(TRANSITION_TO_TIME_START);
 
@@ -527,7 +478,6 @@ void AudioStreamInteractive::_bind_methods() {
 	BIND_ENUM_CONSTANT(FADE_OUT);
 	BIND_ENUM_CONSTANT(FADE_CROSS);
 	BIND_ENUM_CONSTANT(FADE_AUTOMATIC);
-
 	BIND_ENUM_CONSTANT(AUTO_ADVANCE_DISABLED);
 	BIND_ENUM_CONSTANT(AUTO_ADVANCE_ENABLED);
 	BIND_ENUM_CONSTANT(AUTO_ADVANCE_RETURN_TO_HOLD);
@@ -535,14 +485,9 @@ void AudioStreamInteractive::_bind_methods() {
 	BIND_CONSTANT(CLIP_ANY);
 }
 
-///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////
-AudioStreamPlaybackInteractive::AudioStreamPlaybackInteractive() {
-}
+AudioStreamPlaybackInteractive::AudioStreamPlaybackInteractive() {}
 
-AudioStreamPlaybackInteractive::~AudioStreamPlaybackInteractive() {
-}
+AudioStreamPlaybackInteractive::~AudioStreamPlaybackInteractive() {}
 
 void AudioStreamPlaybackInteractive::stop() {
 	if (!active) {
@@ -584,7 +529,6 @@ void AudioStreamPlaybackInteractive::start(double p_from_pos) {
 				states[i].playback = src_stream->instantiate_playback();
 			}
 		}
-
 		version = stream->version;
 	}
 
@@ -712,7 +656,6 @@ void AudioStreamPlaybackInteractive::_queue(int p_to_clip_index, bool p_is_auto_
 				if (!from_state.stream->has_loop()) {
 					src_no_loop = true;
 				}
-
 			} break;
 			default: {
 			}
@@ -771,8 +714,8 @@ void AudioStreamPlaybackInteractive::_queue(int p_to_clip_index, bool p_is_auto_
 		from_state.fade_wait = src_fade_wait;
 		from_state.fade_speed = -fade_speed;
 	}
-	// keep volume, since it may have been fading in from something else.
 
+	// keep volume, since it may have been fading in from something else.
 	to_state.playback->start(dst_seek_to);
 	to_state.active = true;
 	to_state.fade_volume = 0.0;
@@ -848,9 +791,8 @@ void AudioStreamPlaybackInteractive::_queue(int p_to_clip_index, bool p_is_auto_
 	}
 }
 
-void AudioStreamPlaybackInteractive::seek(double p_time) {
-	// Seek not supported
-}
+// Seek not supported
+void AudioStreamPlaybackInteractive::seek(double p_time) {}
 
 int AudioStreamPlaybackInteractive::mix(AudioFrame *p_buffer, float p_rate_scale, int p_frames) {
 	if (active && version != stream->version) {
@@ -877,7 +819,6 @@ int AudioStreamPlaybackInteractive::mix(AudioFrame *p_buffer, float p_rate_scale
 		p_buffer += to_mix;
 		todo -= to_mix;
 	}
-
 	return p_frames;
 }
 
@@ -890,7 +831,6 @@ void AudioStreamPlaybackInteractive::_mix_internal(int p_frames) {
 		if (!states[i].active) {
 			continue;
 		}
-
 		_mix_internal_state(i, p_frames);
 	}
 }
@@ -1010,7 +950,6 @@ Variant AudioStreamPlaybackInteractive::get_parameter(const StringName &p_name) 
 		}
 		return "";
 	}
-
 	return Variant();
 }
 

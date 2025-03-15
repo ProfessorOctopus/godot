@@ -1,51 +1,38 @@
-/**************************************************************************/
-/*  resource.cpp                                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "resource.h"
-
 #include "core/io/resource_loader.h"
 #include "core/math/math_funcs.h"
 #include "core/os/os.h"
 #include "scene/main/node.h" //only so casting works
 
 void Resource::emit_changed() {
+	if (emit_changed_state != EMIT_CHANGED_UNBLOCKED) {
+		emit_changed_state = EMIT_CHANGED_BLOCKED_PENDING_EMIT;
+		return;
+	}
+
 	if (ResourceLoader::is_within_load() && !Thread::is_main_thread()) {
 		ResourceLoader::resource_changed_emit(this);
 		return;
 	}
-
 	emit_signal(CoreStringName(changed));
 }
 
-void Resource::_resource_path_changed() {
+void Resource::_block_emit_changed() {
+	if (emit_changed_state == EMIT_CHANGED_UNBLOCKED) {
+		emit_changed_state = EMIT_CHANGED_BLOCKED;
+	}
 }
+
+void Resource::_unblock_emit_changed() {
+	bool emit = (emit_changed_state == EMIT_CHANGED_BLOCKED_PENDING_EMIT);
+	emit_changed_state = EMIT_CHANGED_UNBLOCKED;
+	if (emit) {
+		emit_changed();
+	}
+}
+
+void Resource::_resource_path_changed() {}
 
 void Resource::set_path(const String &p_path, bool p_take_over) {
 	if (path_cache == p_path) {
@@ -82,7 +69,6 @@ void Resource::set_path(const String &p_path, bool p_take_over) {
 			ResourceCache::resources[path_cache] = this;
 		}
 	}
-
 	_resource_path_changed();
 }
 
@@ -132,7 +118,6 @@ String Resource::generate_scene_unique_id() {
 		}
 		random_num /= base;
 	}
-
 	return id;
 }
 
@@ -145,7 +130,6 @@ void Resource::set_scene_unique_id(const String &p_id) {
 			break;
 		}
 	}
-
 	ERR_FAIL_COND_MSG(!is_valid, "The scene unique ID must contain only letters, numbers, and underscores.");
 	scene_unique_id = p_id;
 }
@@ -205,6 +189,7 @@ Error Resource::copy_from(const Ref<Resource> &p_resource) {
 		return ERR_INVALID_PARAMETER;
 	}
 
+	_block_emit_changed();
 	reset_state(); // May want to reset state.
 
 	List<PropertyInfo> pi;
@@ -217,9 +202,10 @@ Error Resource::copy_from(const Ref<Resource> &p_resource) {
 		if (E.name == "resource_path") {
 			continue; //do not change path
 		}
-
 		set(E.name, p_resource->get(E.name));
 	}
+	_unblock_emit_changed();
+
 	return OK;
 }
 
@@ -234,7 +220,6 @@ void Resource::reload_from_file() {
 	if (s.is_null()) {
 		return;
 	}
-
 	copy_from(s);
 }
 
@@ -268,7 +253,6 @@ void Resource::_dupe_sub_resources(Variant &r_variant, Node *p_for_scene, HashMa
 				} else {
 					_dupe_sub_resources(k, p_for_scene, p_remap_cache);
 				}
-
 				_dupe_sub_resources(d[k], p_for_scene, p_remap_cache);
 			}
 		} break;
@@ -308,7 +292,6 @@ Ref<Resource> Resource::duplicate_for_local_scene(Node *p_for_scene, HashMap<Ref
 
 		r->set(E.name, p);
 	}
-
 	return r;
 }
 
@@ -322,11 +305,9 @@ void Resource::_find_sub_resources(const Variant &p_variant, HashSet<Ref<Resourc
 		} break;
 		case Variant::DICTIONARY: {
 			Dictionary d = p_variant;
-			List<Variant> keys;
-			d.get_key_list(&keys);
-			for (const Variant &k : keys) {
-				_find_sub_resources(k, p_resources_found);
-				_find_sub_resources(d[k], p_resources_found);
+			for (const KeyValue<Variant, Variant> &kv : d) {
+				_find_sub_resources(kv.key, p_resources_found);
+				_find_sub_resources(kv.value, p_resources_found);
 			}
 		} break;
 		case Variant::OBJECT: {
@@ -412,7 +393,6 @@ Ref<Resource> Resource::duplicate(bool p_subresources) const {
 			}
 		}
 	}
-
 	return r;
 }
 
@@ -431,13 +411,12 @@ RID Resource::get_rid() const {
 		if (_get_extension() && _get_extension()->get_rid) {
 			ret = RID::from_uint64(_get_extension()->get_rid(_get_extension_instance()));
 		}
-#endif
+#endif // DISABLE_DEPRECATED
 	}
 	return ret;
 }
 
 #ifdef TOOLS_ENABLED
-
 uint32_t Resource::hash_edited_version_for_preview() const {
 	uint32_t hash = hash_murmur3_one_32(get_edited_version());
 
@@ -452,11 +431,9 @@ uint32_t Resource::hash_edited_version_for_preview() const {
 			}
 		}
 	}
-
 	return hash;
 }
-
-#endif
+#endif // TOOLS_ENABLED
 
 void Resource::set_local_to_scene(bool p_enable) {
 	local_to_scene = p_enable;
@@ -474,7 +451,6 @@ Node *Resource::get_local_scene() const {
 	if (_get_local_scene_func) {
 		return _get_local_scene_func();
 	}
-
 	return nullptr;
 }
 
@@ -483,9 +459,8 @@ void Resource::setup_local_to_scene() {
 	GDVIRTUAL_CALL(_setup_local_to_scene);
 }
 
-void Resource::reset_local_to_scene() {
-	// Restores the state as if setup_local_to_scene() hadn't been called.
-}
+// Restores the state as if setup_local_to_scene() hadn't been called.
+void Resource::reset_local_to_scene() {}
 
 Node *(*Resource::_get_local_scene_func)() = nullptr;
 void (*Resource::_update_configuration_warning)() = nullptr;
@@ -516,7 +491,7 @@ void Resource::set_id_for_path(const String &p_path, const String &p_id) {
 		ResourceCache::resource_path_cache[p_path][get_path()] = p_id;
 		ResourceCache::path_cache_lock.write_unlock();
 	}
-#endif
+#endif // TOOLS_ENABLED
 }
 
 String Resource::get_id_for_path(const String &p_path) const {
@@ -532,7 +507,7 @@ String Resource::get_id_for_path(const String &p_path) const {
 	}
 #else
 	return "";
-#endif
+#endif // TOOLS_ENABLED
 }
 
 void Resource::_bind_methods() {
@@ -548,19 +523,16 @@ void Resource::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_local_scene"), &Resource::get_local_scene);
 	ClassDB::bind_method(D_METHOD("setup_local_to_scene"), &Resource::setup_local_to_scene);
 	ClassDB::bind_method(D_METHOD("reset_state"), &Resource::reset_state);
-
 	ClassDB::bind_method(D_METHOD("set_id_for_path", "path", "id"), &Resource::set_id_for_path);
 	ClassDB::bind_method(D_METHOD("get_id_for_path", "path"), &Resource::get_id_for_path);
-
 	ClassDB::bind_method(D_METHOD("is_built_in"), &Resource::is_built_in);
 
 	ClassDB::bind_static_method("Resource", D_METHOD("generate_scene_unique_id"), &Resource::generate_scene_unique_id);
 	ClassDB::bind_method(D_METHOD("set_scene_unique_id", "id"), &Resource::set_scene_unique_id);
 	ClassDB::bind_method(D_METHOD("get_scene_unique_id"), &Resource::get_scene_unique_id);
-
 	ClassDB::bind_method(D_METHOD("emit_changed"), &Resource::emit_changed);
-
 	ClassDB::bind_method(D_METHOD("duplicate", "subresources"), &Resource::duplicate, DEFVAL(false));
+
 	ADD_SIGNAL(MethodInfo("changed"));
 	ADD_SIGNAL(MethodInfo("setup_local_to_scene_requested"));
 
@@ -594,14 +566,11 @@ Resource::~Resource() {
 }
 
 HashMap<String, Resource *> ResourceCache::resources;
-#ifdef TOOLS_ENABLED
-HashMap<String, HashMap<String, String>> ResourceCache::resource_path_cache;
-#endif
-
 Mutex ResourceCache::lock;
 #ifdef TOOLS_ENABLED
+HashMap<String, HashMap<String, String>> ResourceCache::resource_path_cache;
 RWLock ResourceCache::path_cache_lock;
-#endif
+#endif //TOOLS_ENABLED
 
 void ResourceCache::clear() {
 	if (!resources.is_empty()) {
@@ -614,7 +583,6 @@ void ResourceCache::clear() {
 			ERR_PRINT(vformat("%d resources still in use at exit (run with --verbose for details).", resources.size()));
 		}
 	}
-
 	resources.clear();
 }
 
@@ -633,11 +601,9 @@ bool ResourceCache::has(const String &p_path) {
 			res = nullptr;
 		}
 	}
-
 	if (!res) {
 		return false;
 	}
-
 	return true;
 }
 
@@ -658,7 +624,6 @@ Ref<Resource> ResourceCache::get_ref(const String &p_path) {
 			res = nullptr;
 		}
 	}
-
 	return ref;
 }
 
@@ -676,7 +641,6 @@ void ResourceCache::get_cached_resources(List<Ref<Resource>> *p_resources) {
 			to_remove.push_back(E.key);
 			continue;
 		}
-
 		p_resources->push_back(ref);
 	}
 

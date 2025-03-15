@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  script_language_extension.h                                           */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/extension/ext_wrappers.gen.inc"
 #include "core/object/gdvirtual.gen.inc"
 #include "core/object/script_language.h"
@@ -93,7 +63,6 @@ public:
 		for (int i = 0; i < doc.size(); i++) {
 			class_doc.append(DocData::ClassDoc::from_dict(doc[i]));
 		}
-
 		return class_doc;
 	}
 
@@ -192,10 +161,8 @@ public:
 	virtual void get_constants(HashMap<StringName, Variant> *p_constants) override {
 		Dictionary constants;
 		GDVIRTUAL_CALL(_get_constants, constants);
-		List<Variant> keys;
-		constants.get_key_list(&keys);
-		for (const Variant &K : keys) {
-			p_constants->insert(K, constants[K]);
+		for (const KeyValue<Variant, Variant> &kv : constants) {
+			p_constants->insert(kv.key, kv.value);
 		}
 	}
 	GDVIRTUAL0RC_REQUIRED(TypedArray<StringName>, _get_members)
@@ -216,7 +183,6 @@ public:
 		GDVIRTUAL_CALL(_get_rpc_config, ret);
 		return ret;
 	}
-
 	ScriptExtension() {}
 };
 
@@ -238,7 +204,6 @@ public:
 	EXBIND0(finish)
 
 	/* EDITOR FUNCTIONS */
-
 	GDVIRTUAL0RC_REQUIRED(Vector<String>, _get_reserved_words)
 
 	virtual void get_reserved_words(List<String> *p_words) const override {
@@ -500,7 +465,6 @@ public:
 	EXBIND1(remove_named_global_constant, const StringName &)
 
 	/* MULTITHREAD FUNCTIONS */
-
 	//some VMs need to be notified of thread creation/exiting to allocate a stack
 	EXBIND0(thread_enter)
 	EXBIND0(thread_exit)
@@ -603,8 +567,8 @@ public:
 	EXBIND0(reload_all_scripts)
 	EXBIND2(reload_scripts, const Array &, bool)
 	EXBIND2(reload_tool_script, const Ref<Script> &, bool)
-	/* LOADER FUNCTIONS */
 
+	/* LOADER FUNCTIONS */
 	GDVIRTUAL0RC_REQUIRED(PackedStringArray, _get_recognized_extensions)
 
 	virtual void get_recognized_extensions(List<String> *p_extensions) const override {

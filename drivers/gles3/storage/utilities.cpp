@@ -43,7 +43,7 @@ Utilities::~Utilities() {
 			ERR_PRINT(E.value.name + ": leaked " + itos(E.value.size) + " bytes.");
 #else
 			ERR_PRINT("Texture with GL ID of " + itos(E.key) + ": leaked " + itos(E.value.size) + " bytes.");
-#endif
+#endif // DEV_ENABLED
 			leaked_data_size += E.value.size;
 		}
 		if (leaked_data_size < texture_mem_cache) {
@@ -58,7 +58,7 @@ Utilities::~Utilities() {
 			ERR_PRINT(E.value.name + ": leaked " + itos(E.value.size) + " bytes.");
 #else
 			ERR_PRINT("Render buffer with GL ID of " + itos(E.key) + ": leaked " + itos(E.value.size) + " bytes.");
-#endif
+#endif // DEV_ENABLED
 			leaked_data_size += E.value.size;
 		}
 		if (leaked_data_size < render_buffer_mem_cache) {
@@ -74,7 +74,7 @@ Utilities::~Utilities() {
 			ERR_PRINT(E.value.name + ": leaked " + itos(E.value.size) + " bytes.");
 #else
 			ERR_PRINT("Buffer with GL ID of " + itos(E.key) + ": leaked " + itos(E.value.size) + " bytes.");
-#endif
+#endif // DEV_ENABLED
 			leaked_data_size += E.value.size;
 		}
 		if (leaked_data_size < buffer_mem_cache) {
@@ -106,7 +106,7 @@ Vector<uint8_t> Utilities::buffer_get_data(GLenum p_target, GLuint p_buffer, uin
 		memcpy(w, data, p_buffer_size);
 	}
 	glUnmapBuffer(p_target);
-#endif
+#endif // __EMSCRIPTEN__
 	glBindBuffer(p_target, 0);
 	return ret;
 }
@@ -314,7 +314,6 @@ void Utilities::_capture_timestamps_begin() {
 		SWAP(frames[frame].timestamp_names, frames[frame].timestamp_result_names);
 		SWAP(frames[frame].timestamp_cpu_values, frames[frame].timestamp_cpu_result_values);
 	}
-
 	frames[frame].timestamp_result_count = frames[frame].timestamp_count;
 	frames[frame].timestamp_count = 0;
 	frames[frame].index = Engine::get_singleton()->get_frames_drawn();
@@ -350,7 +349,6 @@ String Utilities::get_captured_timestamp_name(uint32_t p_index) const {
 }
 
 /* MISC */
-
 void Utilities::update_dirty_resources() {
 	MaterialStorage::get_singleton()->_update_global_shader_uniforms();
 	MaterialStorage::get_singleton()->_update_queued_materials();
@@ -385,6 +383,9 @@ bool Utilities::has_os_feature(const String &p_feature) const {
 	if (p_feature == "etc2") {
 		return config->etc2_supported;
 	}
+	if (p_feature == "astc_hdr") {
+		return config->astc_hdr_supported;
+	}
 	return false;
 }
 
@@ -403,12 +404,14 @@ uint64_t Utilities::get_rendering_info(RS::RenderingInfo p_info) {
 
 String Utilities::get_video_adapter_name() const {
 	const String rendering_device_name = String::utf8((const char *)glGetString(GL_RENDERER));
+
 	// NVIDIA suffixes all GPU model names with "/PCIe/SSE2" in OpenGL (but not Vulkan). This isn't necessary to display nowadays, so it can be trimmed.
 	return rendering_device_name.trim_suffix("/PCIe/SSE2");
 }
 
 String Utilities::get_video_adapter_vendor() const {
 	const String rendering_device_vendor = String::utf8((const char *)glGetString(GL_VENDOR));
+
 	// NVIDIA suffixes its vendor name with " Corporation". This is neither necessary to process nor display.
 	return rendering_device_vendor.trim_suffix(" Corporation");
 }
@@ -438,5 +441,4 @@ uint64_t Utilities::get_maximum_uniform_buffer_size() const {
 	ERR_FAIL_NULL_V(config, 65536);
 	return uint64_t(config->max_uniform_buffer_size);
 }
-
 #endif // GLES3_ENABLED

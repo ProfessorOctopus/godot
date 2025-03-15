@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_node.h                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/object/script_language.h"
 #include "core/templates/safe_refcount.h"
 #include "editor/editor_data.h"
@@ -57,7 +27,6 @@ class Tree;
 class VBoxContainer;
 class VSplitContainer;
 class Window;
-
 class AudioStreamImportSettingsDialog;
 class AudioStreamPreviewGenerator;
 class BackgroundProgress;
@@ -148,7 +117,6 @@ public:
 		FILE_RELOAD_SAVED_SCENE,
 		FILE_CLOSE,
 		FILE_QUIT,
-
 		FILE_EXPORT_MESH_LIBRARY,
 
 		// Project menu.
@@ -345,7 +313,7 @@ private:
 
 	PopupMenu *recent_scenes = nullptr;
 	String _recent_scene;
-	List<String> previous_scenes;
+	List<String> prev_closed_scenes;
 	String defer_load_scene;
 	Node *_last_instantiated_scene = nullptr;
 
@@ -411,15 +379,12 @@ private:
 
 	bool scene_distraction_free = false;
 	bool script_distraction_free = false;
-
 	bool changing_scene = false;
 	bool cmdline_mode = false;
 	bool convert_old = false;
 	bool immediate_dialog_confirmed = false;
-	bool opening_prev = false;
 	bool restoring_scenes = false;
 	bool unsaved_cache = true;
-
 	bool requested_first_scan = false;
 	bool waiting_for_first_scan = true;
 	bool load_editor_layout_done = false;
@@ -485,10 +450,8 @@ private:
 	static void _file_dialog_unregister(FileDialog *p_dialog);
 	static void _editor_file_dialog_register(EditorFileDialog *p_dialog);
 	static void _editor_file_dialog_unregister(EditorFileDialog *p_dialog);
-
 	static void _file_access_close_error_notify(const String &p_str);
 	static void _file_access_close_error_notify_impl(const String &p_str);
-
 	static void _print_handler(void *p_this, const String &p_string, bool p_error, bool p_rich);
 	static void _print_handler_impl(const String &p_string, bool p_error, bool p_rich);
 	static void _resource_saved(Ref<Resource> p_resource, const String &p_path);
@@ -497,45 +460,34 @@ private:
 	void _update_theme(bool p_skip_creation = false);
 	void _build_icon_type_cache();
 	void _enable_pending_addons();
-
 	void _dialog_action(String p_file);
-
 	void _add_to_history(const Object *p_object, const String &p_property, bool p_inspector_only);
 	void _edit_current(bool p_skip_foreign = false, bool p_skip_inspector_update = false);
 	void _dialog_display_save_error(String p_file, Error p_error);
 	void _dialog_display_load_error(String p_file, Error p_error);
-
 	void _menu_option(int p_option);
 	void _menu_confirm_current();
 	void _menu_option_confirm(int p_option, bool p_confirmed);
-
 	void _android_build_source_selected(const String &p_file);
 	void _android_export_preset_selected(int p_index);
 	void _android_install_build_template();
 	void _android_explore_build_templates();
-
 	void _request_screenshot();
 	void _screenshot(bool p_use_utc = false);
 	void _save_screenshot(NodePath p_path);
-
 	void _check_system_theme_changed();
-
 	void _tool_menu_option(int p_idx);
 	void _export_as_menu_option(int p_idx);
 	void _update_file_menu_opened();
-	void _update_file_menu_closed();
 	void _palette_quick_open_dialog();
-
 	void _remove_plugin_from_enabled(const String &p_name);
 	void _plugin_over_edit(EditorPlugin *p_plugin, Object *p_object);
 	void _plugin_over_self_own(EditorPlugin *p_plugin);
-
 	void _fs_changed();
 	void _resources_reimporting(const Vector<String> &p_resources);
 	void _resources_reimported(const Vector<String> &p_resources);
 	void _sources_changed(bool p_exist);
 	void _remove_lock_file();
-
 	void _node_renamed();
 	void _save_editor_states(const String &p_file, int p_idx = -1);
 	void _load_editor_plugin_states_from_config(const Ref<ConfigFile> &p_config_file);
@@ -546,12 +498,10 @@ private:
 	void _vp_resized();
 	void _titlebar_resized();
 	void _viewport_resized();
-
 	void _update_undo_redo_allowed();
 
 	int _save_external_resources(bool p_also_save_external_data = false);
 	void _save_scene_silently();
-
 	void _set_current_scene(int p_idx);
 	void _set_current_scene_nocheck(int p_idx);
 	bool _validate_scene_recursive(const String &p_filename, Node *p_node);
@@ -561,33 +511,26 @@ private:
 	void _discard_changes(const String &p_str = String());
 	void _scene_tab_closed(int p_tab);
 	void _cancel_close_scene_tab();
-
 	void _prepare_save_confirmation_popup();
-
 	void _inherit_request(String p_file);
 	void _instantiate_request(const Vector<String> &p_files);
-
 	void _quick_opened(const String &p_file_path);
 	void _open_command_palette();
-
 	void _project_run_started();
 	void _project_run_stopped();
-
+	void _update_prev_closed_scenes(const String &p_scene_path, bool p_add_scene);
 	void _add_to_recent_scenes(const String &p_scene);
 	void _update_recent_scenes();
 	void _open_recent_scene(int p_idx);
 	void _dropped_files(const Vector<String> &p_files);
 	void _add_dropped_files_recursive(const Vector<String> &p_files, String to_path);
-
 	void _update_vsync_mode();
 	void _update_from_settings();
 	void _gdextensions_reloaded();
-
 	void _renderer_selected(int);
 	void _update_renderer_color();
 	void _add_renderer_entry(const String &p_renderer_name, bool p_mark_overridden);
 	void _set_renderer_name_save_and_restart();
-
 	void _exit_editor(int p_exit_code);
 
 	virtual void input(const Ref<InputEvent> &p_event) override;
@@ -602,67 +545,47 @@ private:
 	void _save_edited_subresources(Node *scene, HashMap<Ref<Resource>, bool> &processed, int32_t flags);
 	void _mark_unsaved_scenes();
 	bool _is_scene_unsaved(int p_idx);
-
 	void _find_node_types(Node *p_node, int &count_2d, int &count_3d);
 	void _save_scene_with_preview(String p_file, int p_idx = -1);
 	void _close_save_scene_progress();
-
 	bool _find_scene_in_use(Node *p_node, const String &p_path) const;
-
 	void _proceed_closing_scene_tabs();
 	bool _is_closing_editor() const;
 	void _restart_editor(bool p_goto_project_manager = false);
 
 	Dictionary _get_main_scene_state();
 	void _set_main_scene_state(Dictionary p_state, Node *p_for_scene);
-
 	void _save_editor_layout();
 	void _load_editor_layout();
-
 	void _save_central_editor_layout_to_config(Ref<ConfigFile> p_config_file);
 	void _load_central_editor_layout_from_config(Ref<ConfigFile> p_config_file);
-
 	void _save_window_settings_to_config(Ref<ConfigFile> p_layout, const String &p_section);
-
 	void _save_open_scenes_to_config(Ref<ConfigFile> p_layout);
 	void _load_open_scenes_from_config(Ref<ConfigFile> p_layout);
-
 	void _update_layouts_menu();
 	void _layout_menu_option(int p_id);
-
 	void _update_addon_config();
-
 	void _toggle_distraction_free_mode();
-
 	void _inherit_imported(const String &p_action);
 	void _open_imported();
-
 	void _update_update_spinner();
-
 	void _resources_changed(const Vector<String> &p_resources);
 	void _scan_external_changes();
 	void _reload_modified_scenes();
 	void _reload_project_settings();
 	void _resave_scenes(String p_str);
-
 	void _feature_profile_changed();
 	bool _is_class_editor_disabled_by_feature_profile(const StringName &p_class);
 
 	Ref<Texture2D> _get_class_or_script_icon(const String &p_class, const String &p_script_path, const String &p_fallback = "Object", bool p_fallback_script_to_theme = false);
 
 	void _pick_main_scene_custom_action(const String &p_custom_action_name);
-
 	void _immediate_dialog_confirmed();
-
 	void _begin_first_scan();
-
 	void _notify_nodes_scene_reimported(Node *p_node, Array p_reimported_nodes);
-
 	void _remove_all_not_owned_children(Node *p_node, Node *p_owner);
-
 	void _progress_dialog_visibility_changed();
 	void _load_error_dialog_visibility_changed();
-
 	void _execute_upgrades();
 
 protected:
@@ -703,14 +626,12 @@ public:
 	static void progress_add_task(const String &p_task, const String &p_label, int p_steps, bool p_can_cancel = false);
 	static bool progress_task_step(const String &p_task, const String &p_state, int p_step = -1, bool p_force_refresh = true);
 	static void progress_end_task(const String &p_task);
-
 	static void progress_add_task_bg(const String &p_task, const String &p_label, int p_steps);
 	static void progress_task_step_bg(const String &p_task, int p_step = -1);
 	static void progress_end_task_bg(const String &p_task);
 
 	static void add_editor_plugin(EditorPlugin *p_editor, bool p_config_changed = false);
 	static void remove_editor_plugin(EditorPlugin *p_editor, bool p_config_changed = false);
-
 	static void add_extension_editor_plugin(const StringName &p_class_name);
 	static void remove_extension_editor_plugin(const StringName &p_class_name);
 
@@ -719,7 +640,6 @@ public:
 	static void add_build_callback(EditorBuildCallback p_callback);
 
 	static bool immediate_confirmation_dialog(const String &p_text, const String &p_ok_text = TTR("Ok"), const String &p_cancel_text = TTR("Cancel"), uint32_t p_wrap_width = 0);
-
 	static void cleanup();
 
 	EditorPluginList *get_editor_plugins_force_input_forwarding() { return editor_plugins_force_input_forwarding; }
@@ -731,8 +651,7 @@ public:
 	ProjectSettingsEditor *get_project_settings() { return project_settings_editor; }
 
 	void trigger_menu_option(int p_option, bool p_confirmed);
-	bool has_previous_scenes() const;
-
+	bool has_previous_closed_scenes() const;
 	void new_inherited_scene() { _menu_option_confirm(FILE_NEW_INHERITED_SCENE, false); }
 
 	void update_distraction_free_mode();
@@ -765,7 +684,6 @@ public:
 	void replace_resources_in_scenes(
 			const Vector<Ref<Resource>> &p_source_resources,
 			const Vector<Ref<Resource>> &p_target_resource);
-	void open_request(const String &p_path, bool p_set_inherited = false);
 	void edit_foreign_resource(Ref<Resource> p_resource);
 
 	bool is_resource_read_only(Ref<Resource> p_resource, bool p_foreign_resources_are_writable = false);
@@ -784,6 +702,7 @@ public:
 	int new_scene();
 	Error load_scene(const String &p_scene, bool p_ignore_broken_deps = false, bool p_set_inherited = false, bool p_force_open_imported = false, bool p_silent_change_tab = false);
 	Error load_resource(const String &p_resource, bool p_ignore_broken_deps = false);
+	Error load_scene_or_resource(const String &p_file, bool p_ignore_broken_deps = false, bool p_change_scene_tab_if_already_open = true);
 
 	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);

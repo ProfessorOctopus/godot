@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_debugger_node.cpp                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_debugger_node.h"
-
 #include "core/object/undo_redo.h"
 #include "editor/debugger/editor_debugger_tree.h"
 #include "editor/debugger/script_editor_debugger.h"
@@ -95,7 +65,6 @@ EditorDebuggerNode::EditorDebuggerNode() {
 	if (Engine::get_singleton()->is_recovery_mode_hint()) {
 		return;
 	}
-
 	EditorRunBar::get_singleton()->get_pause_button()->connect(SceneStringName(pressed), callable_mp(this, &EditorDebuggerNode::_paused));
 }
 
@@ -138,7 +107,6 @@ ScriptEditorDebugger *EditorDebuggerNode::_add_debugger() {
 			plugin->create_session(node);
 		}
 	}
-
 	return node;
 }
 
@@ -613,6 +581,10 @@ void EditorDebuggerNode::_breaked(bool p_breaked, bool p_can_debug, const String
 
 bool EditorDebuggerNode::is_skip_breakpoints() const {
 	return get_current_debugger()->is_skip_breakpoints();
+}
+
+bool EditorDebuggerNode::is_ignore_error_breaks() const {
+	return get_default_debugger()->is_ignore_error_breaks();
 }
 
 void EditorDebuggerNode::set_breakpoint(const String &p_path, int p_line, bool p_enabled) {

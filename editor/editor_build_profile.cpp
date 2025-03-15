@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_build_profile.cpp                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_build_profile.h"
-
 #include "core/io/json.h"
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
@@ -297,12 +267,9 @@ Error EditorBuildProfile::load_from_file(const String &p_path) {
 
 	if (data.has("disabled_build_options")) {
 		Dictionary disabled_build_options_arr = data["disabled_build_options"];
-		List<Variant> keys;
-		disabled_build_options_arr.get_key_list(&keys);
 
-		for (const Variant &K : keys) {
-			String key = K;
-
+		for (const KeyValue<Variant, Variant> &kv : disabled_build_options_arr) {
+			String key = kv.key;
 			for (int i = 0; i < BUILD_OPTION_MAX; i++) {
 				String f = build_option_identifiers[i];
 				if (f == key) {
@@ -516,7 +483,6 @@ void EditorBuildProfileManager::_detect_classes() {
 	f.unref();
 
 	// Add forced ones.
-
 	Vector<String> force_detect = edited->get_force_detect_classes().split(",");
 	for (int i = 0; i < force_detect.size(); i++) {
 		String c = force_detect[i].strip_edges();
@@ -527,7 +493,6 @@ void EditorBuildProfileManager::_detect_classes() {
 	}
 
 	// Filter all classes to discard inherited ones.
-
 	HashSet<StringName> all_used_classes;
 
 	for (const StringName &E : used_classes) {

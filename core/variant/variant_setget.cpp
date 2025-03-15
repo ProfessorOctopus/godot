@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  variant_setget.cpp                                                    */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "variant_setget.h"
-
 #include "variant_callable.h"
 
 struct VariantSetterGetterInfo {
@@ -67,23 +37,18 @@ void register_named_setters_getters() {
 
 	REGISTER_MEMBER(Vector2, x);
 	REGISTER_MEMBER(Vector2, y);
-
 	REGISTER_MEMBER(Vector2i, x);
 	REGISTER_MEMBER(Vector2i, y);
-
 	REGISTER_MEMBER(Vector3, x);
 	REGISTER_MEMBER(Vector3, y);
 	REGISTER_MEMBER(Vector3, z);
-
 	REGISTER_MEMBER(Vector3i, x);
 	REGISTER_MEMBER(Vector3i, y);
 	REGISTER_MEMBER(Vector3i, z);
-
 	REGISTER_MEMBER(Vector4, x);
 	REGISTER_MEMBER(Vector4, y);
 	REGISTER_MEMBER(Vector4, z);
 	REGISTER_MEMBER(Vector4, w);
-
 	REGISTER_MEMBER(Vector4i, x);
 	REGISTER_MEMBER(Vector4i, y);
 	REGISTER_MEMBER(Vector4i, z);
@@ -92,7 +57,6 @@ void register_named_setters_getters() {
 	REGISTER_MEMBER(Rect2, position);
 	REGISTER_MEMBER(Rect2, size);
 	REGISTER_MEMBER(Rect2, end);
-
 	REGISTER_MEMBER(Rect2i, position);
 	REGISTER_MEMBER(Rect2i, size);
 	REGISTER_MEMBER(Rect2i, end);
@@ -132,16 +96,13 @@ void register_named_setters_getters() {
 	REGISTER_MEMBER(Color, g);
 	REGISTER_MEMBER(Color, b);
 	REGISTER_MEMBER(Color, a);
-
 	REGISTER_MEMBER(Color, r8);
 	REGISTER_MEMBER(Color, g8);
 	REGISTER_MEMBER(Color, b8);
 	REGISTER_MEMBER(Color, a8);
-
 	REGISTER_MEMBER(Color, h);
 	REGISTER_MEMBER(Color, s);
 	REGISTER_MEMBER(Color, v);
-
 	REGISTER_MEMBER(Color, ok_hsl_h);
 	REGISTER_MEMBER(Color, ok_hsl_s);
 	REGISTER_MEMBER(Color, ok_hsl_l);
@@ -173,7 +134,6 @@ Variant::Type Variant::get_member_type(Variant::Type p_type, const StringName &p
 			return variant_setters_getters[p_type][i].member_type;
 		}
 	}
-
 	return Variant::NIL;
 }
 
@@ -196,9 +156,9 @@ Variant::ValidatedSetter Variant::get_member_validated_setter(Variant::Type p_ty
 			return variant_setters_getters[p_type][i].validated_setter;
 		}
 	}
-
 	return nullptr;
 }
+
 Variant::ValidatedGetter Variant::get_member_validated_getter(Variant::Type p_type, const StringName &p_member) {
 	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, nullptr);
 
@@ -207,7 +167,6 @@ Variant::ValidatedGetter Variant::get_member_validated_getter(Variant::Type p_ty
 			return variant_setters_getters[p_type][i].validated_getter;
 		}
 	}
-
 	return nullptr;
 }
 
@@ -219,7 +178,6 @@ Variant::PTRSetter Variant::get_member_ptr_setter(Variant::Type p_type, const St
 			return variant_setters_getters[p_type][i].ptr_setter;
 		}
 	}
-
 	return nullptr;
 }
 
@@ -231,7 +189,6 @@ Variant::PTRGetter Variant::get_member_ptr_getter(Variant::Type p_type, const St
 			return variant_setters_getters[p_type][i].ptr_getter;
 		}
 	}
-
 	return nullptr;
 }
 
@@ -299,34 +256,24 @@ Variant Variant::get_named(const StringName &p_member, bool &r_valid) const {
 			}
 		} break;
 	}
-
 	r_valid = false;
 	return Variant();
 }
 
 /**** INDEXED SETTERS AND GETTERS ****/
-
 #ifdef DEBUG_ENABLED
-
 #define OOB_TEST(m_idx, m_v) \
 	ERR_FAIL_INDEX(m_idx, m_v)
-
 #else
-
 #define OOB_TEST(m_idx, m_v)
-
-#endif
+#endif // DEBUG_ENABLED
 
 #ifdef DEBUG_ENABLED
-
 #define NULL_TEST(m_key) \
 	ERR_FAIL_NULL(m_key)
-
 #else
-
 #define NULL_TEST(m_key)
-
-#endif
+#endif // DEBUG_ENABLED
 
 #define INDEXED_SETGET_STRUCT_TYPED(m_base_type, m_elem_type)                                                                        \
 	struct VariantIndexedSetGet_##m_base_type {                                                                                      \
@@ -768,8 +715,7 @@ struct VariantIndexedSetGet_String {
 			*oob = true;
 			return;
 		}
-		char32_t result = (*VariantGetInternalPtr<String>::get_ptr(base))[index];
-		*value = String(&result, 1);
+		*value = String::chr((*VariantGetInternalPtr<String>::get_ptr(base))[index]);
 		*oob = false;
 	}
 	static void ptr_get(const void *base, int64_t index, void *member) {
@@ -779,8 +725,7 @@ struct VariantIndexedSetGet_String {
 			index += v.length();
 		}
 		OOB_TEST(index, v.length());
-		char32_t c = v[index];
-		PtrToArg<String>::encode(String(&c, 1), member);
+		PtrToArg<String>::encode(String::chr(v[index]), member);
 	}
 	static void set(Variant *base, int64_t index, const Variant *value, bool *valid, bool *oob) {
 		if (value->get_type() != Variant::STRING) {
@@ -895,15 +840,12 @@ static void register_indexed_member(Variant::Type p_type) {
 	sgi.setter = T::set;
 	sgi.validated_setter = T::validated_set;
 	sgi.ptr_setter = T::ptr_set;
-
 	sgi.getter = T::get;
 	sgi.validated_getter = T::get;
 	sgi.ptr_getter = T::ptr_get;
-
 	sgi.index_type = T::get_index_type();
 	sgi.index_usage = T::get_index_usage();
 	sgi.get_indexed_size = T::get_indexed_size;
-
 	sgi.valid = true;
 }
 
@@ -938,8 +880,7 @@ void register_indexed_setters_getters() {
 	REGISTER_INDEXED_MEMBER(Dictionary);
 }
 
-static void unregister_indexed_setters_getters() {
-}
+static void unregister_indexed_setters_getters() {}
 
 bool Variant::has_indexing(Variant::Type p_type) {
 	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, false);
@@ -960,6 +901,7 @@ Variant::ValidatedIndexedSetter Variant::get_member_validated_indexed_setter(Var
 	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, nullptr);
 	return variant_indexed_setters_getters[p_type].validated_setter;
 }
+
 Variant::ValidatedIndexedGetter Variant::get_member_validated_indexed_getter(Variant::Type p_type) {
 	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, nullptr);
 	return variant_indexed_setters_getters[p_type].validated_getter;
@@ -969,6 +911,7 @@ Variant::PTRIndexedSetter Variant::get_member_ptr_indexed_setter(Variant::Type p
 	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, nullptr);
 	return variant_indexed_setters_getters[p_type].ptr_setter;
 }
+
 Variant::PTRIndexedGetter Variant::get_member_ptr_indexed_getter(Variant::Type p_type) {
 	ERR_FAIL_INDEX_V(p_type, Variant::VARIANT_MAX, nullptr);
 	return variant_indexed_setters_getters[p_type].ptr_getter;
@@ -982,6 +925,7 @@ void Variant::set_indexed(int64_t p_index, const Variant &p_value, bool &r_valid
 		r_oob = false;
 	}
 }
+
 Variant Variant::get_indexed(int64_t p_index, bool &r_valid, bool &r_oob) const {
 	if (likely(variant_indexed_setters_getters[type].valid)) {
 		Variant ret;
@@ -1013,6 +957,7 @@ struct VariantKeyedSetGetDictionary {
 		*value = *ptr;
 		*r_valid = true;
 	}
+
 	static void ptr_get(const void *base, const void *key, void *value) {
 		/* avoid ptrconvert for performance*/
 		const Dictionary &v = *reinterpret_cast<const Dictionary *>(base);
@@ -1020,9 +965,11 @@ struct VariantKeyedSetGetDictionary {
 		NULL_TEST(ptr);
 		PtrToArg<Variant>::encode(*ptr, value);
 	}
+
 	static void set(Variant *base, const Variant *key, const Variant *value, bool *r_valid) {
 		*r_valid = VariantGetInternalPtr<Dictionary>::get_ptr(base)->set(*key, *value);
 	}
+
 	static void ptr_set(void *base, const void *key, const void *value) {
 		Dictionary &v = *reinterpret_cast<Dictionary *>(base);
 		v.set(PtrToArg<Variant>::convert(key), PtrToArg<Variant>::convert(value));
@@ -1032,6 +979,7 @@ struct VariantKeyedSetGetDictionary {
 		*r_valid = true;
 		return VariantGetInternalPtr<Dictionary>::get_ptr(base)->has(*key);
 	}
+
 	static uint32_t ptr_has(const void *base, const void *key) {
 		/* avoid ptrconvert for performance*/
 		const Dictionary &v = *reinterpret_cast<const Dictionary *>(base);
@@ -1111,13 +1059,10 @@ static void register_keyed_member(Variant::Type p_type) {
 
 	sgi.validated_setter = T::set;
 	sgi.ptr_setter = T::ptr_set;
-
 	sgi.validated_getter = T::get;
 	sgi.ptr_getter = T::ptr_get;
-
 	sgi.validated_checker = T::has;
 	sgi.ptr_checker = T::ptr_has;
-
 	sgi.valid = true;
 }
 
@@ -1281,18 +1226,15 @@ Variant Variant::get(const Variant &p_index, bool *r_valid, VariantGetError *err
 			*r_valid = valid;
 		}
 	}
-
 	return ret;
 }
 
 void Variant::get_property_list(List<PropertyInfo> *p_list) const {
 	if (type == DICTIONARY) {
 		const Dictionary *dic = reinterpret_cast<const Dictionary *>(_data._mem);
-		List<Variant> keys;
-		dic->get_key_list(&keys);
-		for (const Variant &E : keys) {
-			if (E.is_string()) {
-				p_list->push_back(PropertyInfo(dic->get_valid(E).get_type(), E));
+		for (const KeyValue<Variant, Variant> &kv : *dic) {
+			if (kv.key.is_string()) {
+				p_list->push_back(PropertyInfo(dic->get_valid(kv.key).get_type(), kv.key));
 			}
 		}
 	} else if (type == OBJECT) {
@@ -1374,13 +1316,11 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 			}
 
 #ifdef DEBUG_ENABLED
-
 			if (EngineDebugger::is_active() && !_get_obj().id.is_ref_counted() && ObjectDB::get_instance(_get_obj().id) == nullptr) {
 				valid = false;
 				return false;
 			}
-
-#endif
+#endif // DEBUG_ENABLED
 			Callable::CallError ce;
 			ce.error = Callable::CallError::CALL_OK;
 			Array ref;
@@ -1441,7 +1381,6 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = 0;
 			return true;
-
 		} break;
 		case PACKED_INT64_ARRAY: {
 			const Vector<int64_t> *arr = &PackedArrayRef<int64_t>::get_array(_data.packed_array);
@@ -1450,7 +1389,6 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = 0;
 			return true;
-
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
 			const Vector<float> *arr = &PackedArrayRef<float>::get_array(_data.packed_array);
@@ -1459,7 +1397,6 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = 0;
 			return true;
-
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
 			const Vector<double> *arr = &PackedArrayRef<double>::get_array(_data.packed_array);
@@ -1468,7 +1405,6 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = 0;
 			return true;
-
 		} break;
 		case PACKED_STRING_ARRAY: {
 			const Vector<String> *arr = &PackedArrayRef<String>::get_array(_data.packed_array);
@@ -1514,7 +1450,6 @@ bool Variant::iter_init(Variant &r_iter, bool &valid) const {
 		default: {
 		}
 	}
-
 	valid = false;
 	return false;
 }
@@ -1609,13 +1544,11 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			}
 
 #ifdef DEBUG_ENABLED
-
 			if (EngineDebugger::is_active() && !_get_obj().id.is_ref_counted() && ObjectDB::get_instance(_get_obj().id) == nullptr) {
 				valid = false;
 				return false;
 			}
-
-#endif
+#endif // DEBUG_ENABLED
 			Callable::CallError ce;
 			ce.error = Callable::CallError::CALL_OK;
 			Array ref;
@@ -1628,12 +1561,9 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 				valid = false;
 				return false;
 			}
-
 			r_iter = ref[0];
-
 			return ret;
 		} break;
-
 		case STRING: {
 			const String *str = reinterpret_cast<const String *>(_data._mem);
 			int idx = r_iter;
@@ -1650,10 +1580,8 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			if (!next) {
 				return false;
 			}
-
 			r_iter = *next;
 			return true;
-
 		} break;
 		case ARRAY: {
 			const Array *arr = reinterpret_cast<const Array *>(_data._mem);
@@ -1674,7 +1602,6 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = idx;
 			return true;
-
 		} break;
 		case PACKED_INT32_ARRAY: {
 			const Vector<int32_t> *arr = &PackedArrayRef<int32_t>::get_array(_data.packed_array);
@@ -1685,7 +1612,6 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = idx;
 			return true;
-
 		} break;
 		case PACKED_INT64_ARRAY: {
 			const Vector<int64_t> *arr = &PackedArrayRef<int64_t>::get_array(_data.packed_array);
@@ -1696,7 +1622,6 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = idx;
 			return true;
-
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
 			const Vector<float> *arr = &PackedArrayRef<float>::get_array(_data.packed_array);
@@ -1707,7 +1632,6 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = idx;
 			return true;
-
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
 			const Vector<double> *arr = &PackedArrayRef<double>::get_array(_data.packed_array);
@@ -1718,7 +1642,6 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 			}
 			r_iter = idx;
 			return true;
-
 		} break;
 		case PACKED_STRING_ARRAY: {
 			const Vector<String> *arr = &PackedArrayRef<String>::get_array(_data.packed_array);
@@ -1773,7 +1696,6 @@ bool Variant::iter_next(Variant &r_iter, bool &valid) const {
 		default: {
 		}
 	}
-
 	valid = false;
 	return false;
 }
@@ -1810,7 +1732,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				return Variant();
 			}
 
-#endif
+#endif  // DEBUG_ENABLED
 			Callable::CallError ce;
 			ce.error = Callable::CallError::CALL_OK;
 			const Variant *refp[] = { &r_iter };
@@ -1820,9 +1742,6 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-
-			//r_iter=ref[0];
-
 			return ret;
 		} break;
 
@@ -1842,7 +1761,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_BYTE_ARRAY: {
@@ -1853,7 +1772,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_INT32_ARRAY: {
@@ -1864,7 +1783,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_INT64_ARRAY: {
@@ -1875,7 +1794,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_FLOAT32_ARRAY: {
@@ -1886,7 +1805,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_FLOAT64_ARRAY: {
@@ -1897,7 +1816,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_STRING_ARRAY: {
@@ -1908,7 +1827,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_VECTOR2_ARRAY: {
@@ -1919,7 +1838,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_VECTOR3_ARRAY: {
@@ -1930,7 +1849,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_COLOR_ARRAY: {
@@ -1941,7 +1860,7 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		case PACKED_VECTOR4_ARRAY: {
@@ -1952,13 +1871,12 @@ Variant Variant::iter_get(const Variant &r_iter, bool &r_valid) const {
 				r_valid = false;
 				return Variant();
 			}
-#endif
+#endif // DEBUG_ENABLED
 			return arr->get(idx);
 		} break;
 		default: {
 		}
 	}
-
 	r_valid = false;
 	return Variant();
 }
@@ -1970,14 +1888,6 @@ Variant Variant::duplicate(bool p_deep) const {
 Variant Variant::recursive_duplicate(bool p_deep, int recursion_count) const {
 	switch (type) {
 		case OBJECT: {
-			/*  breaks stuff :(
-			if (p_deep && !_get_obj().ref.is_null()) {
-				Ref<Resource> resource = _get_obj().ref;
-				if (resource.is_valid()) {
-					return resource->duplicate(true);
-				}
-			}
-			*/
 			return *this;
 		} break;
 		case DICTIONARY:
@@ -2014,6 +1924,7 @@ void Variant::_register_variant_setters_getters() {
 	register_indexed_setters_getters();
 	register_keyed_setters_getters();
 }
+
 void Variant::_unregister_variant_setters_getters() {
 	unregister_named_setters_getters();
 	unregister_indexed_setters_getters();

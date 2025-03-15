@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  debug_adapter_protocol.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "debug_adapter_protocol.h"
-
 #include "core/config/project_settings.h"
 #include "core/debugger/debugger_marshalls.h"
 #include "core/io/json.h"
@@ -183,7 +153,6 @@ void DebugAdapterProtocol::reset_ids() {
 void DebugAdapterProtocol::reset_stack_info() {
 	stackframe_id = 0;
 	variable_id = 1;
-
 	stackframe_list.clear();
 	variable_list.clear();
 	object_list.clear();
@@ -794,7 +763,6 @@ void DebugAdapterProtocol::parse_object(SceneDebuggerObject &p_obj) {
 		variable_list.insert(members.variablesReference, script_members);
 		properties.push_front(members.to_json());
 	}
-
 	ERR_FAIL_COND(!object_list.has(object_id));
 	variable_list.insert(object_list[object_id], properties);
 }
@@ -967,7 +935,6 @@ void DebugAdapterProtocol::notify_continued() {
 		}
 		E->get()->res_queue.push_back(event);
 	}
-
 	reset_stack_info();
 }
 
@@ -1019,7 +986,6 @@ Array DebugAdapterProtocol::update_breakpoints(const String &p_path, const Array
 			EditorDebuggerNode::get_singleton()->get_default_debugger()->_set_breakpoint(p_path, b.line, false);
 		}
 	}
-
 	return updated_breakpoints;
 }
 
@@ -1034,6 +1000,7 @@ void DebugAdapterProtocol::on_debug_paused() {
 void DebugAdapterProtocol::on_debug_stopped() {
 	notify_exited();
 	notify_terminated();
+	reset_ids();
 }
 
 void DebugAdapterProtocol::on_debug_output(const String &p_message, int p_type) {
@@ -1056,7 +1023,6 @@ void DebugAdapterProtocol::on_debug_breaked(const bool &p_reallydid, const bool 
 	} else {
 		notify_stopped_exception(p_reason);
 	}
-
 	_processing_stackdump = p_has_stackdump;
 }
 
@@ -1079,7 +1045,6 @@ void DebugAdapterProtocol::on_debug_breakpoint_toggled(const String &p_path, con
 			breakpoint_list.erase(E);
 		}
 	}
-
 	notify_breakpoint(breakpoint, p_enabled);
 }
 
@@ -1095,7 +1060,6 @@ void DebugAdapterProtocol::on_debug_stack_dump(const Array &p_stack_dump) {
 		if (E) {
 			notify_stopped_breakpoint(E->get().id);
 		}
-
 		_processing_breakpoint = false;
 	}
 
@@ -1118,10 +1082,8 @@ void DebugAdapterProtocol::on_debug_stack_dump(const Array &p_stack_dump) {
 		for (int j = 0; j < 3; j++) {
 			scope_ids.push_back(variable_id++);
 		}
-
 		stackframe_list.insert(stackframe, scope_ids);
 	}
-
 	_current_frame = 0;
 	_processing_stackdump = false;
 }
@@ -1185,7 +1147,6 @@ void DebugAdapterProtocol::on_debug_data(const String &p_msg, const Array &p_dat
 
 		parse_evaluation(remote_evaluation);
 	}
-
 	notify_custom_data(p_msg, p_data);
 }
 
@@ -1230,7 +1191,6 @@ void DebugAdapterProtocol::stop() {
 	for (List<Ref<DAPeer>>::Element *E = clients.front(); E; E = E->next()) {
 		E->get()->connection->disconnect_from_host();
 	}
-
 	clients.clear();
 	server->stop();
 	_initialized = false;
@@ -1247,7 +1207,6 @@ DebugAdapterProtocol::DebugAdapterProtocol() {
 
 	EditorDebuggerNode *debugger_node = EditorDebuggerNode::get_singleton();
 	debugger_node->connect("breakpoint_toggled", callable_mp(this, &DebugAdapterProtocol::on_debug_breakpoint_toggled));
-
 	debugger_node->get_default_debugger()->connect("stopped", callable_mp(this, &DebugAdapterProtocol::on_debug_stopped));
 	debugger_node->get_default_debugger()->connect(SceneStringName(output), callable_mp(this, &DebugAdapterProtocol::on_debug_output));
 	debugger_node->get_default_debugger()->connect("breaked", callable_mp(this, &DebugAdapterProtocol::on_debug_breaked));

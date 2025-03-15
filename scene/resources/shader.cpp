@@ -1,51 +1,19 @@
-/**************************************************************************/
-/*  shader.cpp                                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "shader.h"
 #include "shader.compat.inc"
-
 #include "core/io/file_access.h"
 #include "scene/main/scene_tree.h"
 #include "servers/rendering/shader_language.h"
 #include "servers/rendering/shader_preprocessor.h"
 #include "servers/rendering_server.h"
 #include "texture.h"
-
 #ifdef TOOLS_ENABLED
 #include "editor/editor_help.h"
-
 #include "modules/modules_enabled.gen.h" // For regex.
 #ifdef MODULE_REGEX_ENABLED
 #include "modules/regex/regex.h"
-#endif
-#endif
+#endif // MODULE_REGEX_ENABLED
+#endif // TOOLS_ENABLED
 
 Shader::Mode Shader::get_mode() const {
 	return mode;
@@ -130,7 +98,6 @@ void Shader::set_code(const String &p_code) {
 		RenderingServer::get_singleton()->shader_set_code(shader_rid, preprocessed_code);
 		preprocessed_code = String();
 	}
-
 	emit_changed();
 }
 
@@ -158,7 +125,7 @@ void Shader::get_shader_uniform_list(List<PropertyInfo> *p_params, bool p_get_gr
 	DocData::ClassDoc class_doc;
 	class_doc.name = get_path();
 	class_doc.is_script_doc = true;
-#endif
+#endif // TOOLS_ENABLED
 
 	for (PropertyInfo &pi : local) {
 		bool is_group = pi.usage == PROPERTY_USAGE_GROUP || pi.usage == PROPERTY_USAGE_SUBGROUP;
@@ -190,18 +157,18 @@ void Shader::get_shader_uniform_list(List<PropertyInfo> *p_params, bool p_get_gr
 					const RegEx pattern_stripped("\\n\\s*\\*\\s*");
 					prop_doc.description = pattern_stripped.sub(match_tip->get_string(1), "\n", true);
 				}
-#endif
+#endif // MODULE_REGEX_ENABLED
 				class_doc.properties.push_back(prop_doc);
 			}
-#endif
+#endif // TOOLS_ENABLED
 			p_params->push_back(pi);
 		}
 	}
 #ifdef TOOLS_ENABLED
-	if (EditorHelp::get_doc_data() != nullptr && Engine::get_singleton()->is_editor_hint() && !class_doc.name.is_empty() && p_params) {
-		EditorHelp::get_doc_data()->add_doc(class_doc);
+	if (Engine::get_singleton()->is_editor_hint() && !class_doc.name.is_empty() && p_params) {
+		EditorHelp::add_doc(class_doc);
 	}
-#endif
+#endif // TOOLS_ENABLED
 }
 
 RID Shader::get_rid() const {
@@ -230,7 +197,6 @@ void Shader::set_default_texture_parameter(const StringName &p_name, const Ref<T
 		}
 		RS::get_singleton()->shader_set_default_texture_parameter(shader_rid, p_name, RID(), p_index);
 	}
-
 	emit_changed();
 }
 
@@ -251,9 +217,8 @@ bool Shader::is_text_shader() const {
 	return true;
 }
 
-void Shader::_update_shader() const {
-	// Base implementation does nothing.
-}
+// Base implementation does nothing.
+void Shader::_update_shader() const {}
 
 Array Shader::_get_shader_uniform_list(bool p_get_groups) {
 	List<PropertyInfo> uniform_list;
@@ -267,15 +232,11 @@ Array Shader::_get_shader_uniform_list(bool p_get_groups) {
 
 void Shader::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_mode"), &Shader::get_mode);
-
 	ClassDB::bind_method(D_METHOD("set_code", "code"), &Shader::set_code);
 	ClassDB::bind_method(D_METHOD("get_code"), &Shader::get_code);
-
 	ClassDB::bind_method(D_METHOD("set_default_texture_parameter", "name", "texture", "index"), &Shader::set_default_texture_parameter, DEFVAL(0));
 	ClassDB::bind_method(D_METHOD("get_default_texture_parameter", "name", "index"), &Shader::get_default_texture_parameter, DEFVAL(0));
-
 	ClassDB::bind_method(D_METHOD("get_shader_uniform_list", "get_groups"), &Shader::_get_shader_uniform_list, DEFVAL(false));
-
 	ClassDB::bind_method(D_METHOD("inspect_native_shader_code"), &Shader::inspect_native_shader_code);
 	ClassDB::set_method_flags(get_class_static(), _scs_create("inspect_native_shader_code"), METHOD_FLAGS_DEFAULT | METHOD_FLAG_EDITOR);
 
@@ -288,9 +249,8 @@ void Shader::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODE_FOG);
 }
 
-Shader::Shader() {
-	// Shader RID will be empty until it is required.
-}
+// Shader RID will be empty until it is required.
+Shader::Shader() {}
 
 Shader::~Shader() {
 	if (shader_rid.is_valid()) {
@@ -298,8 +258,6 @@ Shader::~Shader() {
 		RenderingServer::get_singleton()->free(shader_rid);
 	}
 }
-
-////////////
 
 Ref<Resource> ResourceFormatLoaderShader::load(const String &p_path, const String &p_original_path, Error *r_error, bool p_use_sub_threads, float *r_progress, CacheMode p_cache_mode) {
 	if (r_error) {
@@ -325,7 +283,6 @@ Ref<Resource> ResourceFormatLoaderShader::load(const String &p_path, const Strin
 	if (r_error) {
 		*r_error = OK;
 	}
-
 	return shader;
 }
 
@@ -360,7 +317,6 @@ Error ResourceFormatSaverShader::save(const Ref<Resource> &p_resource, const Str
 	if (file->get_error() != OK && file->get_error() != ERR_FILE_EOF) {
 		return ERR_CANT_CREATE;
 	}
-
 	return OK;
 }
 

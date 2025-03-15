@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  register_editor_types.cpp                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "register_editor_types.h"
-
 #include "core/object/script_language.h"
 #include "editor/debugger/debug_adapter/debug_adapter_server.h"
 #include "editor/editor_command_palette.h"
@@ -89,6 +59,7 @@
 #include "editor/plugins/input_event_editor_plugin.h"
 #include "editor/plugins/light_occluder_2d_editor_plugin.h"
 #include "editor/plugins/lightmap_gi_editor_plugin.h"
+#include "editor/plugins/camera_2d_editor_plugin.h"
 #include "editor/plugins/line_2d_editor_plugin.h"
 #include "editor/plugins/material_editor_plugin.h"
 #include "editor/plugins/mesh_editor_plugin.h"
@@ -257,6 +228,7 @@ void register_editor_types() {
 	EditorPlugins::add_by_type<CPUParticles2DEditorPlugin>();
 	EditorPlugins::add_by_type<GPUParticles2DEditorPlugin>();
 	EditorPlugins::add_by_type<LightOccluder2DEditorPlugin>();
+	EditorPlugins::add_by_type<Camera2DEditorPlugin>();
 	EditorPlugins::add_by_type<Line2DEditorPlugin>();
 	EditorPlugins::add_by_type<NavigationLink2DEditorPlugin>();
 	EditorPlugins::add_by_type<NavigationObstacle2DEditorPlugin>();
@@ -274,19 +246,14 @@ void register_editor_types() {
 	GLOBAL_DEF("editor/run/main_run_args", "");
 
 	GLOBAL_DEF(PropertyInfo(Variant::STRING, "editor/script/templates_search_path", PROPERTY_HINT_DIR), "res://script_templates");
-
 	GLOBAL_DEF("editor/naming/default_signal_callback_name", "_on_{node_name}_{signal_name}");
 	GLOBAL_DEF("editor/naming/default_signal_callback_to_self_name", "_on_{signal_name}");
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/naming/scene_name_casing", PROPERTY_HINT_ENUM, "Auto,PascalCase,snake_case,kebab-case"), EditorNode::SCENE_NAME_CASING_SNAKE_CASE);
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/naming/script_name_casing", PROPERTY_HINT_ENUM, "Auto,PascalCase,snake_case,kebab-case"), ScriptLanguage::SCRIPT_NAME_CASING_AUTO);
-
 	GLOBAL_DEF("editor/import/reimport_missing_imported_files", true);
 	GLOBAL_DEF("editor/import/use_multiple_threads", true);
-
 	GLOBAL_DEF(PropertyInfo(Variant::INT, "editor/import/atlas_max_width", PROPERTY_HINT_RANGE, "128,8192,1,or_greater"), 2048);
-
 	GLOBAL_DEF("editor/export/convert_text_resources_to_binary", true);
-
 	GLOBAL_DEF("editor/version_control/plugin_name", "");
 	GLOBAL_DEF("editor/version_control/autoload_on_startup", false);
 

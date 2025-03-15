@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  scene_tree.cpp                                                        */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "scene_tree.h"
-
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/io/image_loader.h"
@@ -62,7 +32,6 @@ void SceneTreeTimer::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_time_left"), &SceneTreeTimer::get_time_left);
 
 	ADD_PROPERTY(PropertyInfo(Variant::FLOAT, "time_left", PROPERTY_HINT_NONE, "suffix:s"), "set_time_left", "get_time_left");
-
 	ADD_SIGNAL(MethodInfo("timeout"));
 }
 
@@ -130,7 +99,7 @@ void SceneTree::ClientPhysicsInterpolation::physics_process() {
 		}
 	}
 }
-#endif
+#endif // 3D_DISABLED
 
 void SceneTree::tree_changed() {
 	emit_signal(tree_changed_name);
@@ -218,7 +187,6 @@ void SceneTree::_flush_ugc() {
 
 		unique_group_calls.remove(E);
 	}
-
 	ugc_locked = false;
 }
 
@@ -322,7 +290,6 @@ void SceneTree::call_group_flagsp(uint32_t p_call_flags, const StringName &p_gro
 			}
 		}
 	}
-
 	{
 		_THREAD_SAFE_METHOD_
 		nodes_removed_on_group_call_lock--;
@@ -503,7 +470,7 @@ void SceneTree::client_physics_interpolation_add_node_3d(SelfList<Node3D> *p_ele
 void SceneTree::client_physics_interpolation_remove_node_3d(SelfList<Node3D> *p_elem) {
 	_client_physics_interpolation._node_3d_list.remove(p_elem);
 }
-#endif
+#endif // 3D_DISABLED
 
 void SceneTree::iteration_prepare() {
 	if (_physics_interpolation_enabled) {
@@ -556,7 +523,7 @@ void SceneTree::iteration_end() {
 		// should be given an opportunity to keep their previous transforms
 		// up to date.
 		_client_physics_interpolation.physics_process();
-#endif
+#endif // 3D_DISABLED
 	}
 }
 
@@ -643,7 +610,6 @@ bool SceneTree::process(double p_time) {
 	if (_physics_interpolation_enabled) {
 		RenderingServer::get_singleton()->pre_draw(true);
 	}
-
 	return _quit;
 }
 
@@ -1515,8 +1481,11 @@ void SceneTree::_flush_scene_change() {
 	current_scene = pending_new_scene;
 	root->add_child(pending_new_scene);
 	pending_new_scene = nullptr;
+
 	// Update display for cursor instantly.
 	root->update_mouse_cursor_state();
+
+	emit_signal(SNAME("scene_changed"));
 }
 
 Error SceneTree::change_scene_to_file(const String &p_path) {
@@ -1784,6 +1753,7 @@ void SceneTree::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "physics_interpolation"), "set_physics_interpolation_enabled", "is_physics_interpolation_enabled");
 
 	ADD_SIGNAL(MethodInfo("tree_changed"));
+	ADD_SIGNAL(MethodInfo("scene_changed"));
 	ADD_SIGNAL(MethodInfo("tree_process_mode_changed")); //editor only signal, but due to API hash it can't be removed in run-time
 	ADD_SIGNAL(MethodInfo("node_added", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));
 	ADD_SIGNAL(MethodInfo("node_removed", PropertyInfo(Variant::OBJECT, "node", PROPERTY_HINT_RESOURCE_TYPE, "Node")));

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  color_picker.cpp                                                      */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "color_picker.h"
-
 #include "core/io/image.h"
 #include "scene/gui/aspect_ratio_container.h"
 #include "scene/gui/color_mode.h"
@@ -60,18 +30,18 @@ void ColorPicker::_notification(int p_what) {
 		} break;
 
 		case NOTIFICATION_READY: {
-			// FIXME: The embedding check is needed to fix a bug in single-window mode (GH-93718).
+			//FIXME: The embedding check is needed to fix a bug in single-window mode (GH-93718).
 			if (DisplayServer::get_singleton()->has_feature(DisplayServer::FEATURE_SCREEN_CAPTURE) && !get_tree()->get_root()->is_embedding_subwindows()) {
 				btn_pick->set_tooltip_text(ETR("Pick a color from the screen."));
 				btn_pick->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_pick_button_pressed));
 			} else {
-				// On unsupported platforms, use a legacy method for color picking.
+				//On unsupported platforms, use a legacy method for color picking.
 				btn_pick->set_tooltip_text(ETR("Pick a color from the application window."));
 				btn_pick->connect(SceneStringName(pressed), callable_mp(this, &ColorPicker::_pick_button_pressed_legacy));
 			}
 
-			// In HSV Wheel shape the wheel is around the rectangle and the engine cannot automatically select
-			// the square while pressing ui_up to change focused control from the wheel.
+			//In HSV Wheel shape the wheel is around the rectangle and the engine cannot automatically select
+			//the square while pressing ui_up to change focused control from the wheel.
 			wheel->set_focus_neighbor(SIDE_TOP, wheel_uv->get_path());
 			wheel_uv->set_focus_neighbor(SIDE_BOTTOM, wheel->get_path());
 
@@ -216,7 +186,6 @@ void ColorPicker::_notification(int p_what) {
 
 				picker_window->set_position(ofs + Vector2(ofs_decal_x, ofs_decal_y));
 			}
-
 			set_pick_color(c);
 		} break;
 	}
@@ -232,11 +201,8 @@ void ColorPicker::init_shaders() {
 	wheel_shader.instantiate();
 	wheel_shader->set_code(R"(
 // ColorPicker wheel shader.
-
 shader_type canvas_item;
-
 uniform float wheel_radius = 0.42;
-
 void fragment() {
 	float x = UV.x - 0.5;
 	float y = UV.y - 0.5;
@@ -250,7 +216,6 @@ void fragment() {
 	float b3 = float(sqrt(x * x + y * y) < 0.5) * float(sqrt(x * x + y * y) > wheel_radius);
 	x += 0.002;
 	float b4 = float(sqrt(x * x + y * y) < 0.5) * float(sqrt(x * x + y * y) > wheel_radius);
-
 	COLOR = vec4(clamp((abs(fract(((a - TAU) / TAU) + vec3(3.0, 2.0, 1.0) / 3.0) * 6.0 - 3.0) - 1.0), 0.0, 1.0), (b + b2 + b3 + b4) / 4.00);
 }
 )");
@@ -258,11 +223,8 @@ void fragment() {
 	circle_shader.instantiate();
 	circle_shader->set_code(R"(
 // ColorPicker circle shader.
-
 shader_type canvas_item;
-
 uniform float v = 1.0;
-
 void fragment() {
 	float x = UV.x - 0.5;
 	float y = UV.y - 0.5;
@@ -276,16 +238,13 @@ void fragment() {
 	float b3 = float(sqrt(x * x + y * y) < 0.5);
 	x += 0.002;
 	float b4 = float(sqrt(x * x + y * y) < 0.5);
-
 	COLOR = vec4(mix(vec3(1.0), clamp(abs(fract(vec3((a - TAU) / TAU) + vec3(1.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - vec3(3.0)) - vec3(1.0), 0.0, 1.0), ((float(sqrt(x * x + y * y)) * 2.0)) / 1.0) * vec3(v), (b + b2 + b3 + b4) / 4.00);
 })");
 
 	circle_ok_color_shader.instantiate();
 	circle_ok_color_shader->set_code(OK_COLOR_SHADER + R"(
 // ColorPicker ok color hsv circle shader.
-
 uniform float ok_hsl_l = 1.0;
-
 void fragment() {
 	float x = UV.x - 0.5;
 	float y = UV.y - 0.5;
@@ -457,7 +416,6 @@ void ColorPicker::_update_controls() {
 		default: {
 		}
 	}
-
 	cursor_editing = pre_update_cursor_editing;
 }
 
@@ -476,7 +434,6 @@ void ColorPicker::_set_pick_color(const Color &p_color, bool p_update_sliders) {
 	if (!is_inside_tree()) {
 		return;
 	}
-
 	_update_color(p_update_sliders);
 }
 
@@ -506,7 +463,6 @@ void ColorPicker::set_edit_alpha(bool p_show) {
 	if (!is_inside_tree()) {
 		return;
 	}
-
 	_update_color();
 	sample->queue_redraw();
 }
@@ -636,7 +592,6 @@ void ColorPicker::set_editor_settings(Object *p_editor_settings) {
 	for (const Color &preset : recent_preset_cache) {
 		recent_presets.push_back(preset);
 	}
-
 	_update_presets();
 	_update_recent_presets();
 }
@@ -648,8 +603,7 @@ void ColorPicker::set_quick_open_callback(const Callable &p_file_selected) {
 void ColorPicker::set_palette_saved_callback(const Callable &p_palette_saved) {
 	palette_saved_callback = p_palette_saved;
 }
-
-#endif
+#endif //TOOLS_ENABLED
 
 HSlider *ColorPicker::get_slider(int p_idx) {
 	if (p_idx < SLIDER_COUNT) {
@@ -848,7 +802,6 @@ void ColorPicker::_update_presets() {
 	for (const Color &preset : preset_cache) {
 		_add_preset_button(preset_size, preset);
 	}
-
 	_notification(NOTIFICATION_VISIBILITY_CHANGED);
 }
 
@@ -872,7 +825,7 @@ void ColorPicker::_update_recent_presets() {
 
 		_notification(NOTIFICATION_VISIBILITY_CHANGED);
 	}
-#endif
+#endif //TOOLS_ENABLED
 }
 
 void ColorPicker::_text_type_toggled() {
@@ -881,7 +834,7 @@ void ColorPicker::_text_type_toggled() {
 		text_type->set_text("");
 #ifdef TOOLS_ENABLED
 		text_type->set_button_icon(get_editor_theme_icon(SNAME("Script")));
-#endif
+#endif //TOOLS_ENABLED
 
 		c_text->set_editable(false);
 		c_text->set_tooltip_text(RTR("Copy this constructor in a script."));
@@ -923,7 +876,7 @@ void ColorPicker::set_picker_shape(PickerShapeType p_shape) {
 	if (editor_settings) {
 		editor_settings->call(SNAME("set_project_metadata"), "color_picker", "picker_shape", current_shape);
 	}
-#endif
+#endif //TOOLS_ENABLED
 
 	_copy_color_to_hsv();
 
@@ -968,7 +921,6 @@ void ColorPicker::_load_palette() {
 	for (const String &K : extensions) {
 		file_dialog->add_filter("*." + K);
 	}
-
 	file_dialog->set_file_mode(FileDialog::FILE_MODE_OPEN_FILE);
 	file_dialog->set_current_file("");
 	file_dialog->popup_centered_ratio();
@@ -988,7 +940,6 @@ void ColorPicker::_save_palette(bool p_is_save_as) {
 		for (const String &K : extensions) {
 			file_dialog->add_filter("*." + K);
 		}
-
 		file_dialog->set_file_mode(FileDialog::FILE_MODE_SAVE_FILE);
 		file_dialog->set_current_file("new_palette.tres");
 		file_dialog->popup_centered_ratio();
@@ -1027,7 +978,7 @@ void ColorPicker::_palette_file_selected(const String &p_path) {
 				editor_settings->call(set_project_metadata, "color_picker", "presets", saved_presets);
 				editor_settings->call(set_project_metadata, "color_picker", "palette_edited", false);
 			}
-#endif
+#endif //TOOLS_ENABLED
 		} break;
 		case FileDialog::FileMode::FILE_MODE_SAVE_FILE: {
 			ColorPalette *palette = memnew(ColorPalette);
@@ -1055,7 +1006,7 @@ void ColorPicker::_palette_file_selected(const String &p_path) {
 		editor_settings->call(SNAME("set_project_metadata"), "color_picker", "palette_path", palette_path);
 		editor_settings->call(SNAME("set_project_metadata"), "color_picker", "palette_edited", false);
 	}
-#endif
+#endif //TOOLS_ENABLED
 	_update_presets();
 }
 
@@ -1160,7 +1111,7 @@ void ColorPicker::add_preset(const Color &p_color) {
 		editor_settings->call(set_project_metadata, "color_picker", "presets", arr_to_save);
 		editor_settings->call(set_project_metadata, "color_picker", "palette_edited", true);
 	}
-#endif
+#endif //TOOLS_ENABLED
 }
 
 void ColorPicker::add_recent_preset(const Color &p_color) {
@@ -1181,7 +1132,7 @@ void ColorPicker::add_recent_preset(const Color &p_color) {
 		PackedColorArray arr_to_save = get_recent_presets();
 		editor_settings->call(SNAME("set_project_metadata"), "color_picker", "recent_presets", arr_to_save);
 	}
-#endif
+#endif //TOOLS_ENABLED
 }
 
 void ColorPicker::erase_preset(const Color &p_color) {
@@ -1219,7 +1170,7 @@ void ColorPicker::erase_preset(const Color &p_color) {
 			editor_settings->call(set_project_metadata, "color_picker", "palette_name", palette_name->get_text());
 			editor_settings->call(set_project_metadata, "color_picker", "palette_path", palette_path);
 		}
-#endif
+#endif //TOOLS_ENABLED
 	}
 }
 
@@ -1243,7 +1194,7 @@ void ColorPicker::erase_recent_preset(const Color &p_color) {
 			PackedColorArray arr_to_save = get_recent_presets();
 			editor_settings->call(SNAME("set_project_metadata"), "color_picker", "recent_presets", arr_to_save);
 		}
-#endif
+#endif //TOOLS_ENABLED
 	}
 }
 
@@ -1293,12 +1244,11 @@ void ColorPicker::set_color_mode(ColorModeType p_mode) {
 	if (editor_settings) {
 		editor_settings->call(SNAME("set_project_metadata"), "color_picker", "color_mode", current_mode);
 	}
-#endif
+#endif //TOOLS_ENABLED
 
 	if (!is_inside_tree()) {
 		return;
 	}
-
 	_update_controls();
 	_update_color();
 }
@@ -1650,7 +1600,6 @@ int ColorPicker::_get_edge_h_change(const Vector2 &p_color_change_vector) {
 	} else if (h < 0.25 || h > 0.75) {
 		h_change += p_color_change_vector.y;
 	}
-
 	return h_change;
 }
 
@@ -1688,7 +1637,6 @@ float ColorPicker::_get_h_on_wheel(const Vector2 &p_color_change_vector) {
 	} else if (p_color_change_vector.x > 0 && ((future_quarter == 3 && current_quarter == 0) || (future_quarter == 0 && current_quarter == 3))) {
 		rotate_next_echo_event = !rotate_next_echo_event;
 	}
-
 	return target_h;
 }
 
@@ -1754,7 +1702,6 @@ void ColorPicker::_update_uv_cursor(Vector2 &p_color_change_vector, bool p_is_ec
 	} else {
 		echo_multiplier = 1;
 	}
-
 	accept_event();
 }
 
@@ -1946,7 +1893,6 @@ void ColorPicker::_update_w_cursor(float p_color_change, bool p_is_echo) {
 	} else {
 		echo_multiplier = 1;
 	}
-
 	accept_event();
 }
 
@@ -2113,7 +2059,6 @@ void ColorPicker::_pick_button_pressed() {
 		picker_preview->set_mouse_filter(MOUSE_FILTER_IGNORE);
 		picker_preview->set_size(Vector2i(55, 72));
 		picker_window->add_child(picker_preview);
-
 		picker_preview_color = memnew(Panel);
 		picker_preview_color->set_mouse_filter(MOUSE_FILTER_IGNORE);
 		if (!has_feature_exclude_from_capture) {
@@ -2133,7 +2078,6 @@ void ColorPicker::_pick_button_pressed() {
 			picker_texture_zoom->set_texture_filter(CanvasItem::TEXTURE_FILTER_NEAREST);
 			picker_preview->add_child(picker_texture_zoom);
 		}
-
 		picker_preview_style_box.instantiate();
 		picker_preview->add_theme_style_override(SceneStringName(panel), picker_preview_style_box);
 
@@ -2270,7 +2214,6 @@ void ColorPicker::_options_menu_cbk(int p_which) {
 #endif // TOOLS_ENABLED
 
 		}
-
 		break;
 		default:
 			break;
@@ -2360,6 +2303,7 @@ void ColorPicker::_pick_button_pressed_legacy() {
 
 		// Add the Texture of each Window to the Image.
 		Vector<DisplayServer::WindowID> wl = ds->get_window_list();
+
 		// FIXME: sort windows by visibility.
 		for (const DisplayServer::WindowID &window_id : wl) {
 			Window *w = Window::get_from_id(window_id);
@@ -2387,7 +2331,6 @@ void ColorPicker::_pick_button_pressed_legacy() {
 		atlas->set_region(Rect2i(ofs.x - 8, ofs.y - 8, 17, 17));
 		picker_texture_zoom->set_texture(atlas);
 	}
-
 	picker_window->set_size(screen_rect.size);
 	picker_window->popup();
 }
@@ -2566,7 +2509,6 @@ void ColorPicker::_bind_methods() {
 	BIND_ENUM_CONSTANT(MODE_HSV);
 	BIND_ENUM_CONSTANT(MODE_RAW);
 	BIND_ENUM_CONSTANT(MODE_OKHSL);
-
 	BIND_ENUM_CONSTANT(SHAPE_HSV_RECTANGLE);
 	BIND_ENUM_CONSTANT(SHAPE_HSV_WHEEL);
 	BIND_ENUM_CONSTANT(SHAPE_VHS_CIRCLE);
@@ -2574,28 +2516,24 @@ void ColorPicker::_bind_methods() {
 	BIND_ENUM_CONSTANT(SHAPE_NONE);
 
 	BIND_THEME_ITEM_CUSTOM(Theme::DATA_TYPE_CONSTANT, ColorPicker, content_margin, "margin");
-	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, ColorPicker, label_width);
 
+	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, ColorPicker, label_width);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, ColorPicker, sv_width);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, ColorPicker, sv_height);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, ColorPicker, h_width);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_CONSTANT, ColorPicker, center_slider_grabbers);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, ColorPicker, sample_focus);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, ColorPicker, picker_focus_rectangle);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_STYLEBOX, ColorPicker, picker_focus_circle);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_COLOR, ColorPicker, focused_not_editing_cursor_color);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, menu_option);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, screen_picker);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, expanded_arrow);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, folded_arrow);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, add_preset);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, shape_rect);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, shape_rect_wheel);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, shape_circle);
-
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, bar_arrow);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, sample_bg);
 	BIND_THEME_ITEM(Theme::DATA_TYPE_ICON, ColorPicker, sample_revert);
@@ -2799,7 +2737,6 @@ ColorPicker::ColorPicker() {
 	preset_container->set_h_size_flags(SIZE_EXPAND_FILL);
 	preset_container->set_columns(PRESET_COLUMN_COUNT);
 	preset_container->hide();
-
 	preset_group.instantiate();
 
 	HBoxContainer *palette_box = memnew(HBoxContainer);
@@ -2807,7 +2744,7 @@ ColorPicker::ColorPicker() {
 	swatches_vbc->add_child(palette_box);
 
 	btn_preset = memnew(Button);
-	btn_preset->set_text("Swatches");
+	btn_preset->set_text(ETR("Swatches"));
 	btn_preset->set_flat(true);
 	btn_preset->set_toggle_mode(true);
 	btn_preset->set_focus_mode(FOCUS_ALL);
@@ -2866,16 +2803,12 @@ ColorPicker::~ColorPicker() {
 	}
 }
 
-/////////////////
-
 void ColorPickerPopupPanel::_input_from_window(const Ref<InputEvent> &p_event) {
 	if (p_event->is_action_pressed(SNAME("ui_accept"), false, true)) {
 		_close_pressed();
 	}
 	PopupPanel::_input_from_window(p_event);
 }
-
-/////////////////
 
 void ColorPickerButton::_about_to_popup() {
 	if (!get_tree()->get_root()->is_embedding_subwindows()) {
@@ -2915,8 +2848,8 @@ void ColorPickerButton::pressed() {
 	picker->_update_presets();
 	picker->_update_recent_presets();
 
-	// Determine in which direction to show the popup. By default popup horizontally centered below the button.
-	// But if the popup doesn't fit below and the button is in the bottom half of the viewport, show above.
+	//Determine in which direction to show the popup. By default popup horizontally centered below the button.
+	//But if the popup doesn't fit below and the button is in the bottom half of the viewport, show above.
 	bool show_above = false;
 	if (get_global_position().y + get_size().y + minsize.y > viewport_height && get_global_position().y * 2 + get_size().y > viewport_height) {
 		show_above = true;
@@ -2941,17 +2874,15 @@ void ColorPickerButton::_notification(int p_what) {
 			draw_rect(r, color);
 
 			if (color.r > 1 || color.g > 1 || color.b > 1) {
-				// Draw an indicator to denote that the color is "overbright" and can't be displayed accurately in the preview
+				//Draw an indicator to denote that the color is "overbright" and can't be displayed accurately in the preview
 				draw_texture(theme_cache.overbright_indicator, theme_cache.normal_style->get_offset());
 			}
 		} break;
-
 		case NOTIFICATION_WM_CLOSE_REQUEST: {
 			if (popup) {
 				popup->hide();
 			}
 		} break;
-
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			if (popup && !is_visible_in_tree()) {
 				popup->hide();
@@ -2968,7 +2899,6 @@ void ColorPickerButton::set_pick_color(const Color &p_color) {
 	if (picker) {
 		picker->set_pick_color(p_color);
 	}
-
 	queue_redraw();
 }
 
@@ -3044,8 +2974,6 @@ ColorPickerButton::ColorPickerButton(const String &p_text) :
 	set_toggle_mode(true);
 }
 
-/////////////////
-
 void ColorPresetButton::_notification(int p_what) {
 	switch (p_what) {
 		case NOTIFICATION_DRAW: {
@@ -3098,7 +3026,6 @@ void ColorPresetButton::_notification(int p_what) {
 				// Draw an indicator to denote that the color is "overbright" and can't be displayed accurately in the preview
 				draw_texture(theme_cache.overbright_indicator, Vector2(0, 0));
 			}
-
 		} break;
 	}
 }
@@ -3124,5 +3051,4 @@ ColorPresetButton::ColorPresetButton(Color p_color, int p_size) {
 	set_custom_minimum_size(Size2(p_size, p_size));
 }
 
-ColorPresetButton::~ColorPresetButton() {
-}
+ColorPresetButton::~ColorPresetButton() {}

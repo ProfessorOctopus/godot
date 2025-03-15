@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  rendering_device_binds.h                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "servers/rendering/rendering_device.h"
 
 #define RD_SETGET(m_type, m_member)            \
@@ -425,15 +395,12 @@ protected:
 	}
 	void _set_versions(const Dictionary &p_versions) {
 		versions.clear();
-		List<Variant> keys;
-		p_versions.get_key_list(&keys);
-		for (const Variant &E : keys) {
-			StringName vname = E;
-			Ref<RDShaderSPIRV> bc = p_versions[E];
+		for (const KeyValue<Variant, Variant> &kv : p_versions) {
+			StringName vname = kv.key;
+			Ref<RDShaderSPIRV> bc = kv.value;
 			ERR_CONTINUE(bc.is_null());
 			versions[vname] = bc;
 		}
-
 		emit_changed();
 	}
 
@@ -441,10 +408,8 @@ protected:
 		ClassDB::bind_method(D_METHOD("set_bytecode", "bytecode", "version"), &RDShaderFile::set_bytecode, DEFVAL(StringName()));
 		ClassDB::bind_method(D_METHOD("get_spirv", "version"), &RDShaderFile::get_spirv, DEFVAL(StringName()));
 		ClassDB::bind_method(D_METHOD("get_version_list"), &RDShaderFile::get_version_list);
-
 		ClassDB::bind_method(D_METHOD("set_base_error", "error"), &RDShaderFile::set_base_error);
 		ClassDB::bind_method(D_METHOD("get_base_error"), &RDShaderFile::get_base_error);
-
 		ClassDB::bind_method(D_METHOD("_set_versions", "versions"), &RDShaderFile::_set_versions);
 		ClassDB::bind_method(D_METHOD("_get_versions"), &RDShaderFile::_get_versions);
 

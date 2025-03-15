@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  script_editor_debugger.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "script_editor_debugger.h"
-
 #include "core/config/project_settings.h"
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/remote_debugger.h"
@@ -96,10 +66,21 @@ void ScriptEditorDebugger::debug_skip_breakpoints() {
 	} else {
 		skip_breakpoints->set_button_icon(get_editor_theme_icon(SNAME("DebugSkipBreakpointsOff")));
 	}
-
 	Array msg;
 	msg.push_back(skip_breakpoints_value);
 	_put_msg("set_skip_breakpoints", msg, debugging_thread_id != Thread::UNASSIGNED_ID ? debugging_thread_id : Thread::MAIN_ID);
+}
+
+void ScriptEditorDebugger::debug_ignore_error_breaks() {
+	ignore_error_breaks_value = !ignore_error_breaks_value;
+	if (ignore_error_breaks_value) {
+		ignore_error_breaks->set_button_icon(get_theme_icon(SNAME("NotificationDisabled"), SNAME("EditorIcons")));
+	} else {
+		ignore_error_breaks->set_button_icon(get_theme_icon(SNAME("Notification"), SNAME("EditorIcons")));
+	}
+	Array msg;
+	msg.push_back(ignore_error_breaks_value);
+	_put_msg("set_ignore_error_breaks", msg);
 }
 
 void ScriptEditorDebugger::debug_next() {
@@ -916,6 +897,11 @@ void ScriptEditorDebugger::_notification(int p_what) {
 			tabs->add_theme_style_override(SceneStringName(panel), get_theme_stylebox(SNAME("DebuggerPanel"), EditorStringName(EditorStyles)));
 
 			skip_breakpoints->set_button_icon(get_editor_theme_icon(skip_breakpoints_value ? SNAME("DebugSkipBreakpointsOn") : SNAME("DebugSkipBreakpointsOff")));
+			ignore_error_breaks->set_button_icon(get_editor_theme_icon(ignore_error_breaks_value ? SNAME("NotificationDisabled") : SNAME("Notification")));
+			ignore_error_breaks->add_theme_color_override("icon_normal_color", get_theme_color(SNAME("error_color"), SNAME("Editor")));
+			ignore_error_breaks->add_theme_color_override("icon_hover_color", get_theme_color(SNAME("error_color"), SNAME("Editor")));
+			ignore_error_breaks->add_theme_color_override("icon_pressed_color", get_theme_color(SNAME("error_color"), SNAME("Editor")));
+			ignore_error_breaks->add_theme_color_override("icon_focus_color", get_theme_color(SNAME("error_color"), SNAME("Editor")));
 			copy->set_button_icon(get_editor_theme_icon(SNAME("ActionCopy")));
 			step->set_button_icon(get_editor_theme_icon(SNAME("DebugStep")));
 			next->set_button_icon(get_editor_theme_icon(SNAME("DebugNext")));
@@ -1592,9 +1578,13 @@ void ScriptEditorDebugger::reload_scripts(const Vector<String> &p_script_paths) 
 	_put_msg("reload_scripts", Variant(p_script_paths).operator Array(), debugging_thread_id != Thread::UNASSIGNED_ID ? debugging_thread_id : Thread::MAIN_ID);
 }
 
-bool ScriptEditorDebugger::is_skip_breakpoints() {
+bool ScriptEditorDebugger::is_skip_breakpoints() const {
 	return skip_breakpoints_value;
 }
+
+bool ScriptEditorDebugger::is_ignore_error_breaks() const {
+	return ignore_error_breaks_value;
+} 
 
 void ScriptEditorDebugger::_error_activated() {
 	TreeItem *selected = error_tree->get_selected();
@@ -1678,7 +1668,6 @@ void ScriptEditorDebugger::_breakpoints_item_rmb_selected(const Vector2 &p_pos, 
 	}
 	breakpoints_menu->add_icon_item(get_editor_theme_icon(SNAME("Remove")), TTR("Delete All Breakpoints in:") + " " + file, ACTION_DELETE_BREAKPOINTS_IN_FILE);
 	breakpoints_menu->add_icon_item(get_editor_theme_icon(SNAME("Remove")), TTR("Delete All Breakpoints"), ACTION_DELETE_ALL_BREAKPOINTS);
-
 	breakpoints_menu->set_position(get_screen_position() + get_local_mouse_position());
 	breakpoints_menu->popup();
 }
@@ -1696,7 +1685,6 @@ void ScriptEditorDebugger::_error_tree_item_rmb_selected(const Vector2 &p_pos, M
 		item_menu->add_icon_item(get_editor_theme_icon(SNAME("ActionCopy")), TTR("Copy Error"), ACTION_COPY_ERROR);
 		item_menu->add_icon_item(get_editor_theme_icon(SNAME("ExternalLink")), TTR("Open C++ Source on GitHub"), ACTION_OPEN_SOURCE);
 	}
-
 	if (item_menu->get_item_count() > 0) {
 		item_menu->set_position(error_tree->get_screen_position() + p_pos);
 		item_menu->popup();
@@ -1895,6 +1883,12 @@ ScriptEditorDebugger::ScriptEditorDebugger() {
 		skip_breakpoints->set_tooltip_text(TTR("Skip Breakpoints"));
 		skip_breakpoints->connect(SceneStringName(pressed), callable_mp(this, &ScriptEditorDebugger::debug_skip_breakpoints));
 
+		ignore_error_breaks = memnew(Button);
+		ignore_error_breaks->set_flat(true);
+		ignore_error_breaks->set_tooltip_text(TTR("Ignore Error Breaks"));
+		hbc->add_child(ignore_error_breaks);
+		ignore_error_breaks->connect("pressed", callable_mp(this, &ScriptEditorDebugger::debug_ignore_error_breaks));
+
 		hbc->add_child(memnew(VSeparator));
 
 		copy = memnew(Button);
@@ -2047,14 +2041,11 @@ ScriptEditorDebugger::ScriptEditorDebugger() {
 
 		error_tree = memnew(Tree);
 		error_tree->set_columns(2);
-
 		error_tree->set_column_expand(0, false);
 		error_tree->set_column_custom_minimum_width(0, 140);
 		error_tree->set_column_clip_content(0, true);
-
 		error_tree->set_column_expand(1, true);
 		error_tree->set_column_clip_content(1, true);
-
 		error_tree->set_select_mode(Tree::SELECT_ROW);
 		error_tree->set_hide_root(true);
 		error_tree->set_v_size_flags(SIZE_EXPAND_FILL);
@@ -2199,7 +2190,6 @@ ScriptEditorDebugger::ScriptEditorDebugger() {
 
 		misc->add_child(buttons);
 	}
-
 	msgdialog = memnew(AcceptDialog);
 	add_child(msgdialog);
 

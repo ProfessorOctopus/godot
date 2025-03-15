@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  shader_language.cpp                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "shader_language.h"
-
 #include "core/os/os.h"
 #include "core/templates/local_vector.h"
 #include "servers/rendering/renderer_compositor.h"
@@ -84,7 +54,6 @@ String ShaderLanguage::get_operator_text(Operator p_op) {
 		"construct",
 		"index",
 		"empty" };
-
 	return op_names[p_op];
 }
 
@@ -242,7 +211,6 @@ String ShaderLanguage::get_token_text(Token p_token) {
 	} else if (p_token.type == TK_ERROR) {
 		name += "(" + String(p_token.text) + ")";
 	}
-
 	return name;
 }
 
@@ -284,7 +252,6 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_FALSE, "false", CF_BLOCK | CF_IF_DECL | CF_BOOLEAN, {}, {} },
 
 	// data types
-
 	{ TK_TYPE_VOID, "void", CF_GLOBAL_SPACE, {}, {} },
 	{ TK_TYPE_BOOL, "bool", KCF_DATATYPE, {}, {} },
 	{ TK_TYPE_BVEC2, "bvec2", KCF_DATATYPE, {}, {} },
@@ -319,18 +286,15 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_TYPE_SAMPLEREXT, "samplerExternalOES", KCF_SAMPLER_DATATYPE, {}, {} },
 
 	// interpolation qualifiers
-
 	{ TK_INTERPOLATION_FLAT, "flat", CF_INTERPOLATION_QUALIFIER, {}, {} },
 	{ TK_INTERPOLATION_SMOOTH, "smooth", CF_INTERPOLATION_QUALIFIER, {}, {} },
 
 	// precision modifiers
-
 	{ TK_PRECISION_LOW, "lowp", CF_BLOCK | CF_PRECISION_MODIFIER, {}, {} },
 	{ TK_PRECISION_MID, "mediump", CF_BLOCK | CF_PRECISION_MODIFIER, {}, {} },
 	{ TK_PRECISION_HIGH, "highp", CF_BLOCK | CF_PRECISION_MODIFIER, {}, {} },
 
 	// global space keywords
-
 	{ TK_UNIFORM, "uniform", CF_GLOBAL_SPACE | CF_UNIFORM_KEYWORD, {}, {} },
 	{ TK_UNIFORM_GROUP, "group_uniforms", CF_GLOBAL_SPACE, {}, {} },
 	{ TK_VARYING, "varying", CF_GLOBAL_SPACE, { "particles", "sky", "fog" }, {} },
@@ -340,12 +304,10 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_RENDER_MODE, "render_mode", CF_GLOBAL_SPACE, {}, {} },
 
 	// uniform qualifiers
-
 	{ TK_INSTANCE, "instance", CF_GLOBAL_SPACE | CF_UNIFORM_QUALIFIER, {}, {} },
 	{ TK_GLOBAL, "global", CF_GLOBAL_SPACE | CF_UNIFORM_QUALIFIER, {}, {} },
 
 	// block keywords
-
 	{ TK_CF_IF, "if", CF_BLOCK, {}, {} },
 	{ TK_CF_ELSE, "else", CF_BLOCK, {}, {} },
 	{ TK_CF_FOR, "for", CF_BLOCK, {}, {} },
@@ -360,20 +322,17 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_CF_DISCARD, "discard", CF_BLOCK, { "particles", "sky", "fog" }, { "vertex" } },
 
 	// function specifier keywords
-
 	{ TK_ARG_IN, "in", CF_FUNC_DECL_PARAM_SPEC, {}, {} },
 	{ TK_ARG_OUT, "out", CF_FUNC_DECL_PARAM_SPEC, {}, {} },
 	{ TK_ARG_INOUT, "inout", CF_FUNC_DECL_PARAM_SPEC, {}, {} },
 
 	// hints
-
 	{ TK_HINT_SOURCE_COLOR, "source_color", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_RANGE, "hint_range", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_ENUM, "hint_enum", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_INSTANCE_INDEX, "instance_index", CF_UNSPECIFIED, {}, {} },
 
 	// sampler hints
-
 	{ TK_HINT_NORMAL_TEXTURE, "hint_normal", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_DEFAULT_WHITE_TEXTURE, "hint_default_white", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_DEFAULT_BLACK_TEXTURE, "hint_default_black", CF_UNSPECIFIED, {}, {} },
@@ -388,7 +347,6 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_HINT_SCREEN_TEXTURE, "hint_screen_texture", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_NORMAL_ROUGHNESS_TEXTURE, "hint_normal_roughness_texture", CF_UNSPECIFIED, {}, {} },
 	{ TK_HINT_DEPTH_TEXTURE, "hint_depth_texture", CF_UNSPECIFIED, {}, {} },
-
 	{ TK_FILTER_NEAREST, "filter_nearest", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_LINEAR, "filter_linear", CF_UNSPECIFIED, {}, {} },
 	{ TK_FILTER_NEAREST_MIPMAP, "filter_nearest_mipmap", CF_UNSPECIFIED, {}, {} },
@@ -397,7 +355,6 @@ const ShaderLanguage::KeyWord ShaderLanguage::keyword_list[] = {
 	{ TK_FILTER_LINEAR_MIPMAP_ANISOTROPIC, "filter_linear_mipmap_anisotropic", CF_UNSPECIFIED, {}, {} },
 	{ TK_REPEAT_ENABLE, "repeat_enable", CF_UNSPECIFIED, {}, {} },
 	{ TK_REPEAT_DISABLE, "repeat_disable", CF_UNSPECIFIED, {}, {} },
-
 	{ TK_ERROR, nullptr, CF_UNSPECIFIED, {}, {} }
 };
 
@@ -1342,7 +1299,7 @@ void ShaderLanguage::_parse_used_identifier(const StringName &p_identifier, Iden
 			break;
 		case IdentifierType::IDENTIFIER_VARYING:
 			if (HAS_WARNING(ShaderWarning::UNUSED_VARYING_FLAG) && used_varyings.has(p_identifier)) {
-				if (shader->varyings[p_identifier].stage != ShaderNode::Varying::STAGE_VERTEX && shader->varyings[p_identifier].stage != ShaderNode::Varying::STAGE_FRAGMENT) {
+				if (shader->varyings[p_identifier].stage == ShaderNode::Varying::STAGE_UNKNOWN) {
 					used_varyings[p_identifier].used = true;
 				}
 			}
@@ -6510,6 +6467,27 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 						_set_error(RTR("Expected constant expression."));
 						return nullptr;
 					}
+					if (ident_type == IDENTIFIER_FUNCTION) {
+						_set_error(vformat(RTR("Can't use function as identifier: '%s'."), String(identifier)));
+						return nullptr;
+					}
+#ifdef DEBUG_ENABLED
+					if (check_warnings) {
+						StringName func_name;
+						BlockNode *b = p_block;
+
+						while (b) {
+							if (b->parent_function) {
+								func_name = b->parent_function->name;
+								break;
+							} else {
+								b = b->parent_block;
+							}
+						}
+
+						_parse_used_identifier(identifier, ident_type, func_name);
+					}
+#endif // DEBUG_ENABLED
 					if (ident_type == IDENTIFIER_VARYING) {
 						TkPos prev_pos = _get_tkpos();
 						Token next_token = _get_token();
@@ -6542,11 +6520,6 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							}
 						}
 					}
-
-					if (ident_type == IDENTIFIER_FUNCTION) {
-						_set_error(vformat(RTR("Can't use function as identifier: '%s'."), String(identifier)));
-						return nullptr;
-					}
 #ifdef DEBUG_ENABLED
 					if (check_position_write && ident_type == IDENTIFIER_BUILTIN_VAR) {
 						if (String(identifier) == "POSITION") {
@@ -6564,7 +6537,7 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 							_set_tkpos(prev_pos);
 						}
 					}
-#endif
+#endif // DEBUG_ENABLED
 					if (is_const) {
 						last_type = IDENTIFIER_CONSTANT;
 					} else {
@@ -6656,23 +6629,6 @@ ShaderLanguage::Node *ShaderLanguage::_parse_expression(BlockNode *p_block, cons
 					varname->is_local = is_local;
 					expr = varname;
 				}
-#ifdef DEBUG_ENABLED
-				if (check_warnings) {
-					StringName func_name;
-					BlockNode *b = p_block;
-
-					while (b) {
-						if (b->parent_function) {
-							func_name = b->parent_function->name;
-							break;
-						} else {
-							b = b->parent_block;
-						}
-					}
-
-					_parse_used_identifier(identifier, ident_type, func_name);
-				}
-#endif // DEBUG_ENABLED
 			}
 		} else if (tk.type == TK_OP_ADD) {
 			continue; //this one does nothing

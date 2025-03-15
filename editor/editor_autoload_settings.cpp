@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  editor_autoload_settings.cpp                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "editor_autoload_settings.h"
-
 #include "core/config/project_settings.h"
 #include "core/core_constants.h"
 #include "editor/editor_node.h"
@@ -53,24 +23,18 @@ void EditorAutoloadSettings::_notification(int p_what) {
 			for (const String &E : afn) {
 				file_dialog->add_filter("*." + E);
 			}
-
 			browse_button->set_button_icon(get_editor_theme_icon(SNAME("Folder")));
 		} break;
-
 		case NOTIFICATION_THEME_CHANGED: {
 			browse_button->set_button_icon(get_editor_theme_icon(SNAME("Folder")));
 			add_autoload->set_button_icon(get_editor_theme_icon(SNAME("Add")));
 		} break;
-
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			FileSystemDock *dock = FileSystemDock::get_singleton();
-
 			if (dock != nullptr) {
 				ScriptCreateDialog *dialog = dock->get_script_create_dialog();
-
 				if (dialog != nullptr) {
 					Callable script_created = callable_mp(this, &EditorAutoloadSettings::_script_created);
-
 					if (is_visible_in_tree()) {
 						if (!dialog->is_connected(SNAME("script_created"), script_created)) {
 							dialog->connect("script_created", script_created);
@@ -91,7 +55,6 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 		if (r_error) {
 			*r_error = TTR("Invalid name.") + " " + TTR("Must be a valid Unicode identifier.");
 		}
-
 		return false;
 	}
 
@@ -99,7 +62,6 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 		if (r_error) {
 			*r_error = TTR("Invalid name.") + " " + TTR("Must not collide with an existing engine class name.");
 		}
-
 		return false;
 	}
 
@@ -107,7 +69,6 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 		if (r_error) {
 			*r_error = TTR("Invalid name.") + "\n" + TTR("Must not collide with an existing global script class name.");
 		}
-
 		return false;
 	}
 
@@ -115,7 +76,6 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 		if (r_error) {
 			*r_error = TTR("Invalid name.") + " " + TTR("Must not collide with an existing built-in type name.");
 		}
-
 		return false;
 	}
 
@@ -124,7 +84,6 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 			if (r_error) {
 				*r_error = TTR("Invalid name.") + " " + TTR("Must not collide with an existing global constant name.");
 			}
-
 			return false;
 		}
 	}
@@ -137,12 +96,10 @@ bool EditorAutoloadSettings::_autoload_name_is_valid(const String &p_name, Strin
 				if (r_error) {
 					*r_error = TTR("Invalid name.") + " " + TTR("Keyword cannot be used as an Autoload name.");
 				}
-
 				return false;
 			}
 		}
 	}
-
 	return true;
 }
 
@@ -159,7 +116,6 @@ void EditorAutoloadSettings::_autoload_add() {
 		if (autoload_add(autoload_add_name->get_text(), autoload_add_path->get_text())) {
 			autoload_add_path->set_text("");
 		}
-
 		autoload_add_name->set_text("");
 		add_autoload->set_disabled(true);
 	}
@@ -167,11 +123,9 @@ void EditorAutoloadSettings::_autoload_add() {
 
 void EditorAutoloadSettings::_autoload_selected() {
 	TreeItem *ti = tree->get_selected();
-
 	if (!ti) {
 		return;
 	}
-
 	selected_autoload = "autoload/" + ti->get_text(0);
 }
 
@@ -179,7 +133,6 @@ void EditorAutoloadSettings::_autoload_edited() {
 	if (updating_autoload) {
 		return;
 	}
-
 	TreeItem *ti = tree->get_edited();
 	int column = tree->get_edited_column();
 
@@ -192,7 +145,6 @@ void EditorAutoloadSettings::_autoload_edited() {
 		if (name == old_name) {
 			return;
 		}
-
 		String error;
 		if (!_autoload_name_is_valid(name, &error)) {
 			ti->set_text(0, old_name);
@@ -214,21 +166,16 @@ void EditorAutoloadSettings::_autoload_edited() {
 		String scr_path = GLOBAL_GET(selected_autoload);
 
 		undo_redo->create_action(TTR("Rename Autoload"));
-
 		undo_redo->add_do_property(ProjectSettings::get_singleton(), name, scr_path);
 		undo_redo->add_do_method(ProjectSettings::get_singleton(), "set_order", name, order);
 		undo_redo->add_do_method(ProjectSettings::get_singleton(), "clear", selected_autoload);
-
 		undo_redo->add_undo_property(ProjectSettings::get_singleton(), selected_autoload, scr_path);
 		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set_order", selected_autoload, order);
 		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "clear", name);
-
 		undo_redo->add_do_method(this, CoreStringName(call_deferred), "update_autoload");
 		undo_redo->add_undo_method(this, CoreStringName(call_deferred), "update_autoload");
-
 		undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 		undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 		undo_redo->commit_action();
 
 		selected_autoload = name;
@@ -249,24 +196,17 @@ void EditorAutoloadSettings::_autoload_edited() {
 		if (checked) {
 			scr_path = "*" + scr_path;
 		}
-
 		undo_redo->create_action(TTR("Toggle Autoload Globals"));
-
 		undo_redo->add_do_property(ProjectSettings::get_singleton(), base, scr_path);
 		undo_redo->add_undo_property(ProjectSettings::get_singleton(), base, GLOBAL_GET(base));
-
 		undo_redo->add_do_method(ProjectSettings::get_singleton(), "set_order", base, order);
 		undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set_order", base, order);
-
 		undo_redo->add_do_method(this, CoreStringName(call_deferred), "update_autoload");
 		undo_redo->add_undo_method(this, CoreStringName(call_deferred), "update_autoload");
-
 		undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 		undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 		undo_redo->commit_action();
 	}
-
 	updating_autoload = false;
 }
 
@@ -304,37 +244,27 @@ void EditorAutoloadSettings::_autoload_button_pressed(Object *p_item, int p_colu
 			int swap_order = ProjectSettings::get_singleton()->get_order(swap_name);
 
 			undo_redo->create_action(TTR("Move Autoload"));
-
 			undo_redo->add_do_method(ProjectSettings::get_singleton(), "set_order", name, swap_order);
 			undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set_order", name, order);
-
 			undo_redo->add_do_method(ProjectSettings::get_singleton(), "set_order", swap_name, order);
 			undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set_order", swap_name, swap_order);
-
 			undo_redo->add_do_method(this, "update_autoload");
 			undo_redo->add_undo_method(this, "update_autoload");
-
 			undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 			undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 			undo_redo->commit_action();
 		} break;
 		case BUTTON_DELETE: {
 			int order = ProjectSettings::get_singleton()->get_order(name);
 
 			undo_redo->create_action(TTR("Remove Autoload"));
-
 			undo_redo->add_do_property(ProjectSettings::get_singleton(), name, Variant());
-
 			undo_redo->add_undo_property(ProjectSettings::get_singleton(), name, GLOBAL_GET(name));
 			undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set_order", name, order);
-
 			undo_redo->add_do_method(this, "update_autoload");
 			undo_redo->add_undo_method(this, "update_autoload");
-
 			undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 			undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 			undo_redo->commit_action();
 		} break;
 	}
@@ -349,11 +279,7 @@ void EditorAutoloadSettings::_autoload_activated() {
 }
 
 void EditorAutoloadSettings::_autoload_open(const String &fpath) {
-	if (ResourceLoader::get_resource_type(fpath) == "PackedScene") {
-		EditorNode::get_singleton()->open_request(fpath);
-	} else {
-		EditorNode::get_singleton()->load_resource(fpath);
-	}
+	EditorNode::get_singleton()->load_scene_or_resource(fpath);
 	ProjectSettingsEditor::get_singleton()->hide();
 }
 
@@ -419,9 +345,7 @@ Node *EditorAutoloadSettings::_create_autoload(const String &p_path) {
 			n->set_script(scr);
 		}
 	}
-
 	ERR_FAIL_NULL_V_MSG(n, nullptr, vformat("Failed to create an autoload, path is not pointing to a scene or a script: %s.", p_path));
-
 	return n;
 }
 
@@ -529,10 +453,8 @@ void EditorAutoloadSettings::update_autoload() {
 		TreeItem *item = tree->create_item(root);
 		item->set_text(0, name);
 		item->set_editable(0, true);
-
 		item->set_text(1, scr_path);
 		item->set_selectable(1, true);
-
 		item->set_cell_mode(2, TreeItem::CELL_MODE_CHECK);
 		item->set_editable(2, true);
 		item->set_text(2, TTR("Enable"));
@@ -595,7 +517,6 @@ void EditorAutoloadSettings::update_autoload() {
 	for (Node *E : nodes_to_add) {
 		get_tree()->get_root()->add_child(E);
 	}
-
 	updating_autoload = false;
 }
 
@@ -617,7 +538,6 @@ Variant EditorAutoloadSettings::get_drag_data_fw(const Point2 &p_point, Control 
 	}
 
 	PackedStringArray autoloads;
-
 	TreeItem *next = tree->get_next_selected(nullptr);
 
 	while (next) {
@@ -668,12 +588,9 @@ bool EditorAutoloadSettings::can_drop_data_fw(const Point2 &p_point, const Varia
 		if (!ti) {
 			return false;
 		}
-
 		int section = tree->get_drop_section_at_position(p_point);
-
 		return section >= -1;
 	}
-
 	return false;
 }
 
@@ -769,10 +686,8 @@ void EditorAutoloadSettings::drop_data_fw(const Point2 &p_point, const Variant &
 
 	undo_redo->add_do_method(this, "update_autoload");
 	undo_redo->add_undo_method(this, "update_autoload");
-
 	undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 	undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 	undo_redo->commit_action();
 }
 
@@ -800,6 +715,7 @@ bool EditorAutoloadSettings::autoload_add(const String &p_name, const String &p_
 	EditorUndoRedoManager *undo_redo = EditorUndoRedoManager::get_singleton();
 
 	undo_redo->create_action(TTR("Add Autoload"));
+
 	// Singleton autoloads are represented with a leading "*" in their path.
 	undo_redo->add_do_property(ProjectSettings::get_singleton(), name, "*" + p_path);
 
@@ -811,10 +727,8 @@ bool EditorAutoloadSettings::autoload_add(const String &p_name, const String &p_
 
 	undo_redo->add_do_method(this, "update_autoload");
 	undo_redo->add_undo_method(this, "update_autoload");
-
 	undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 	undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 	undo_redo->commit_action();
 
 	return true;
@@ -828,18 +742,13 @@ void EditorAutoloadSettings::autoload_remove(const String &p_name) {
 	int order = ProjectSettings::get_singleton()->get_order(name);
 
 	undo_redo->create_action(TTR("Remove Autoload"));
-
 	undo_redo->add_do_property(ProjectSettings::get_singleton(), name, Variant());
-
 	undo_redo->add_undo_property(ProjectSettings::get_singleton(), name, GLOBAL_GET(name));
 	undo_redo->add_undo_method(ProjectSettings::get_singleton(), "set_order", name, order);
-
 	undo_redo->add_do_method(this, "update_autoload");
 	undo_redo->add_undo_method(this, "update_autoload");
-
 	undo_redo->add_do_method(this, "emit_signal", autoload_changed);
 	undo_redo->add_undo_method(this, "emit_signal", autoload_changed);
-
 	undo_redo->commit_action();
 }
 
@@ -937,6 +846,7 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 	add_autoload = memnew(Button);
 	add_autoload->set_text(TTR("Add"));
 	add_autoload->connect(SceneStringName(pressed), callable_mp(this, &EditorAutoloadSettings::_autoload_add));
+
 	// The button will be enabled once a valid name is entered (either automatically or manually).
 	add_autoload->set_disabled(true);
 	hbc->add_child(add_autoload);
@@ -950,19 +860,15 @@ EditorAutoloadSettings::EditorAutoloadSettings() {
 
 	tree->set_columns(4);
 	tree->set_column_titles_visible(true);
-
 	tree->set_column_title(0, TTR("Name"));
 	tree->set_column_expand(0, true);
 	tree->set_column_expand_ratio(0, 1);
-
 	tree->set_column_title(1, TTR("Path"));
 	tree->set_column_expand(1, true);
 	tree->set_column_clip_content(1, true);
 	tree->set_column_expand_ratio(1, 2);
-
 	tree->set_column_title(2, TTR("Global Variable"));
 	tree->set_column_expand(2, false);
-
 	tree->set_column_expand(3, false);
 
 	tree->connect("cell_selected", callable_mp(this, &EditorAutoloadSettings::_autoload_selected));

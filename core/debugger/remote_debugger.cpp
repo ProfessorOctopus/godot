@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  remote_debugger.cpp                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "remote_debugger.h"
-
 #include "core/config/project_settings.h"
 #include "core/debugger/debugger_marshalls.h"
 #include "core/debugger/engine_debugger.h"
@@ -85,7 +55,6 @@ public:
 				arr[i + max] = monitor_value;
 			}
 		}
-
 		EngineDebugger::get_singleton()->send_message("performance:profile_frame", arr);
 	}
 
@@ -124,7 +93,6 @@ void RemoteDebugger::_err_handler(void *p_this, const char *p_func, const char *
 			break;
 		}
 	}
-
 	// send_error will lock internally.
 	rd->script_debugger->send_error(String::utf8(p_func), String::utf8(p_file), p_line, String::utf8(p_err), String::utf8(p_descr), p_editor_notify, p_type, si);
 }
@@ -413,17 +381,24 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 	}
 
 	ScriptLanguage *script_lang = script_debugger->get_break_language();
-	const String error_str = script_lang ? script_lang->debug_get_error() : "";
-	Array msg;
-	msg.push_back(p_can_continue);
-	msg.push_back(error_str);
 	ERR_FAIL_NULL(script_lang);
-	msg.push_back(script_lang->debug_get_stack_level_count() > 0);
-	msg.push_back(Thread::get_caller_id());
-	if (allow_focus_steal_fn) {
-		allow_focus_steal_fn();
+	const bool can_break = !(p_is_error_breakpoint && script_debugger->is_ignoring_error_breaks());
+	const String error_str = script_lang ? script_lang->debug_get_error() : "";
+
+	if (can_break) {
+		Array msg;
+		msg.push_back(p_can_continue);
+		msg.push_back(error_str);
+		msg.push_back(script_lang->debug_get_stack_level_count() > 0);
+		msg.push_back(Thread::get_caller_id());
+		if (allow_focus_steal_fn) {
+			allow_focus_steal_fn();
+		}
+		send_message("debug_enter", msg);
+	} else {
+		ERR_PRINT(error_str);
+		return;
 	}
-	send_message("debug_enter", msg);
 
 	Input::MouseMode mouse_mode = Input::MOUSE_MODE_VISIBLE;
 
@@ -530,6 +505,9 @@ void RemoteDebugger::debug(bool p_can_continue, bool p_is_error_breakpoint) {
 			} else if (command == "set_skip_breakpoints") {
 				ERR_FAIL_COND(data.is_empty());
 				script_debugger->set_skip_breakpoints(data[0]);
+			} else if (command == "set_ignore_error_breaks") {
+				ERR_FAIL_COND(data.size() < 1);
+				script_debugger->set_ignore_error_breaks(data[0]);
 			} else if (command == "evaluate") {
 				String expression_str = data[0];
 				int frame = data[1];
@@ -669,6 +647,9 @@ Error RemoteDebugger::_core_capture(const String &p_cmd, const Array &p_data, bo
 	} else if (p_cmd == "set_skip_breakpoints") {
 		ERR_FAIL_COND_V(p_data.is_empty(), ERR_INVALID_DATA);
 		script_debugger->set_skip_breakpoints(p_data[0]);
+	} else if (p_cmd == "set_ignore_error_breaks") {
+		ERR_FAIL_COND_V(p_data.size() < 1, ERR_INVALID_DATA);
+		script_debugger->set_ignore_error_breaks(p_data[0]);
 	} else if (p_cmd == "break") {
 		script_debugger->debug(script_debugger->get_break_language());
 	} else {

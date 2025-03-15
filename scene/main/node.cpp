@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  node.cpp                                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "node.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/resource_loader.h"
 #include "core/object/message_queue.h"
@@ -42,7 +12,6 @@
 #include "scene/main/window.h"
 #include "scene/resources/packed_scene.h"
 #include "viewport.h"
-
 #include <stdint.h>
 
 int Node::orphan_node_count = 0;
@@ -3174,7 +3143,6 @@ void Node::replace_by(Node *p_node, bool p_keep_groups) {
 			E->set_owner(owner);
 		}
 	}
-
 	p_node->set_scene_file_path(get_scene_file_path());
 }
 
@@ -3260,15 +3228,12 @@ Node *Node::get_node_and_resource(const NodePath &p_path, Ref<Resource> &r_res, 
 			r_leftover_subpath.push_back(p_path.get_subname(j));
 		}
 	}
-
 	return node;
 }
 
 void Node::_set_tree(SceneTree *p_tree) {
 	SceneTree *tree_changed_a = nullptr;
 	SceneTree *tree_changed_b = nullptr;
-
-	//ERR_FAIL_COND(p_scene && data.parent && !data.parent->data.scene); //nobug if both are null
 
 	if (data.tree) {
 		_propagate_exit_tree();
@@ -3339,10 +3304,9 @@ void Node::print_orphan_nodes() {
 	for (const KeyValue<ObjectID, List<String>> &E : _print_orphan_nodes_map) {
 		print_line(itos(E.key) + " - Stray Node: " + E.value.get(0) + " (Type: " + E.value.get(1) + ")");
 	}
-
 	// Flush it after use.
 	_print_orphan_nodes_map.clear();
-#endif
+#endif // DEBUG_ENABLED
 }
 
 void Node::queue_free() {
@@ -3360,7 +3324,7 @@ void Node::queue_free() {
 void Node::set_import_path(const NodePath &p_import_path) {
 #ifdef TOOLS_ENABLED
 	data.import_path = p_import_path;
-#endif
+#endif // TOOLS_ENABLED
 }
 
 NodePath Node::get_import_path() const {
@@ -3368,7 +3332,7 @@ NodePath Node::get_import_path() const {
 	return data.import_path;
 #else
 	return NodePath();
-#endif
+#endif // TOOLS_ENABLED
 }
 
 #ifdef TOOLS_ENABLED
@@ -3399,7 +3363,7 @@ void Node::get_argument_options(const StringName &p_function, int p_idx, List<St
 	}
 	Object::get_argument_options(p_function, p_idx, r_options);
 }
-#endif
+#endif // TOOLS_ENABLED
 
 void Node::clear_internal_tree_resource_paths() {
 	clear_internal_resource_paths();
@@ -3416,7 +3380,6 @@ PackedStringArray Node::get_configuration_warnings() const {
 	if (GDVIRTUAL_CALL(_get_configuration_warnings, warnings)) {
 		ret.append_array(warnings);
 	}
-
 	return ret;
 }
 
@@ -3429,7 +3392,7 @@ void Node::update_configuration_warnings() {
 	if (get_tree()->get_edited_scene_root() && (get_tree()->get_edited_scene_root() == this || get_tree()->get_edited_scene_root()->is_ancestor_of(this))) {
 		get_tree()->emit_signal(SceneStringName(node_configuration_warning_changed), this);
 	}
-#endif
+#endif // TOOLS_ENABLED
 }
 
 void Node::set_display_folded(bool p_folded) {
@@ -3496,17 +3459,13 @@ void Node::_validate_property(PropertyInfo &p_property) const {
 	}
 }
 
-void Node::input(const Ref<InputEvent> &p_event) {
-}
+void Node::input(const Ref<InputEvent> &p_event) {}
 
-void Node::shortcut_input(const Ref<InputEvent> &p_key_event) {
-}
+void Node::shortcut_input(const Ref<InputEvent> &p_key_event) {}
 
-void Node::unhandled_input(const Ref<InputEvent> &p_event) {
-}
+void Node::unhandled_input(const Ref<InputEvent> &p_event) {}
 
-void Node::unhandled_key_input(const Ref<InputEvent> &p_key_event) {
-}
+void Node::unhandled_key_input(const Ref<InputEvent> &p_key_event) {}
 
 Variant Node::_call_deferred_thread_group_bind(const Variant **p_args, int p_argcount, Callable::CallError &r_error) {
 	if (p_argcount < 1) {
@@ -3602,7 +3561,6 @@ void Node::_bind_methods() {
 
 	ClassDB::bind_static_method("Node", D_METHOD("print_orphan_nodes"), &Node::print_orphan_nodes);
 	ClassDB::bind_method(D_METHOD("add_sibling", "sibling", "force_readable_name"), &Node::add_sibling, DEFVAL(false));
-
 	ClassDB::bind_method(D_METHOD("set_name", "name"), &Node::set_name);
 	ClassDB::bind_method(D_METHOD("get_name"), &Node::get_name);
 	ClassDB::bind_method(D_METHOD("add_child", "node", "force_readable_name", "internal"), &Node::add_child, DEFVAL(false), DEFVAL(0));
@@ -3620,7 +3578,6 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("find_parent", "pattern"), &Node::find_parent);
 	ClassDB::bind_method(D_METHOD("has_node_and_resource", "path"), &Node::has_node_and_resource);
 	ClassDB::bind_method(D_METHOD("get_node_and_resource", "path"), &Node::_get_node_and_resource);
-
 	ClassDB::bind_method(D_METHOD("is_inside_tree"), &Node::is_inside_tree);
 	ClassDB::bind_method(D_METHOD("is_part_of_edited_scene"), &Node::is_part_of_edited_scene);
 	ClassDB::bind_method(D_METHOD("is_ancestor_of", "node"), &Node::is_ancestor_of);
@@ -3664,79 +3621,57 @@ void Node::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_process_mode", "mode"), &Node::set_process_mode);
 	ClassDB::bind_method(D_METHOD("get_process_mode"), &Node::get_process_mode);
 	ClassDB::bind_method(D_METHOD("can_process"), &Node::can_process);
-
 	ClassDB::bind_method(D_METHOD("set_process_thread_group", "mode"), &Node::set_process_thread_group);
 	ClassDB::bind_method(D_METHOD("get_process_thread_group"), &Node::get_process_thread_group);
-
 	ClassDB::bind_method(D_METHOD("set_process_thread_messages", "flags"), &Node::set_process_thread_messages);
 	ClassDB::bind_method(D_METHOD("get_process_thread_messages"), &Node::get_process_thread_messages);
-
 	ClassDB::bind_method(D_METHOD("set_process_thread_group_order", "order"), &Node::set_process_thread_group_order);
 	ClassDB::bind_method(D_METHOD("get_process_thread_group_order"), &Node::get_process_thread_group_order);
-
 	ClassDB::bind_method(D_METHOD("set_display_folded", "fold"), &Node::set_display_folded);
 	ClassDB::bind_method(D_METHOD("is_displayed_folded"), &Node::is_displayed_folded);
-
 	ClassDB::bind_method(D_METHOD("set_process_internal", "enable"), &Node::set_process_internal);
 	ClassDB::bind_method(D_METHOD("is_processing_internal"), &Node::is_processing_internal);
-
 	ClassDB::bind_method(D_METHOD("set_physics_process_internal", "enable"), &Node::set_physics_process_internal);
 	ClassDB::bind_method(D_METHOD("is_physics_processing_internal"), &Node::is_physics_processing_internal);
-
 	ClassDB::bind_method(D_METHOD("set_physics_interpolation_mode", "mode"), &Node::set_physics_interpolation_mode);
 	ClassDB::bind_method(D_METHOD("get_physics_interpolation_mode"), &Node::get_physics_interpolation_mode);
 	ClassDB::bind_method(D_METHOD("is_physics_interpolated"), &Node::is_physics_interpolated);
 	ClassDB::bind_method(D_METHOD("is_physics_interpolated_and_enabled"), &Node::is_physics_interpolated_and_enabled);
 	ClassDB::bind_method(D_METHOD("reset_physics_interpolation"), &Node::reset_physics_interpolation);
-
 	ClassDB::bind_method(D_METHOD("set_auto_translate_mode", "mode"), &Node::set_auto_translate_mode);
 	ClassDB::bind_method(D_METHOD("get_auto_translate_mode"), &Node::get_auto_translate_mode);
 	ClassDB::bind_method(D_METHOD("set_translation_domain_inherited"), &Node::set_translation_domain_inherited);
-
 	ClassDB::bind_method(D_METHOD("get_window"), &Node::get_window);
 	ClassDB::bind_method(D_METHOD("get_last_exclusive_window"), &Node::get_last_exclusive_window);
 	ClassDB::bind_method(D_METHOD("get_tree"), &Node::get_tree);
 	ClassDB::bind_method(D_METHOD("create_tween"), &Node::create_tween);
-
 	ClassDB::bind_method(D_METHOD("duplicate", "flags"), &Node::duplicate, DEFVAL(DUPLICATE_USE_INSTANTIATION | DUPLICATE_SIGNALS | DUPLICATE_GROUPS | DUPLICATE_SCRIPTS));
 	ClassDB::bind_method(D_METHOD("replace_by", "node", "keep_groups"), &Node::replace_by, DEFVAL(false));
-
 	ClassDB::bind_method(D_METHOD("set_scene_instance_load_placeholder", "load_placeholder"), &Node::set_scene_instance_load_placeholder);
 	ClassDB::bind_method(D_METHOD("get_scene_instance_load_placeholder"), &Node::get_scene_instance_load_placeholder);
 	ClassDB::bind_method(D_METHOD("set_editable_instance", "node", "is_editable"), &Node::set_editable_instance);
 	ClassDB::bind_method(D_METHOD("is_editable_instance", "node"), &Node::is_editable_instance);
-
 	ClassDB::bind_method(D_METHOD("get_viewport"), &Node::get_viewport);
-
 	ClassDB::bind_method(D_METHOD("queue_free"), &Node::queue_free);
-
 	ClassDB::bind_method(D_METHOD("request_ready"), &Node::request_ready);
 	ClassDB::bind_method(D_METHOD("is_node_ready"), &Node::is_ready);
-
 	ClassDB::bind_method(D_METHOD("set_multiplayer_authority", "id", "recursive"), &Node::set_multiplayer_authority, DEFVAL(true));
 	ClassDB::bind_method(D_METHOD("get_multiplayer_authority"), &Node::get_multiplayer_authority);
-
 	ClassDB::bind_method(D_METHOD("is_multiplayer_authority"), &Node::is_multiplayer_authority);
-
 	ClassDB::bind_method(D_METHOD("get_multiplayer"), &Node::get_multiplayer);
 	ClassDB::bind_method(D_METHOD("rpc_config", "method", "config"), &Node::rpc_config);
 	ClassDB::bind_method(D_METHOD("get_rpc_config"), &Node::get_rpc_config);
-
 	ClassDB::bind_method(D_METHOD("set_editor_description", "editor_description"), &Node::set_editor_description);
 	ClassDB::bind_method(D_METHOD("get_editor_description"), &Node::get_editor_description);
-
 	ClassDB::bind_method(D_METHOD("_set_import_path", "import_path"), &Node::set_import_path);
 	ClassDB::bind_method(D_METHOD("_get_import_path"), &Node::get_import_path);
-
 	ClassDB::bind_method(D_METHOD("set_unique_name_in_owner", "enable"), &Node::set_unique_name_in_owner);
 	ClassDB::bind_method(D_METHOD("is_unique_name_in_owner"), &Node::is_unique_name_in_owner);
-
 	ClassDB::bind_method(D_METHOD("atr", "message", "context"), &Node::atr, DEFVAL(""));
 	ClassDB::bind_method(D_METHOD("atr_n", "message", "plural_message", "n", "context"), &Node::atr_n, DEFVAL(""));
-
 #ifdef TOOLS_ENABLED
 	ClassDB::bind_method(D_METHOD("_set_property_pinned", "property", "pinned"), &Node::set_property_pinned);
-#endif
+#endif //TOOLS_ENABLED
 
 	ADD_PROPERTY(PropertyInfo(Variant::NODE_PATH, "_import_path", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR | PROPERTY_USAGE_INTERNAL), "_set_import_path", "_get_import_path");
 
@@ -3753,9 +3688,7 @@ void Node::_bind_methods() {
 		mi.name = "rpc_id";
 		ClassDB::bind_vararg_method(METHOD_FLAGS_DEFAULT, "rpc_id", &Node::_rpc_id_bind, mi);
 	}
-
 	ClassDB::bind_method(D_METHOD("update_configuration_warnings"), &Node::update_configuration_warnings);
-
 	{
 		MethodInfo mi;
 		mi.name = "call_deferred_thread_group";
@@ -3797,10 +3730,8 @@ void Node::_bind_methods() {
 	BIND_CONSTANT(NOTIFICATION_DISABLED);
 	BIND_CONSTANT(NOTIFICATION_ENABLED);
 	BIND_CONSTANT(NOTIFICATION_RESET_PHYSICS_INTERPOLATION);
-
 	BIND_CONSTANT(NOTIFICATION_EDITOR_PRE_SAVE);
 	BIND_CONSTANT(NOTIFICATION_EDITOR_POST_SAVE);
-
 	BIND_CONSTANT(NOTIFICATION_WM_MOUSE_ENTER);
 	BIND_CONSTANT(NOTIFICATION_WM_MOUSE_EXIT);
 	BIND_CONSTANT(NOTIFICATION_WM_WINDOW_FOCUS_IN);
@@ -3811,6 +3742,7 @@ void Node::_bind_methods() {
 	BIND_CONSTANT(NOTIFICATION_WM_DPI_CHANGE);
 	BIND_CONSTANT(NOTIFICATION_VP_MOUSE_ENTER);
 	BIND_CONSTANT(NOTIFICATION_VP_MOUSE_EXIT);
+	BIND_CONSTANT(NOTIFICATION_WM_POSITION_CHANGED);
 	BIND_CONSTANT(NOTIFICATION_OS_MEMORY_WARNING);
 	BIND_CONSTANT(NOTIFICATION_TRANSLATION_CHANGED);
 	BIND_CONSTANT(NOTIFICATION_WM_ABOUT);

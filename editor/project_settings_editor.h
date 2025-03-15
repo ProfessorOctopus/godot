@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  project_settings_editor.h                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/config/project_settings.h"
 #include "editor/action_map_editor.h"
 #include "editor/editor_autoload_settings.h"
@@ -81,6 +51,7 @@ class ProjectSettingsEditor : public AcceptDialog {
 	ImportDefaultsEditor *import_defaults_editor = nullptr;
 	EditorData *data = nullptr;
 
+	bool settings_changed = false;
 	void _advanced_toggled(bool p_button_pressed);
 	void _update_advanced(bool p_is_advanced);
 	void _property_box_changed(const String &p_text);
@@ -113,6 +84,7 @@ class ProjectSettingsEditor : public AcceptDialog {
 	void _action_reordered(const String &p_action_name, const String &p_relative_to, bool p_before);
 	void _update_action_map_editor();
 	void _update_theme();
+	void _save();
 
 protected:
 	void _notification(int p_what);

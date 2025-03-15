@@ -1,52 +1,22 @@
-/**************************************************************************/
-/*  gdscript_tokenizer.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "gdscript_tokenizer.h"
-
 #include "core/error/error_macros.h"
 #include "core/string/char_utils.h"
-
 #ifdef DEBUG_ENABLED
 #include "servers/text_server.h"
-#endif
-
+#endif // DEBUG_ENABLED
 #ifdef TOOLS_ENABLED
 #include "editor/editor_settings.h"
 #endif
 
 static const char *token_names[] = {
 	"Empty", // EMPTY,
+
 	// Basic
 	"Annotation", // ANNOTATION
 	"Identifier", // IDENTIFIER,
 	"Literal", // LITERAL,
+
 	// Comparison
 	"<", // LESS,
 	"<=", // LESS_EQUAL,
@@ -54,6 +24,7 @@ static const char *token_names[] = {
 	">=", // GREATER_EQUAL,
 	"==", // EQUAL_EQUAL,
 	"!=", // BANG_EQUAL,
+
 	// Logical
 	"and", // AND,
 	"or", // OR,
@@ -61,6 +32,7 @@ static const char *token_names[] = {
 	"&&", // AMPERSAND_AMPERSAND,
 	"||", // PIPE_PIPE,
 	"!", // BANG,
+
 	// Bitwise
 	"&", // AMPERSAND,
 	"|", // PIPE,
@@ -68,6 +40,7 @@ static const char *token_names[] = {
 	"^", // CARET,
 	"<<", // LESS_LESS,
 	">>", // GREATER_GREATER,
+
 	// Math
 	"+", // PLUS,
 	"-", // MINUS,
@@ -75,6 +48,7 @@ static const char *token_names[] = {
 	"**", // STAR_STAR,
 	"/", // SLASH,
 	"%", // PERCENT,
+
 	// Assignment
 	"=", // EQUAL,
 	"+=", // PLUS_EQUAL,
@@ -88,6 +62,7 @@ static const char *token_names[] = {
 	"&=", // AMPERSAND_EQUAL,
 	"|=", // PIPE_EQUAL,
 	"^=", // CARET_EQUAL,
+
 	// Control flow
 	"if", // IF,
 	"elif", // ELIF,
@@ -100,6 +75,7 @@ static const char *token_names[] = {
 	"return", // RETURN,
 	"match", // MATCH,
 	"when", // WHEN,
+
 	// Keywords
 	"as", // AS,
 	"assert", // ASSERT,
@@ -123,6 +99,7 @@ static const char *token_names[] = {
 	"var", // VAR,
 	"void", // VOID,
 	"yield", // YIELD,
+
 	// Punctuation
 	"[", // BRACKET_OPEN,
 	"]", // BRACKET_CLOSE,
@@ -138,19 +115,23 @@ static const char *token_names[] = {
 	"$", // DOLLAR,
 	"->", // FORWARD_ARROW,
 	"_", // UNDERSCORE,
+
 	// Whitespace
 	"Newline", // NEWLINE,
 	"Indent", // INDENT,
 	"Dedent", // DEDENT,
+
 	// Constants
 	"PI", // CONST_PI,
 	"TAU", // CONST_TAU,
 	"INF", // CONST_INF,
 	"NaN", // CONST_NAN,
+
 	// Error message improvement
 	"VCS conflict marker", // VCS_CONFLICT_MARKER,
 	"`", // BACKTICK,
 	"?", // QUESTION_MARK,
+
 	// Special
 	"Error", // ERROR,
 	"End of file", // EOF,
@@ -1337,7 +1318,7 @@ void GDScriptTokenizerText::check_indent() {
 }
 
 String GDScriptTokenizerText::_get_indent_char_name(char32_t ch) {
-	ERR_FAIL_COND_V(ch != ' ' && ch != '\t', String(&ch, 1).c_escape());
+	ERR_FAIL_COND_V(ch != ' ' && ch != '\t', String::chr(ch).c_escape());
 
 	return ch == ' ' ? "space" : "tab";
 }

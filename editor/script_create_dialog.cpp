@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  script_create_dialog.cpp                                              */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "script_create_dialog.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/file_access.h"
 #include "core/io/resource_saver.h"
@@ -216,16 +186,18 @@ bool ScriptCreateDialog::_validate_parent(const String &p_string) {
 
 	if (can_inherit_from_file && p_string.is_quoted()) {
 		String p = p_string.substr(1, p_string.length() - 2);
-		if (_validate_path(p, true) == "") {
+		if (_validate_path(p, true).is_empty()) {
 			return true;
 		}
 	}
-
 	return EditorNode::get_editor_data().is_type_recognized(p_string);
 }
 
-String ScriptCreateDialog::_validate_path(const String &p_path, bool p_file_must_exist) {
+String ScriptCreateDialog::_validate_path(const String &p_path, bool p_file_must_exist, bool *r_path_valid) {
 	String p = p_path.strip_edges();
+	if (r_path_valid) {
+		*r_path_valid = false;
+	}
 
 	if (p.is_empty()) {
 		return TTR("Path is empty.");
@@ -252,7 +224,6 @@ String ScriptCreateDialog::_validate_path(const String &p_path, bool p_file_must
 			return TTR("Base path is invalid.");
 		}
 	}
-
 	{
 		// Check if file exists.
 		Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
@@ -261,6 +232,10 @@ String ScriptCreateDialog::_validate_path(const String &p_path, bool p_file_must
 		} else if (p_file_must_exist && !da->file_exists(p)) {
 			return TTR("File does not exist.");
 		}
+	}
+
+	if (r_path_valid) {
+		*r_path_valid = true;
 	}
 
 	// Check file extension.
@@ -290,7 +265,6 @@ String ScriptCreateDialog::_validate_path(const String &p_path, bool p_file_must
 	if (!match) {
 		return TTR("Extension doesn't match chosen language.");
 	}
-
 	// Let ScriptLanguage do custom validation.
 	return ScriptServer::get_language(language_menu->get_selected())->validate_path(p);
 }
@@ -491,10 +465,9 @@ void ScriptCreateDialog::_path_changed(const String &p_path) {
 		return;
 	}
 
-	is_path_valid = false;
 	is_new_script_created = true;
 
-	path_error = _validate_path(p_path, false);
+	path_error = _validate_path(p_path, false, &is_path_valid);
 	if (!path_error.is_empty()) {
 		validation_panel->update();
 		return;
@@ -506,8 +479,6 @@ void ScriptCreateDialog::_path_changed(const String &p_path) {
 	if (da->file_exists(p)) {
 		is_new_script_created = false;
 	}
-
-	is_path_valid = true;
 	validation_panel->update();
 }
 
@@ -620,7 +591,6 @@ void ScriptCreateDialog::_update_dialog() {
 	}
 
 	// Is script Built-in?
-
 	if (is_built_in) {
 		file_path->set_editable(false);
 		path_button->set_disabled(true);
@@ -640,7 +610,6 @@ void ScriptCreateDialog::_update_dialog() {
 	built_in->set_disabled(!_can_be_built_in());
 
 	// Is Script created or loaded from existing file?
-
 	if (is_built_in) {
 		validation_panel->set_message(MSG_ID_BUILT_IN, TTR("Note: Built-in scripts have some limitations and can't be edited using an external editor."), EditorValidationPanel::MSG_INFO, false);
 	} else if (file_path->get_text().get_file().get_basename() == parent_name->get_text()) {
@@ -810,7 +779,6 @@ ScriptLanguage::ScriptTemplate ScriptCreateDialog::_parse_template(const ScriptL
 	if (script_template.name == String()) {
 		script_template.name = p_filename.get_basename().capitalize();
 	}
-
 	return script_template;
 }
 
@@ -836,12 +804,10 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	EDITOR_DEF("_script_setup_templates_dictionary", Dictionary());
 
 	/* Main Controls */
-
 	GridContainer *gc = memnew(GridContainer);
 	gc->set_columns(2);
 
 	/* Information Messages Field */
-
 	validation_panel = memnew(EditorValidationPanel);
 	validation_panel->add_line(MSG_ID_SCRIPT, TTR("Script path/name is valid."));
 	validation_panel->add_line(MSG_ID_PATH, TTR("Will create a new script file."));
@@ -851,7 +817,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	validation_panel->set_accept_button(get_ok_button());
 
 	/* Spacing */
-
 	Control *spacing = memnew(Control);
 	spacing->set_custom_minimum_size(Size2(0, 10 * EDSCALE));
 
@@ -862,7 +827,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	add_child(vb);
 
 	/* Language */
-
 	language_menu = memnew(OptionButton);
 	language_menu->set_custom_minimum_size(Size2(350, 0) * EDSCALE);
 	language_menu->set_expand_icon(true);
@@ -885,7 +849,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	language_menu->connect(SceneStringName(item_selected), callable_mp(this, &ScriptCreateDialog::_language_changed));
 
 	/* Inherits */
-
 	base_type = "Object";
 
 	HBoxContainer *hb = memnew(HBoxContainer);
@@ -924,7 +887,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	gc->add_child(template_hb);
 
 	/* Built-in Script */
-
 	built_in = memnew(CheckBox);
 	built_in->set_text(TTR("On"));
 	built_in->connect(SceneStringName(pressed), callable_mp(this, &ScriptCreateDialog::_built_in_pressed));
@@ -932,7 +894,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	gc->add_child(built_in);
 
 	/* Path */
-
 	hb = memnew(HBoxContainer);
 	hb->connect(SceneStringName(sort_children), callable_mp(this, &ScriptCreateDialog::_path_hbox_sorted));
 	file_path = memnew(LineEdit);
@@ -950,7 +911,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	path_controls[1] = hb;
 
 	/* Name */
-
 	built_in_name = memnew(LineEdit);
 	built_in_name->set_h_size_flags(Control::SIZE_EXPAND_FILL);
 	register_text_enter(built_in_name);
@@ -963,7 +923,6 @@ ScriptCreateDialog::ScriptCreateDialog() {
 	built_in_name->hide();
 
 	/* Dialog Setup */
-
 	select_class = memnew(CreateDialog);
 	select_class->connect("create", callable_mp(this, &ScriptCreateDialog::_create));
 	add_child(select_class);

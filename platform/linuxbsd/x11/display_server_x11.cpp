@@ -1,55 +1,20 @@
-/**************************************************************************/
-/*  display_server_x11.cpp                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "display_server_x11.h"
-
 #ifdef X11_ENABLED
-
 #include "x11/detect_prime_x11.h"
 #include "x11/key_mapping_x11.h"
-
 #include "core/config/project_settings.h"
 #include "core/math/math_funcs.h"
 #include "core/string/print_string.h"
 #include "core/string/ustring.h"
 #include "drivers/png/png_driver_common.h"
 #include "main/main.h"
-
 #if defined(VULKAN_ENABLED)
 #include "servers/rendering/renderer_rd/renderer_compositor_rd.h"
 #endif
-
 #if defined(GLES3_ENABLED)
 #include "drivers/gles3/rasterizer_gles3.h"
 #endif
-
 #include <dlfcn.h>
 #include <limits.h>
 #include <stdio.h>
@@ -58,7 +23,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
 #undef CursorShape
 #include <X11/XKBlib.h>
 
@@ -405,7 +369,7 @@ void DisplayServerX11::set_system_theme_change_callback(const Callable &p_callab
 Error DisplayServerX11::file_dialog_show(const String &p_title, const String &p_current_directory, const String &p_filename, bool p_show_hidden, FileDialogMode p_mode, const Vector<String> &p_filters, const Callable &p_callback, WindowID p_window_id) {
 	WindowID window_id = p_window_id;
 
-	if (!windows.has(window_id) && !windows[window_id].is_popup) {
+	if (!windows.has(window_id) || windows[window_id].is_popup) {
 		window_id = MAIN_WINDOW_ID;
 	}
 
@@ -416,14 +380,13 @@ Error DisplayServerX11::file_dialog_show(const String &p_title, const String &p_
 Error DisplayServerX11::file_dialog_with_options_show(const String &p_title, const String &p_current_directory, const String &p_root, const String &p_filename, bool p_show_hidden, FileDialogMode p_mode, const Vector<String> &p_filters, const TypedArray<Dictionary> &p_options, const Callable &p_callback, WindowID p_window_id) {
 	WindowID window_id = p_window_id;
 
-	if (!windows.has(window_id) && !windows[window_id].is_popup) {
+	if (!windows.has(window_id) || windows[window_id].is_popup) {
 		window_id = MAIN_WINDOW_ID;
 	}
 
 	String xid = vformat("x11:%x", (uint64_t)windows[window_id].x11_window);
 	return portal_desktop->file_dialog_show(p_window_id, xid, p_title, p_current_directory, p_root, p_filename, p_mode, p_filters, p_options, p_callback, true);
 }
-
 #endif
 
 void DisplayServerX11::beep() const {

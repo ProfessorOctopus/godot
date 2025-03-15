@@ -1,33 +1,4 @@
-/**************************************************************************/
-/*  utilities.cpp                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "utilities.h"
 #include "../environment/fog.h"
 #include "../environment/gi.h"
@@ -49,7 +20,6 @@ Utilities::~Utilities() {
 }
 
 /* INSTANCES */
-
 RS::InstanceType Utilities::get_base_type(RID p_rid) const {
 	if (RendererRD::MeshStorage::get_singleton()->owns_mesh(p_rid)) {
 		return RS::INSTANCE_MESH;
@@ -84,7 +54,6 @@ RS::InstanceType Utilities::get_base_type(RID p_rid) const {
 	if (owns_visibility_notifier(p_rid)) {
 		return RS::INSTANCE_VISIBLITY_NOTIFIER;
 	}
-
 	return RS::INSTANCE_NONE;
 }
 
@@ -114,7 +83,6 @@ bool Utilities::free(RID p_rid) {
 }
 
 /* DEPENDENCIES */
-
 void Utilities::base_update_dependency(RID p_base, DependencyTracker *p_instance) {
 	if (MeshStorage::get_singleton()->owns_mesh(p_base)) {
 		Dependency *dependency = MeshStorage::get_singleton()->mesh_get_dependency(p_base);
@@ -158,7 +126,6 @@ void Utilities::base_update_dependency(RID p_base, DependencyTracker *p_instance
 }
 
 /* VISIBILITY NOTIFIER */
-
 RID Utilities::visibility_notifier_allocate() {
 	return visibility_notifier_owner.allocate_rid();
 }
@@ -217,7 +184,6 @@ void Utilities::visibility_notifier_call(RID p_notifier, bool p_enter, bool p_de
 }
 
 /* TIMING */
-
 void Utilities::capture_timestamps_begin() {
 	RD::get_singleton()->capture_timestamp("Frame Begin");
 }
@@ -247,7 +213,6 @@ String Utilities::get_captured_timestamp_name(uint32_t p_index) const {
 }
 
 /* MISC */
-
 void Utilities::update_dirty_resources() {
 	MaterialStorage::get_singleton()->_update_global_shader_uniforms(); //must do before materials, so it can queue them for update
 	MaterialStorage::get_singleton()->_update_queued_materials();
@@ -264,7 +229,6 @@ bool Utilities::has_os_feature(const String &p_feature) const {
 	if (p_feature == "rgtc" && RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_BC5_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT)) {
 		return true;
 	}
-
 #if !defined(ANDROID_ENABLED) && !defined(IOS_ENABLED)
 	// Some Android devices report support for S3TC but we don't expect that and don't export the textures.
 	// This could be fixed but so few devices support it that it doesn't seem useful (and makes bigger APKs).
@@ -272,20 +236,19 @@ bool Utilities::has_os_feature(const String &p_feature) const {
 	if (p_feature == "s3tc" && RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_BC1_RGB_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT)) {
 		return true;
 	}
-#endif
-
+#endif // ANDROID_ENABLED && IOS_ENABLED
 	if (p_feature == "bptc" && RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_BC7_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT)) {
 		return true;
 	}
-
 	if (p_feature == "etc2" && RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ETC2_R8G8B8_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT)) {
 		return true;
 	}
-
 	if (p_feature == "astc" && RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_4x4_UNORM_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT)) {
 		return true;
 	}
-
+	if (p_feature == "astc_hdr" && RD::get_singleton()->texture_is_format_supported_for_usage(RD::DATA_FORMAT_ASTC_4x4_SFLOAT_BLOCK, RD::TEXTURE_USAGE_SAMPLING_BIT)) {
+		return true;
+	}
 	return false;
 }
 

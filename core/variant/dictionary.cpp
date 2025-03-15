@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  dictionary.cpp                                                        */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "dictionary.h"
-
 #include "core/templates/hash_map.h"
 #include "core/templates/safe_refcount.h"
 #include "core/variant/container_type_validate.h"
@@ -49,6 +19,14 @@ struct DictionaryPrivate {
 	Variant *typed_fallback = nullptr; // Allows a typed dictionary to return dummy values when attempting an invalid access.
 };
 
+Dictionary::ConstIterator Dictionary::begin() const {
+	return _p->variant_map.begin();
+}
+
+Dictionary::ConstIterator Dictionary::end() const {
+	return _p->variant_map.end();
+}
+
 void Dictionary::get_key_list(List<Variant> *p_keys) const {
 	if (_p->variant_map.is_empty()) {
 		return;
@@ -67,7 +45,6 @@ Variant Dictionary::get_key_at_index(int p_index) const {
 		}
 		index++;
 	}
-
 	return Variant();
 }
 
@@ -79,7 +56,6 @@ Variant Dictionary::get_value_at_index(int p_index) const {
 		}
 		index++;
 	}
-
 	return Variant();
 }
 
@@ -170,7 +146,6 @@ Variant Dictionary::get(const Variant &p_key, const Variant &p_default) const {
 	if (!result) {
 		return p_default;
 	}
-
 	return *result;
 }
 
@@ -349,7 +324,6 @@ uint32_t Dictionary::recursive_hash(int recursion_count) const {
 		h = hash_murmur3_one_32(E.key.recursive_hash(recursion_count), h);
 		h = hash_murmur3_one_32(E.value.recursive_hash(recursion_count), h);
 	}
-
 	return hash_fmix32(h);
 }
 
@@ -369,7 +343,6 @@ Array Dictionary::keys() const {
 		varr[i] = E.key;
 		i++;
 	}
-
 	return varr;
 }
 
@@ -389,14 +362,12 @@ Array Dictionary::values() const {
 		varr[i] = E.value;
 		i++;
 	}
-
 	return varr;
 }
 
 void Dictionary::assign(const Dictionary &p_dictionary) {
 	const ContainerTypeValidate &typed_key = _p->typed_key;
 	const ContainerTypeValidate &typed_key_source = p_dictionary._p->typed_key;
-
 	const ContainerTypeValidate &typed_value = _p->typed_value;
 	const ContainerTypeValidate &typed_value_source = p_dictionary._p->typed_value;
 
@@ -554,7 +525,6 @@ const Variant *Dictionary::next(const Variant *p_key) const {
 	if (E) {
 		return &E->key;
 	}
-
 	return nullptr;
 }
 
@@ -591,7 +561,6 @@ Dictionary Dictionary::recursive_duplicate(bool p_deep, int recursion_count) con
 			n[E.key] = E.value;
 		}
 	}
-
 	return n;
 }
 
@@ -614,7 +583,6 @@ void Dictionary::set_typed(uint32_t p_key_type, const StringName &p_key_class_na
 	_p->typed_key.class_name = p_key_class_name;
 	_p->typed_key.script = key_script;
 	_p->typed_key.where = "TypedDictionary.Key";
-
 	_p->typed_value.type = Variant::Type(p_value_type);
 	_p->typed_value.class_name = p_value_class_name;
 	_p->typed_value.script = value_script;

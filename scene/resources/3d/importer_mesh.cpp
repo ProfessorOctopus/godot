@@ -1,40 +1,9 @@
-/**************************************************************************/
-/*  importer_mesh.cpp                                                     */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "importer_mesh.h"
-
 #include "core/io/marshalls.h"
 #include "core/math/convex_hull.h"
 #include "core/math/random_pcg.h"
 #include "scene/resources/surface_tool.h"
-
 #include <cstdint>
 
 String ImporterMesh::validate_blend_shape_name(const String &p_name) {
@@ -90,20 +59,15 @@ void ImporterMesh::add_surface(Mesh::PrimitiveType p_primitive, const Array &p_a
 		bs.arrays = bsdata;
 		s.blend_shape_data.push_back(bs);
 	}
-
-	List<Variant> lods;
-	p_lods.get_key_list(&lods);
-	for (const Variant &E : lods) {
-		ERR_CONTINUE(!E.is_num());
+	for (const KeyValue<Variant, Variant> &kv : p_lods) {
+		ERR_CONTINUE(!kv.key.is_num());
 		Surface::LOD lod;
-		lod.distance = E;
-		lod.indices = p_lods[E];
+		lod.distance = kv.key;
+		lod.indices = kv.value;
 		ERR_CONTINUE(lod.indices.is_empty());
 		s.lods.push_back(lod);
 	}
-
 	s.material = p_material;
-
 	surfaces.push_back(s);
 	mesh.unref();
 }

@@ -1,44 +1,13 @@
-/**************************************************************************/
-/*  jolt_cylinder_shape_3d.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "jolt_cylinder_shape_3d.h"
-
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_type_conversions.h"
-
 #include "Jolt/Physics/Collision/Shape/CylinderShape.h"
 
 JPH::ShapeRefC JoltCylinderShape3D::_build() const {
 	const float half_height = height / 2.0f;
 	const float min_half_extent = MIN(half_height, radius);
-	const float actual_margin = MIN(margin, min_half_extent * JoltProjectSettings::get_collision_margin_fraction());
+	const float actual_margin = MIN(margin, min_half_extent * JoltProjectSettings::collision_margin_fraction);
 
 	const JPH::CylinderShapeSettings shape_settings(half_height, radius, actual_margin);
 	const JPH::ShapeSettings::ShapeResult shape_result = shape_settings.Create();
@@ -71,7 +40,6 @@ void JoltCylinderShape3D::set_data(const Variant &p_data) {
 	if (unlikely(new_height == height && new_radius == radius)) {
 		return;
 	}
-
 	height = new_height;
 	radius = new_radius;
 
@@ -82,9 +50,7 @@ void JoltCylinderShape3D::set_margin(float p_margin) {
 	if (unlikely(margin == p_margin)) {
 		return;
 	}
-
 	margin = p_margin;
-
 	destroy();
 }
 

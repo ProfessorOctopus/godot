@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  packed_data_container.cpp                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "packed_data_container.h"
-
 #include "core/io/marshalls.h"
 
 Variant PackedDataContainer::getvar(const Variant &p_key, bool *r_valid) const {
@@ -146,7 +116,6 @@ int PackedDataContainer::_size(uint32_t p_ofs) const {
 		uint32_t len = decode_uint32(r + 4);
 		return len;
 	}
-
 	return -1;
 }
 
@@ -268,14 +237,12 @@ uint32_t PackedDataContainer::_pack(const Variant &p_data, Vector<uint8_t> &tmpd
 			encode_uint32(TYPE_DICT, &tmpdata.write[pos + 0]);
 			encode_uint32(len, &tmpdata.write[pos + 4]);
 
-			List<Variant> keys;
-			d.get_key_list(&keys);
 			List<DictKey> sortk;
 
-			for (const Variant &key : keys) {
+			for (const KeyValue<Variant, Variant> &kv : d) {
 				DictKey dk;
-				dk.hash = key.hash();
-				dk.key = key;
+				dk.hash = kv.key.hash();
+				dk.key = kv.key;
 				sortk.push_back(dk);
 			}
 
@@ -307,15 +274,11 @@ uint32_t PackedDataContainer::_pack(const Variant &p_data, Vector<uint8_t> &tmpd
 				uint32_t ofs = _pack(a[i], tmpdata, string_cache);
 				encode_uint32(ofs, &tmpdata.write[pos + 8 + i * 4]);
 			}
-
 			return pos;
-
 		} break;
-
 		default: {
 		}
 	}
-
 	return OK;
 }
 
@@ -367,8 +330,6 @@ void PackedDataContainer::_bind_methods() {
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "__data__", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_STORAGE | PROPERTY_USAGE_INTERNAL), "_set_data", "_get_data");
 }
-
-//////////////////
 
 Variant PackedDataContainerRef::_iter_init(const Array &p_iter) {
 	return from->_iter_init_ofs(p_iter, offset);

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  jolt_body_3d.cpp                                                      */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "jolt_body_3d.h"
-
 #include "../joints/jolt_joint_3d.h"
 #include "../jolt_project_settings.h"
 #include "../misc/jolt_math_funcs.h"
@@ -43,7 +13,6 @@
 #include "jolt_soft_body_3d.h"
 
 namespace {
-
 template <typename TValue, typename TGetter>
 bool integrate(TValue &p_value, PhysicsServer3D::AreaSpaceOverrideMode p_mode, TGetter &&p_getter) {
 	switch (p_mode) {
@@ -132,10 +101,10 @@ void JoltBody3D::_add_to_space() {
 	jolt_settings->mAllowSleeping = is_sleep_actually_allowed();
 	jolt_settings->mLinearDamping = 0.0f;
 	jolt_settings->mAngularDamping = 0.0f;
-	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::get_max_linear_velocity();
-	jolt_settings->mMaxAngularVelocity = JoltProjectSettings::get_max_angular_velocity();
+	jolt_settings->mMaxLinearVelocity = JoltProjectSettings::max_linear_velocity;
+	jolt_settings->mMaxAngularVelocity = JoltProjectSettings::max_angular_velocity;
 
-	if (JoltProjectSettings::use_enhanced_internal_edge_removal_for_bodies()) {
+	if (JoltProjectSettings::use_enhanced_internal_edge_removal_for_bodies) {
 		jolt_settings->mEnhancedInternalEdgeRemoval = true;
 	}
 
@@ -906,7 +875,7 @@ void JoltBody3D::set_max_contacts_reported(int p_count) {
 }
 
 bool JoltBody3D::reports_all_kinematic_contacts() const {
-	return reports_contacts() && JoltProjectSettings::should_generate_all_kinematic_contacts();
+	return reports_contacts() && JoltProjectSettings::generate_all_kinematic_contacts;
 }
 
 void JoltBody3D::add_contact(const JoltBody3D *p_collider, float p_depth, int p_shape_index, int p_collider_shape_index, const Vector3 &p_normal, const Vector3 &p_position, const Vector3 &p_collider_position, const Vector3 &p_velocity, const Vector3 &p_collider_velocity, const Vector3 &p_impulse) {

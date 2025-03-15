@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  spring_bone_simulator_3d.h                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "scene/3d/skeleton_modifier_3d.h"
 
 class SpringBoneSimulator3D : public SkeletonModifier3D {
@@ -141,6 +111,7 @@ public:
 
 protected:
 	Vector<SpringBone3DSetting *> settings;
+	Vector3 external_force;
 
 	bool _get(const StringName &p_path, Variant &r_ret) const;
 	bool _set(const StringName &p_path, const Variant &p_value);
@@ -268,6 +239,9 @@ public:
 
 	LocalVector<ObjectID> get_valid_collision_instance_ids(int p_index);
 
+	void set_external_force(const Vector3 &p_force);
+	Vector3 get_external_force() const;
+
 	// Helper.
 	static Quaternion get_local_pose_rotation(Skeleton3D *p_skeleton, int p_bone, const Quaternion &p_global_pose_rotation);
 	static Quaternion get_from_to_rotation(const Vector3 &p_from, const Vector3 &p_to, const Quaternion &p_prev_rot);
@@ -279,7 +253,7 @@ public:
 
 #ifdef TOOLS_ENABLED
 	virtual bool is_processed_on_saving() const override { return true; }
-#endif
+#endif // TOOLS_ENABLED
 };
 
 VARIANT_ENUM_CAST(SpringBoneSimulator3D::BoneDirection);

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  node_3d_editor_plugin.cpp                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "node_3d_editor_plugin.h"
-
 #include "core/config/project_settings.h"
 #include "core/input/input.h"
 #include "core/input/input_map.h"
@@ -102,7 +72,6 @@
 #include "scene/resources/surface_tool.h"
 
 constexpr real_t DISTANCE_DEFAULT = 4;
-
 constexpr real_t GIZMO_ARROW_SIZE = 0.35;
 constexpr real_t GIZMO_RING_HALF_WIDTH = 0.1;
 constexpr real_t GIZMO_PLANE_SIZE = 0.2;
@@ -110,7 +79,6 @@ constexpr real_t GIZMO_PLANE_DST = 0.3;
 constexpr real_t GIZMO_CIRCLE_SIZE = 1.1;
 constexpr real_t GIZMO_SCALE_OFFSET = GIZMO_CIRCLE_SIZE + 0.3;
 constexpr real_t GIZMO_ARROW_OFFSET = GIZMO_CIRCLE_SIZE + 0.3;
-
 constexpr real_t ZOOM_FREELOOK_MIN = 0.01;
 constexpr real_t ZOOM_FREELOOK_MULTIPLIER = 1.08;
 constexpr real_t ZOOM_FREELOOK_INDICATOR_DELAY_S = 1.5;
@@ -119,11 +87,10 @@ constexpr real_t ZOOM_FREELOOK_INDICATOR_DELAY_S = 1.5;
 constexpr double ZOOM_FREELOOK_MAX = 1'000'000'000'000;
 #else
 constexpr float ZOOM_FREELOOK_MAX = 10'000;
-#endif
+#endif // REAL_T_IS_DOUBLE
 
 constexpr real_t MIN_Z = 0.01;
 constexpr real_t MAX_Z = 1000000.0;
-
 constexpr real_t MIN_FOV = 0.01;
 constexpr real_t MAX_FOV = 179;
 
@@ -135,12 +102,10 @@ void ViewportNavigationControl::_notification(int p_what) {
 				_update_navigation();
 			}
 		} break;
-
 		case NOTIFICATION_MOUSE_ENTER: {
 			hovered = true;
 			queue_redraw();
 		} break;
-
 		case NOTIFICATION_MOUSE_EXIT: {
 			hovered = false;
 			queue_redraw();
@@ -3001,6 +2966,10 @@ void Node3DEditorViewport::_notification(int p_what) {
 				}
 
 				Transform3D t = sp->get_global_gizmo_transform();
+				if (!t.is_finite()) {
+					continue;
+				}
+
 				AABB new_aabb = _calculate_spatial_bounds(sp);
 
 				exist = true;
@@ -4349,32 +4318,36 @@ void Node3DEditorViewport::focus_selection() {
 
 	const List<Node *> &selection = editor_selection->get_selected_node_list();
 
-	for (Node *E : selection) {
-		Node3D *sp = Object::cast_to<Node3D>(E);
-		if (!sp) {
+	for (Node *node : selection) {
+		Node3D *node_3d = Object::cast_to<Node3D>(node);
+		if (!node_3d) {
 			continue;
 		}
 
-		Node3DEditorSelectedItem *se = editor_selection->get_node_editor_data<Node3DEditorSelectedItem>(sp);
+		Node3DEditorSelectedItem *se = editor_selection->get_node_editor_data<Node3DEditorSelectedItem>(node_3d);
 		if (!se) {
 			continue;
 		}
 
 		if (se->gizmo.is_valid()) {
 			for (const KeyValue<int, Transform3D> &GE : se->subgizmos) {
-				center += se->gizmo->get_subgizmo_transform(GE.key).origin;
-				count++;
+				const Vector3 pos = se->gizmo->get_subgizmo_transform(GE.key).origin;
+				if (pos.is_finite()) {
+					center += pos;
+					count++;
+				}
 			}
 		}
-
-		center += sp->get_global_gizmo_transform().origin;
-		count++;
+		const Vector3 pos = node_3d->get_global_gizmo_transform().origin;
+		if (pos.is_finite()) {
+			center += pos;
+			count++;
+		}
 	}
 
-	if (count != 0) {
+	if (count > 1) {
 		center /= count;
 	}
-
 	cursor.pos = center;
 }
 
@@ -4475,26 +4448,28 @@ Vector3 Node3DEditorViewport::_get_instance_position(const Point2 &p_pos, Node3D
 	if (plane.intersects_ray(world_pos, world_ray, &intersection)) {
 		return intersection;
 	}
-
 	// Not likely, but just in case...
 	return world_pos + world_ray * FALLBACK_DISTANCE;
 }
 
 AABB Node3DEditorViewport::_calculate_spatial_bounds(const Node3D *p_parent, bool p_omit_top_level, const Transform3D *p_bounds_orientation) {
-	AABB bounds;
-
-	Transform3D bounds_orientation;
-	if (p_bounds_orientation) {
-		bounds_orientation = *p_bounds_orientation;
-	} else {
-		bounds_orientation = p_parent->get_global_transform();
-	}
-
 	if (!p_parent) {
 		return AABB(Vector3(-0.2, -0.2, -0.2), Vector3(0.4, 0.4, 0.4));
 	}
+	const Transform3D parent_transform = p_parent->get_global_transform();
+	if (!parent_transform.is_finite()) {
+		return AABB();
+	}
 
-	const Transform3D xform_to_top_level_parent_space = bounds_orientation.affine_inverse() * p_parent->get_global_transform();
+	AABB bounds;
+	Transform3D bounds_orientation;
+	Transform3D xform_to_top_level_parent_space;
+	if (p_bounds_orientation) {
+		bounds_orientation = *p_bounds_orientation;
+		xform_to_top_level_parent_space = bounds_orientation.affine_inverse() * parent_transform;
+	} else {
+		bounds_orientation = parent_transform;
+	}
 
 	const VisualInstance3D *visual_instance = Object::cast_to<VisualInstance3D>(p_parent);
 	if (visual_instance) {
@@ -6276,6 +6251,9 @@ void Node3DEditor::update_transform_gizmo() {
 	if (se && se->gizmo.is_valid()) {
 		for (const KeyValue<int, Transform3D> &E : se->subgizmos) {
 			Transform3D xf = se->sp->get_global_transform() * se->gizmo->get_subgizmo_transform(E.key);
+			if (!xf.is_finite()) {
+				continue;
+			}
 			gizmo_center += xf.origin;
 			if ((unsigned int)count == se->subgizmos.size() - 1 && local_gizmo_coords) {
 				gizmo_basis = xf.basis;
@@ -6300,6 +6278,9 @@ void Node3DEditor::update_transform_gizmo() {
 			}
 
 			Transform3D xf = sel_item->sp->get_global_transform();
+			if (!xf.is_finite()) {
+				continue;
+			}
 			gizmo_center += xf.origin;
 			if (count == selection.size() - 1 && local_gizmo_coords) {
 				gizmo_basis = xf.basis;
@@ -6323,7 +6304,6 @@ void _update_all_gizmos(Node *p_node) {
 		if (spatial_node) {
 			spatial_node->update_gizmos();
 		}
-
 		_update_all_gizmos(p_node->get_child(i));
 	}
 }
@@ -6464,7 +6444,6 @@ Dictionary Node3DEditor::get_state() const {
 	d["translate_snap"] = snap_translate_value;
 	d["rotate_snap"] = snap_rotate_value;
 	d["scale_snap"] = snap_scale_value;
-
 	d["local_coords"] = tool_option_button[TOOL_OPT_LOCAL_COORDS]->is_pressed();
 
 	int vc = 0;
@@ -6489,7 +6468,6 @@ Dictionary Node3DEditor::get_state() const {
 	}
 
 	d["viewports"] = vpdata;
-
 	d["show_grid"] = view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_GRID));
 	d["show_origin"] = view_layout_menu->get_popup()->is_item_checked(view_layout_menu->get_popup()->get_item_index(MENU_VIEW_ORIGIN));
 	d["fov"] = get_fov();
@@ -6511,7 +6489,6 @@ Dictionary Node3DEditor::get_state() const {
 		Dictionary pd;
 
 		pd["sun_rotation"] = sun_rotation;
-
 		pd["environ_sky_color"] = environ_sky_color->get_pick_color();
 		pd["environ_ground_color"] = environ_ground_color->get_pick_color();
 		pd["environ_energy"] = environ_energy->get_value();
@@ -6520,16 +6497,12 @@ Dictionary Node3DEditor::get_state() const {
 		pd["environ_ao_enabled"] = environ_ao_button->is_pressed();
 		pd["environ_gi_enabled"] = environ_gi_button->is_pressed();
 		pd["sun_max_distance"] = sun_max_distance->get_value();
-
 		pd["sun_color"] = sun_color->get_pick_color();
 		pd["sun_energy"] = sun_energy->get_value();
-
 		pd["sun_enabled"] = sun_button->is_pressed();
 		pd["environ_enabled"] = environ_button->is_pressed();
-
 		d["preview_sun_env"] = pd;
 	}
-
 	return d;
 }
 
@@ -6619,17 +6592,15 @@ void Node3DEditor::set_state(const Dictionary &p_state) {
 
 	if (d.has("gizmos_status")) {
 		Dictionary gizmos_status = d["gizmos_status"];
-		List<Variant> keys;
-		gizmos_status.get_key_list(&keys);
 
 		for (int j = 0; j < gizmo_plugins_by_name.size(); ++j) {
 			if (!gizmo_plugins_by_name[j]->can_be_hidden()) {
 				continue;
 			}
 			int state = EditorNode3DGizmoPlugin::VISIBLE;
-			for (const Variant &key : keys) {
-				if (gizmo_plugins_by_name.write[j]->get_gizmo_name() == String(key)) {
-					state = gizmos_status[key];
+			for (const KeyValue<Variant, Variant> &kv : gizmos_status) {
+				if (gizmo_plugins_by_name.write[j]->get_gizmo_name() == String(kv.key)) {
+					state = kv.value;
 					break;
 				}
 			}
@@ -9352,12 +9323,9 @@ Node3DEditor::Node3DEditor() {
 		sun_direction_shader.instantiate();
 		sun_direction_shader->set_code(R"(
 // 3D editor Preview Sun direction shader.
-
 shader_type canvas_item;
-
 uniform vec3 sun_direction;
 uniform vec3 sun_color;
-
 void fragment() {
 	vec3 n;
 	n.xy = UV * 2.0 - 1.0;

@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  resource_format_binary.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "resource_format_binary.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access_compressed.h"
@@ -119,7 +89,7 @@ static Error read_reals(real_t *dst, Ref<FileAccess> &f, size_t count) {
 					dst[i] = BSWAP64(dst[i]);
 				}
 			}
-#endif
+#endif // BIG_ENDIAN_ENABLED
 		} else if constexpr (sizeof(real_t) == 4) {
 			// May be slower, but this is for compatibility. Eventually the data should be converted.
 			for (size_t i = 0; i < count; ++i) {
@@ -139,7 +109,7 @@ static Error read_reals(real_t *dst, Ref<FileAccess> &f, size_t count) {
 					dst[i] = BSWAP32(dst[i]);
 				}
 			}
-#endif
+#endif // BIG_ENDIAN_ENABLED
 		} else if constexpr (sizeof(real_t) == 8) {
 			for (size_t i = 0; i < count; ++i) {
 				dst[i] = f->get_float();
@@ -166,7 +136,6 @@ StringName ResourceLoaderBinary::_get_string() {
 		s.parse_utf8(&str_buf[0], len);
 		return s;
 	}
-
 	return string_map[id];
 }
 
@@ -1876,12 +1845,9 @@ void ResourceFormatSaverBinaryInstance::write_variant(Ref<FileAccess> f, const V
 			Dictionary d = p_property;
 			f->store_32(uint32_t(d.size()));
 
-			List<Variant> keys;
-			d.get_key_list(&keys);
-
-			for (const Variant &E : keys) {
-				write_variant(f, E, resource_map, external_resources, string_map);
-				write_variant(f, d[E], resource_map, external_resources, string_map);
+			for (const KeyValue<Variant, Variant> &kv : d) {
+				write_variant(f, kv.key, resource_map, external_resources, string_map);
+				write_variant(f, kv.value, resource_map, external_resources, string_map);
 			}
 
 		} break;
@@ -2086,12 +2052,9 @@ void ResourceFormatSaverBinaryInstance::_find_resources(const Variant &p_variant
 			Dictionary d = p_variant;
 			_find_resources(d.get_typed_key_script());
 			_find_resources(d.get_typed_value_script());
-			List<Variant> keys;
-			d.get_key_list(&keys);
-			for (const Variant &E : keys) {
-				_find_resources(E);
-				Variant v = d[E];
-				_find_resources(v);
+			for (const KeyValue<Variant, Variant> &kv : d) {
+				_find_resources(kv.key);
+				_find_resources(kv.value);
 			}
 		} break;
 		case Variant::NODE_PATH: {

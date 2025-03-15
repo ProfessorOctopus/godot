@@ -730,6 +730,10 @@ Ref<Resource> ResourceLoader::_load_complete(LoadToken &p_load_token, Error *r_e
 	return _load_complete_inner(p_load_token, r_error, thread_load_lock);
 }
 
+void ResourceLoader::set_is_import_thread(bool p_import_thread) {
+	import_thread = p_import_thread;
+}
+
 Ref<Resource> ResourceLoader::_load_complete_inner(LoadToken &p_load_token, Error *r_error, MutexLock<SafeBinaryMutex<BINARY_MUTEX_TAG>> &p_thread_load_lock) {
 	if (r_error) {
 		*r_error = OK;
@@ -844,16 +848,16 @@ Ref<Resource> ResourceLoader::_load_complete_inner(LoadToken &p_load_token, Erro
 							MessageQueue::get_main_singleton()->push_callable(callable_mp(rcc.source, &Resource::connect_changed).bind(rcc.callable, rcc.flags));
 						}
 					}
-					core_bind::Semaphore done;
-					MessageQueue::get_main_singleton()->push_callable(callable_mp(&done, &core_bind::Semaphore::post).bind(1));
-					done.wait();
+					if (!import_thread) { // Main thread is blocked by initial resource reimport, do not wait.
+						core_bind::Semaphore done;
+						MessageQueue::get_main_singleton()->push_callable(callable_mp(&done, &core_bind::Semaphore::post).bind(1));
+						done.wait();
+					}
 				}
 			}
 		}
 	}
-
 	p_thread_load_lock.temp_relock();
-
 	return resource;
 }
 
@@ -878,7 +882,6 @@ void ResourceLoader::resource_changed_connect(Resource *p_source, const Callable
 			return;
 		}
 	}
-
 	ThreadLoadTask::ResourceChangedConnection rcc;
 	rcc.source = p_source;
 	rcc.callable = p_callable;
@@ -942,7 +945,6 @@ Ref<Resource> ResourceLoader::get_resource_ref_override(const String &p_path) {
 	if (!F) {
 		return nullptr;
 	}
-
 	return F->value;
 }
 
@@ -966,7 +968,6 @@ bool ResourceLoader::exists(const String &p_path, const String &p_type_hint) {
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -1013,10 +1014,8 @@ int ResourceLoader::get_import_order(const String &p_path) {
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		return loader[i]->get_import_order(p_path);
 	}
-
 	return 0;
 }
 
@@ -1027,10 +1026,8 @@ String ResourceLoader::get_import_group_file(const String &p_path) {
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		return loader[i]->get_import_group_file(p_path);
 	}
-
 	return String(); //not found
 }
 
@@ -1041,10 +1038,8 @@ bool ResourceLoader::is_import_valid(const String &p_path) {
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		return loader[i]->is_import_valid(p_path);
 	}
-
 	return false; //not found
 }
 
@@ -1055,10 +1050,8 @@ bool ResourceLoader::is_imported(const String &p_path) {
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		return loader[i]->is_imported(p_path);
 	}
-
 	return false; //not found
 }
 
@@ -1069,7 +1062,6 @@ void ResourceLoader::get_dependencies(const String &p_path, List<String> *p_depe
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		loader[i]->get_dependencies(local_path, p_dependencies, p_add_types);
 	}
 }
@@ -1081,10 +1073,8 @@ Error ResourceLoader::rename_dependencies(const String &p_path, const HashMap<St
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		return loader[i]->rename_dependencies(local_path, p_map);
 	}
-
 	return OK; // ??
 }
 
@@ -1095,7 +1085,6 @@ void ResourceLoader::get_classes_used(const String &p_path, HashSet<StringName> 
 		if (!loader[i]->recognize_path(local_path)) {
 			continue;
 		}
-
 		return loader[i]->get_classes_used(p_path, r_classes);
 	}
 }
@@ -1109,7 +1098,6 @@ String ResourceLoader::get_resource_type(const String &p_path) {
 			return result;
 		}
 	}
-
 	return "";
 }
 
@@ -1122,7 +1110,6 @@ String ResourceLoader::get_resource_script_class(const String &p_path) {
 			return result;
 		}
 	}
-
 	return "";
 }
 
@@ -1135,7 +1122,6 @@ ResourceUID::ID ResourceLoader::get_resource_uid(const String &p_path) {
 			return id;
 		}
 	}
-
 	return ResourceUID::INVALID_ID;
 }
 
@@ -1150,7 +1136,6 @@ bool ResourceLoader::has_custom_uid_support(const String &p_path) {
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -1174,10 +1159,8 @@ String ResourceLoader::_path_remap(const String &p_path, bool *r_translation_rem
 	if (translation_remaps.has(p_path)) {
 		// translation_remaps has the following format:
 		//   { "res://path.png": PackedStringArray( "res://path-ru.png:ru", "res://path-de.png:de" ) }
-
 		// To find the path of the remapped resource, we extract the locale name after
 		// the last ':' to match the project locale.
-
 		// An extra remap may still be necessary afterwards due to the text -> binary converter on export.
 
 		String locale = TranslationServer::get_singleton()->get_locale();
@@ -1297,18 +1280,15 @@ void ResourceLoader::load_translation_remaps() {
 	}
 
 	Dictionary remaps = GLOBAL_GET("internationalization/locale/translation_remaps");
-	List<Variant> keys;
-	remaps.get_key_list(&keys);
-	for (const Variant &E : keys) {
-		Array langs = remaps[E];
+	for (const KeyValue<Variant, Variant> &kv : remaps) {
+		Array langs = kv.value;
 		Vector<String> lang_remaps;
 		lang_remaps.resize(langs.size());
 		String *lang_remaps_ptrw = lang_remaps.ptrw();
 		for (const Variant &lang : langs) {
 			*lang_remaps_ptrw++ = lang;
 		}
-
-		translation_remaps[String(E)] = lang_remaps;
+		translation_remaps[String(kv.key)] = lang_remaps;
 	}
 }
 
@@ -1508,12 +1488,10 @@ Vector<String> ResourceLoader::list_directory(const String &p_directory) {
 	for (const String &f : files_found) {
 		ret.push_back(f);
 	}
-
 	return ret;
 }
 
 void ResourceLoader::initialize() {}
-
 void ResourceLoader::finalize() {}
 
 ResourceLoadErrorNotify ResourceLoader::err_notify = nullptr;
@@ -1523,6 +1501,7 @@ bool ResourceLoader::create_missing_resources_if_class_unavailable = false;
 bool ResourceLoader::abort_on_missing_resource = true;
 bool ResourceLoader::timestamp_on_load = false;
 
+thread_local bool ResourceLoader::import_thread = false;
 thread_local int ResourceLoader::load_nesting = 0;
 thread_local Vector<String> ResourceLoader::load_paths_stack;
 thread_local HashMap<int, HashMap<String, Ref<Resource>>> ResourceLoader::res_ref_overrides;

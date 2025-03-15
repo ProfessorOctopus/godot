@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  project_settings_editor.cpp                                           */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "project_settings_editor.h"
-
 #include "core/config/project_settings.h"
 #include "core/input/input_map.h"
 #include "editor/editor_inspector.h"
@@ -71,12 +41,19 @@ void ProjectSettingsEditor::popup_project_settings(bool p_clear_filter) {
 	if (p_clear_filter) {
 		search_box->clear();
 	}
-
 	_focus_current_search_box();
 }
 
 void ProjectSettingsEditor::queue_save() {
+	settings_changed = true;
 	timer->start();
+}
+
+void ProjectSettingsEditor::_save() {
+	settings_changed = false;
+	if (ps) {
+		ps->save();
+	}
 }
 
 void ProjectSettingsEditor::set_plugins_page() {
@@ -601,6 +578,10 @@ void ProjectSettingsEditor::_notification(int p_what) {
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			if (!is_visible()) {
 				EditorSettings::get_singleton()->set_project_metadata("dialog_bounds", "project_settings", Rect2(get_position(), get_size()));
+				if (settings_changed) {
+					timer->stop();
+					_save();
+				}
 			}
 		} break;
 
@@ -653,7 +634,6 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 
 	advanced = memnew(CheckButton);
 	advanced->set_text(TTR("Advanced Settings"));
-	advanced->connect(SceneStringName(toggled), callable_mp(this, &ProjectSettingsEditor::_advanced_toggled));
 	search_bar->add_child(advanced);
 
 	custom_properties = memnew(HBoxContainer);
@@ -763,7 +743,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 
 	timer = memnew(Timer);
 	timer->set_wait_time(1.5);
-	timer->connect("timeout", callable_mp(ps, &ProjectSettings::save));
+	timer->connect("timeout", callable_mp(this, &ProjectSettingsEditor::_save));
 	timer->set_one_shot(true);
 	add_child(timer);
 
@@ -774,6 +754,7 @@ ProjectSettingsEditor::ProjectSettingsEditor(EditorData *p_data) {
 	if (use_advanced) {
 		advanced->set_pressed(true);
 	}
+	advanced->connect(SceneStringName(toggled), callable_mp(this, &ProjectSettingsEditor::_advanced_toggled));
 
 	_update_advanced(use_advanced);
 

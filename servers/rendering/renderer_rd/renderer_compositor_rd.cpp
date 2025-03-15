@@ -1,38 +1,7 @@
-/**************************************************************************/
-/*  renderer_compositor_rd.cpp                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "renderer_compositor_rd.h"
-
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
-
 #include "servers/rendering/renderer_rd/forward_clustered/render_forward_clustered.h"
 #include "servers/rendering/renderer_rd/forward_mobile/render_forward_mobile.h"
 
@@ -50,7 +19,8 @@ void RendererCompositorRD::blit_render_targets_to_screen(DisplayServer::WindowID
 		RID rd_texture = texture_storage->render_target_get_rd_texture(p_render_targets[i].render_target);
 		ERR_CONTINUE(rd_texture.is_null());
 
-		if (!render_target_descriptors.has(rd_texture) || !RD::get_singleton()->uniform_set_is_valid(render_target_descriptors[rd_texture])) {
+		HashMap<RID, RID>::Iterator it = render_target_descriptors.find(rd_texture);
+		if (it == render_target_descriptors.end() || !RD::get_singleton()->uniform_set_is_valid(it->value)) {
 			Vector<RD::Uniform> uniforms;
 			RD::Uniform u;
 			u.uniform_type = RD::UNIFORM_TYPE_SAMPLER_WITH_TEXTURE;
@@ -60,14 +30,14 @@ void RendererCompositorRD::blit_render_targets_to_screen(DisplayServer::WindowID
 			uniforms.push_back(u);
 			RID uniform_set = RD::get_singleton()->uniform_set_create(uniforms, blit.shader.version_get_shader(blit.shader_version, BLIT_MODE_NORMAL), 0);
 
-			render_target_descriptors[rd_texture] = uniform_set;
+			it = render_target_descriptors.insert(rd_texture, uniform_set);
 		}
 
 		Size2 screen_size(RD::get_singleton()->screen_get_width(p_screen), RD::get_singleton()->screen_get_height(p_screen));
 		BlitMode mode = p_render_targets[i].lens_distortion.apply ? BLIT_MODE_LENS : (p_render_targets[i].multi_view.use_layer ? BLIT_MODE_USE_LAYER : BLIT_MODE_NORMAL);
 		RD::get_singleton()->draw_list_bind_render_pipeline(draw_list, blit.pipelines[mode]);
 		RD::get_singleton()->draw_list_bind_index_array(draw_list, blit.array);
-		RD::get_singleton()->draw_list_bind_uniform_set(draw_list, render_target_descriptors[rd_texture], 0);
+		RD::get_singleton()->draw_list_bind_uniform_set(draw_list, it->value, 0);
 
 		// We need to invert the phone rotation.
 		const int screen_rotation_degrees = -RD::get_singleton()->screen_get_pre_rotation_degrees(p_screen);
@@ -99,7 +69,6 @@ void RendererCompositorRD::blit_render_targets_to_screen(DisplayServer::WindowID
 		RD::get_singleton()->draw_list_set_push_constant(draw_list, &blit.push_constant, sizeof(BlitPushConstant));
 		RD::get_singleton()->draw_list_draw(draw_list, true);
 	}
-
 	RD::get_singleton()->draw_list_end();
 }
 
@@ -154,7 +123,6 @@ void RendererCompositorRD::initialize() {
 		}
 		blit.index_buffer = RD::get_singleton()->index_buffer_create(6, RenderingDevice::INDEX_BUFFER_FORMAT_UINT16, pv);
 		blit.array = RD::get_singleton()->index_array_create(blit.index_buffer, 0, 6);
-
 		blit.sampler = RD::get_singleton()->sampler_create(RD::SamplerState());
 	}
 }

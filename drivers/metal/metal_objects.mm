@@ -75,33 +75,6 @@ void MDCommandBuffer::bind_pipeline(RDD::PipelineID p_pipeline) {
 			render.desc.defaultRasterSampleCount = static_cast<NSUInteger>(rp->sample_count);
 
 // NOTE(sgc): This is to test rdar://FB13605547 and will be deleted once fix is confirmed.
-#if 0
-			if (render.pipeline->sample_count == 4) {
-				static id<MTLTexture> tex = nil;
-				static id<MTLTexture> res_tex = nil;
-				static dispatch_once_t onceToken;
-				dispatch_once(&onceToken, ^{
-					Size2i sz = render.frameBuffer->size;
-					MTLTextureDescriptor *td = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm width:sz.width height:sz.height mipmapped:NO];
-					td.textureType = MTLTextureType2DMultisample;
-					td.storageMode = MTLStorageModeMemoryless;
-					td.usage = MTLTextureUsageRenderTarget;
-					td.sampleCount = render.pipeline->sample_count;
-					tex = [device_driver->get_device() newTextureWithDescriptor:td];
-
-					td.textureType = MTLTextureType2D;
-					td.storageMode = MTLStorageModePrivate;
-					td.usage = MTLTextureUsageShaderWrite;
-					td.sampleCount = 1;
-					res_tex = [device_driver->get_device() newTextureWithDescriptor:td];
-				});
-				render.desc.colorAttachments[0].texture = tex;
-				render.desc.colorAttachments[0].loadAction = MTLLoadActionClear;
-				render.desc.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
-
-				render.desc.colorAttachments[0].resolveTexture = res_tex;
-			}
-#endif
 			render.encoder = [commandBuffer renderCommandEncoderWithDescriptor:render.desc];
 		}
 
@@ -145,7 +118,6 @@ id<MTLBlitCommandEncoder> MDCommandBuffer::blit_command_encoder() {
 		case MDCommandBufferStateType::Blit:
 			return blit.encoder;
 	}
-
 	type = MDCommandBufferStateType::Blit;
 	blit.encoder = commandBuffer.blitCommandEncoder;
 	return blit.encoder;
@@ -1058,13 +1030,13 @@ void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::Ren
 
 	for (uint32_t i = 0; i < MIN(uniforms.size(), set.uniforms.size()); i++) {
 		RDD::BoundUniform const &uniform = uniforms[i];
-		UniformInfo ui = set.uniforms[i];
+		const UniformInfo &ui = set.uniforms[i];
 
 		static const RDC::ShaderStage stage_usages[2] = { RDC::ShaderStage::SHADER_STAGE_VERTEX, RDC::ShaderStage::SHADER_STAGE_FRAGMENT };
 		for (const RDC::ShaderStage stage : stage_usages) {
 			ShaderStageUsage const stage_usage = ShaderStageUsage(1 << stage);
 
-			BindingInfo *bi = ui.bindings.getptr(stage);
+			const BindingInfo *bi = ui.bindings.getptr(stage);
 			if (bi == nullptr) {
 				// No binding for this stage.
 				continue;
@@ -1098,7 +1070,7 @@ void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::Ren
 						samplers[j] = sampler;
 						textures[j] = texture;
 					}
-					BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+					const BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
 					if (sbi) {
 						if (stage == RDD::SHADER_STAGE_VERTEX) {
 							[enc setVertexSamplerStates:samplers withRange:NSMakeRange(sbi->index, count)];
@@ -1144,7 +1116,7 @@ void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::Ren
 							[enc setFragmentTexture:obj atIndex:bi->index];
 						}
 
-						BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+						const BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
 						if (sbi) {
 							id<MTLTexture> tex = obj.parentTexture ? obj.parentTexture : obj;
 							id<MTLBuffer> buf = tex.buffer;
@@ -1260,12 +1232,12 @@ void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::Com
 
 	for (uint32_t i = 0; i < uniforms.size(); i++) {
 		RDD::BoundUniform const &uniform = uniforms[i];
-		UniformInfo ui = set.uniforms[i];
+		const UniformInfo &ui = set.uniforms[i];
 
 		const RDC::ShaderStage stage = RDC::ShaderStage::SHADER_STAGE_COMPUTE;
 		const ShaderStageUsage stage_usage = ShaderStageUsage(1 << stage);
 
-		BindingInfo *bi = ui.bindings.getptr(stage);
+		const BindingInfo *bi = ui.bindings.getptr(stage);
 		if (bi == nullptr) {
 			// No binding for this stage.
 			continue;
@@ -1295,7 +1267,7 @@ void MDUniformSet::bind_uniforms_direct(MDShader *p_shader, MDCommandBuffer::Com
 					samplers[j] = sampler;
 					textures[j] = texture;
 				}
-				BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+				const BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
 				if (sbi) {
 					[enc setSamplerStates:samplers withRange:NSMakeRange(sbi->index, count)];
 				}
@@ -1477,7 +1449,7 @@ BoundUniformSet &MDUniformSet::bound_uniform_set(MDShader *p_shader, id<MTLDevic
 							id<MTLTexture> obj = rid::get(uniform.ids[0]);
 							[enc setTexture:obj atIndex:bi->index];
 							add_usage(obj, stage, bi->usage);
-							BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
+							const BindingInfo *sbi = ui.bindings_secondary.getptr(stage);
 							if (sbi) {
 								id<MTLTexture> tex = obj.parentTexture ? obj.parentTexture : obj;
 								id<MTLBuffer> buf = tex.buffer;

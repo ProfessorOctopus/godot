@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  dependency_editor.h                                                   */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "scene/gui/box_container.h"
 #include "scene/gui/dialogs.h"
 #include "scene/gui/item_list.h"
@@ -66,7 +36,7 @@ public:
 
 #ifdef MINGW_ENABLED
 #undef FILE_OPEN
-#endif
+#endif // MINGW_ENABLED
 
 class DependencyEditorOwners : public AcceptDialog {
 	GDCLASS(DependencyEditorOwners, AcceptDialog);
@@ -139,12 +109,6 @@ public:
 class DependencyErrorDialog : public ConfirmationDialog {
 	GDCLASS(DependencyErrorDialog, ConfirmationDialog);
 
-public:
-	enum Mode {
-		MODE_SCENE,
-		MODE_RESOURCE,
-	};
-
 private:
 	String for_file;
 	Mode mode;
@@ -155,7 +119,7 @@ private:
 	void custom_action(const String &) override;
 
 public:
-	void show(Mode p_mode, const String &p_for_file, const Vector<String> &report);
+	void show(const String &p_for_file, const Vector<String> &report);
 	DependencyErrorDialog();
 };
 

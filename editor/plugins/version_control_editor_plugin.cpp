@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  version_control_editor_plugin.cpp                                     */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "version_control_editor_plugin.h"
-
 #include "core/config/project_settings.h"
 #include "core/os/keyboard.h"
 #include "core/os/time.h"
@@ -52,9 +22,8 @@
 
 VersionControlEditorPlugin *VersionControlEditorPlugin::singleton = nullptr;
 
-void VersionControlEditorPlugin::_bind_methods() {
-	// No binds required so far.
-}
+// No binds required so far.
+void VersionControlEditorPlugin::_bind_methods() {}
 
 void VersionControlEditorPlugin::_create_vcs_metadata_files() {
 	String dir = "res://";
@@ -189,7 +158,6 @@ void VersionControlEditorPlugin::_refresh_branch_list() {
 
 	List<String> branch_list = EditorVCSInterface::get_singleton()->get_branch_list();
 	branch_select->clear();
-
 	branch_select->set_disabled(branch_list.is_empty());
 
 	String current_branch = EditorVCSInterface::get_singleton()->get_current_branch_name();
@@ -548,7 +516,7 @@ void VersionControlEditorPlugin::_cell_button_pressed(Object *p_item, int p_colu
 
 		file_path = "res://" + file_path;
 		if (ResourceLoader::get_resource_type(file_path) == "PackedScene") {
-			EditorNode::get_singleton()->open_request(file_path);
+			EditorNode::get_singleton()->load_scene(file_path);
 		} else if (file_path.ends_with(".gd")) {
 			EditorNode::get_singleton()->load_resource(file_path);
 			ScriptEditor::get_singleton()->reload_scripts();
@@ -621,7 +589,6 @@ void VersionControlEditorPlugin::_display_diff(int p_idx) {
 			diff->add_newline();
 		}
 		diff->pop();
-
 		diff->add_newline();
 	}
 }
@@ -662,16 +629,12 @@ void VersionControlEditorPlugin::_display_diff_split_view(List<EditorVCSInterfac
 	}
 
 	diff->push_table(6);
-	/*
-		[cell]Old Line No[/cell]
+	/*	[cell]Old Line No[/cell]
 		[cell]prefix[/cell]
 		[cell]Old Code[/cell]
-
 		[cell]New Line No[/cell]
 		[cell]prefix[/cell]
-		[cell]New Line[/cell]
-	*/
-
+		[cell]New Line[/cell]*/
 	diff->set_table_column_expand(2, true);
 	diff->set_table_column_expand(5, true);
 
@@ -749,12 +712,10 @@ void VersionControlEditorPlugin::_display_diff_unified_view(List<EditorVCSInterf
 	diff->push_table(4);
 	diff->set_table_column_expand(3, true);
 
-	/*
-		[cell]Old Line No[/cell]
+	/*	[cell]Old Line No[/cell]
 		[cell]New Line No[/cell]
 		[cell]status[/cell]
-		[cell]code[/cell]
-	*/
+		[cell]code[/cell]*/
 	for (const EditorVCSInterface::DiffLine &diff_line : p_diff_content) {
 		String line = diff_line.content.strip_edges(false, true);
 
@@ -767,7 +728,6 @@ void VersionControlEditorPlugin::_display_diff_unified_view(List<EditorVCSInterf
 			color = EditorNode::get_singleton()->get_editor_theme()->get_color(SceneStringName(font_color), SNAME("Label"));
 			color *= Color(1, 1, 1, 0.6);
 		}
-
 		diff->push_cell();
 		diff->push_color(color);
 		diff->push_indent(1);
@@ -775,7 +735,6 @@ void VersionControlEditorPlugin::_display_diff_unified_view(List<EditorVCSInterf
 		diff->pop();
 		diff->pop();
 		diff->pop();
-
 		diff->push_cell();
 		diff->push_color(color);
 		diff->push_indent(1);
@@ -783,20 +742,17 @@ void VersionControlEditorPlugin::_display_diff_unified_view(List<EditorVCSInterf
 		diff->pop();
 		diff->pop();
 		diff->pop();
-
 		diff->push_cell();
 		diff->push_color(color);
 		diff->add_text(diff_line.status != "" ? diff_line.status + "|" : " |");
 		diff->pop();
 		diff->pop();
-
 		diff->push_cell();
 		diff->push_color(color);
 		diff->add_text(line);
 		diff->pop();
 		diff->pop();
 	}
-
 	diff->pop();
 }
 
@@ -886,9 +842,7 @@ void VersionControlEditorPlugin::_commit_message_gui_input(const Ref<InputEvent>
 				// Stage all files only when no files were previously staged.
 				_move_all(unstaged_files);
 			}
-
 			_commit();
-
 			commit_message->accept_event();
 		}
 	}
@@ -1442,14 +1396,11 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	extra_options->get_popup()->add_item(TTR("Force Push"), EXTRA_OPTION_FORCE_PUSH);
 	extra_options->get_popup()->add_separator();
 	extra_options->get_popup()->add_item(TTR("Create New Branch"), EXTRA_OPTION_CREATE_BRANCH);
-
 	extra_options_remove_branch_list = memnew(PopupMenu);
 	extra_options_remove_branch_list->connect(SceneStringName(id_pressed), callable_mp(this, &VersionControlEditorPlugin::_popup_branch_remove_confirm));
 	extra_options->get_popup()->add_submenu_node_item(TTR("Remove Branch"), extra_options_remove_branch_list);
-
 	extra_options->get_popup()->add_separator();
 	extra_options->get_popup()->add_item(TTR("Create New Remote"), EXTRA_OPTION_CREATE_REMOTE);
-
 	extra_options_remove_remote_list = memnew(PopupMenu);
 	extra_options_remove_remote_list->connect(SceneStringName(id_pressed), callable_mp(this, &VersionControlEditorPlugin::_popup_remote_remove_confirm));
 	extra_options->get_popup()->add_submenu_node_item(TTR("Remove Remote"), extra_options_remove_remote_list);
@@ -1467,7 +1418,6 @@ VersionControlEditorPlugin::VersionControlEditorPlugin() {
 	change_type_to_color[EditorVCSInterface::CHANGE_TYPE_DELETED] = EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("error_color"), EditorStringName(Editor));
 	change_type_to_color[EditorVCSInterface::CHANGE_TYPE_TYPECHANGE] = EditorNode::get_singleton()->get_editor_theme()->get_color(SceneStringName(font_color), EditorStringName(Editor));
 	change_type_to_color[EditorVCSInterface::CHANGE_TYPE_UNMERGED] = EditorNode::get_singleton()->get_editor_theme()->get_color(SNAME("warning_color"), EditorStringName(Editor));
-
 	change_type_to_icon[EditorVCSInterface::CHANGE_TYPE_NEW] = EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("StatusSuccess"), EditorStringName(EditorIcons));
 	change_type_to_icon[EditorVCSInterface::CHANGE_TYPE_MODIFIED] = EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("StatusWarning"), EditorStringName(EditorIcons));
 	change_type_to_icon[EditorVCSInterface::CHANGE_TYPE_RENAMED] = EditorNode::get_singleton()->get_editor_theme()->get_icon(SNAME("StatusWarning"), EditorStringName(EditorIcons));

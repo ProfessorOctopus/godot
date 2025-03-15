@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  gdextension_interface.cpp                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "gdextension_interface.h"
-
 #include "core/config/engine.h"
 #include "core/extension/gdextension.h"
 #include "core/extension/gdextension_special_compat_hashes.h"
@@ -42,7 +12,6 @@
 #include "core/os/memory.h"
 #include "core/variant/variant.h"
 #include "core/version.h"
-
 #include <string.h>
 
 class CallableCustomExtension : public CallableCustom {
@@ -54,10 +23,8 @@ class CallableCustomExtension : public CallableCustom {
 	GDExtensionCallableCustomCall call_func;
 	GDExtensionCallableCustomIsValid is_valid_func;
 	GDExtensionCallableCustomFree free_func;
-
 	GDExtensionCallableCustomEqual equal_func;
 	GDExtensionCallableCustomLessThan less_than_func;
-
 	GDExtensionCallableCustomToString to_string_func;
 
 	GDExtensionCallableCustomGetArgumentCount get_argument_count_func;
@@ -279,18 +246,23 @@ static void gdextension_mem_free(void *p_mem) {
 static void gdextension_print_error(const char *p_description, const char *p_function, const char *p_file, int32_t p_line, GDExtensionBool p_editor_notify) {
 	_err_print_error(p_function, p_file, p_line, p_description, p_editor_notify, ERR_HANDLER_ERROR);
 }
+
 static void gdextension_print_error_with_message(const char *p_description, const char *p_message, const char *p_function, const char *p_file, int32_t p_line, GDExtensionBool p_editor_notify) {
 	_err_print_error(p_function, p_file, p_line, p_description, p_message, p_editor_notify, ERR_HANDLER_ERROR);
 }
+
 static void gdextension_print_warning(const char *p_description, const char *p_function, const char *p_file, int32_t p_line, GDExtensionBool p_editor_notify) {
 	_err_print_error(p_function, p_file, p_line, p_description, p_editor_notify, ERR_HANDLER_WARNING);
 }
+
 static void gdextension_print_warning_with_message(const char *p_description, const char *p_message, const char *p_function, const char *p_file, int32_t p_line, GDExtensionBool p_editor_notify) {
 	_err_print_error(p_function, p_file, p_line, p_description, p_message, p_editor_notify, ERR_HANDLER_WARNING);
 }
+
 static void gdextension_print_script_error(const char *p_description, const char *p_function, const char *p_file, int32_t p_line, GDExtensionBool p_editor_notify) {
 	_err_print_error(p_function, p_file, p_line, p_description, p_editor_notify, ERR_HANDLER_SCRIPT);
 }
+
 static void gdextension_print_script_error_with_message(const char *p_description, const char *p_message, const char *p_function, const char *p_file, int32_t p_line, GDExtensionBool p_editor_notify) {
 	_err_print_error(p_function, p_file, p_line, p_description, p_message, p_editor_notify, ERR_HANDLER_SCRIPT);
 }
@@ -301,19 +273,19 @@ uint64_t gdextension_get_native_struct_size(GDExtensionConstStringNamePtr p_name
 }
 
 // Variant functions
-
 static void gdextension_variant_new_copy(GDExtensionUninitializedVariantPtr r_dest, GDExtensionConstVariantPtr p_src) {
 	memnew_placement(reinterpret_cast<Variant *>(r_dest), Variant(*reinterpret_cast<const Variant *>(p_src)));
 }
+
 static void gdextension_variant_new_nil(GDExtensionUninitializedVariantPtr r_dest) {
 	memnew_placement(reinterpret_cast<Variant *>(r_dest), Variant);
 }
+
 static void gdextension_variant_destroy(GDExtensionVariantPtr p_self) {
 	reinterpret_cast<Variant *>(p_self)->~Variant();
 }
 
 // variant type
-
 static void gdextension_variant_call(GDExtensionVariantPtr p_self, GDExtensionConstStringNamePtr p_method, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_argcount, GDExtensionUninitializedVariantPtr r_return, GDExtensionCallError *r_error) {
 	Variant *self = (Variant *)p_self;
 	const StringName method = *reinterpret_cast<const StringName *>(p_method);
@@ -803,6 +775,7 @@ static GDExtensionVariantGetInternalPtrFunc gdextension_variant_get_ptr_internal
 static GDExtensionPtrOperatorEvaluator gdextension_variant_get_ptr_operator_evaluator(GDExtensionVariantOperator p_operator, GDExtensionVariantType p_type_a, GDExtensionVariantType p_type_b) {
 	return (GDExtensionPtrOperatorEvaluator)Variant::get_ptr_operator_evaluator(Variant::Operator(p_operator), Variant::Type(p_type_a), Variant::Type(p_type_b));
 }
+
 static GDExtensionPtrBuiltInMethod gdextension_variant_get_ptr_builtin_method(GDExtensionVariantType p_type, GDExtensionConstStringNamePtr p_method, GDExtensionInt p_hash) {
 	const StringName method = *reinterpret_cast<const StringName *>(p_method);
 	uint32_t hash = Variant::get_builtin_method_hash(Variant::Type(p_type), method);
@@ -810,15 +783,17 @@ static GDExtensionPtrBuiltInMethod gdextension_variant_get_ptr_builtin_method(GD
 		ERR_PRINT_ONCE("Error getting method " + method + ", hash mismatch.");
 		return nullptr;
 	}
-
 	return (GDExtensionPtrBuiltInMethod)Variant::get_ptr_builtin_method(Variant::Type(p_type), method);
 }
+
 static GDExtensionPtrConstructor gdextension_variant_get_ptr_constructor(GDExtensionVariantType p_type, int32_t p_constructor) {
 	return (GDExtensionPtrConstructor)Variant::get_ptr_constructor(Variant::Type(p_type), p_constructor);
 }
+
 static GDExtensionPtrDestructor gdextension_variant_get_ptr_destructor(GDExtensionVariantType p_type) {
 	return (GDExtensionPtrDestructor)Variant::get_ptr_destructor(Variant::Type(p_type));
 }
+
 static void gdextension_variant_construct(GDExtensionVariantType p_type, GDExtensionUninitializedVariantPtr r_base, const GDExtensionConstVariantPtr *p_args, int32_t p_argument_count, GDExtensionCallError *r_error) {
 	memnew_placement(r_base, Variant);
 	Variant *base = reinterpret_cast<Variant *>(r_base);
@@ -832,33 +807,42 @@ static void gdextension_variant_construct(GDExtensionVariantType p_type, GDExten
 		r_error->expected = error.expected;
 	}
 }
+
 static GDExtensionPtrSetter gdextension_variant_get_ptr_setter(GDExtensionVariantType p_type, GDExtensionConstStringNamePtr p_member) {
 	const StringName member = *reinterpret_cast<const StringName *>(p_member);
 	return (GDExtensionPtrSetter)Variant::get_member_ptr_setter(Variant::Type(p_type), member);
 }
+
 static GDExtensionPtrGetter gdextension_variant_get_ptr_getter(GDExtensionVariantType p_type, GDExtensionConstStringNamePtr p_member) {
 	const StringName member = *reinterpret_cast<const StringName *>(p_member);
 	return (GDExtensionPtrGetter)Variant::get_member_ptr_getter(Variant::Type(p_type), member);
 }
+
 static GDExtensionPtrIndexedSetter gdextension_variant_get_ptr_indexed_setter(GDExtensionVariantType p_type) {
 	return (GDExtensionPtrIndexedSetter)Variant::get_member_ptr_indexed_setter(Variant::Type(p_type));
 }
+
 static GDExtensionPtrIndexedGetter gdextension_variant_get_ptr_indexed_getter(GDExtensionVariantType p_type) {
 	return (GDExtensionPtrIndexedGetter)Variant::get_member_ptr_indexed_getter(Variant::Type(p_type));
 }
+
 static GDExtensionPtrKeyedSetter gdextension_variant_get_ptr_keyed_setter(GDExtensionVariantType p_type) {
 	return (GDExtensionPtrKeyedSetter)Variant::get_member_ptr_keyed_setter(Variant::Type(p_type));
 }
+
 static GDExtensionPtrKeyedGetter gdextension_variant_get_ptr_keyed_getter(GDExtensionVariantType p_type) {
 	return (GDExtensionPtrKeyedGetter)Variant::get_member_ptr_keyed_getter(Variant::Type(p_type));
 }
+
 static GDExtensionPtrKeyedChecker gdextension_variant_get_ptr_keyed_checker(GDExtensionVariantType p_type) {
 	return (GDExtensionPtrKeyedChecker)Variant::get_member_ptr_keyed_checker(Variant::Type(p_type));
 }
+
 static void gdextension_variant_get_constant_value(GDExtensionVariantType p_type, GDExtensionConstStringNamePtr p_constant, GDExtensionUninitializedVariantPtr r_ret) {
 	StringName constant = *reinterpret_cast<const StringName *>(p_constant);
 	memnew_placement(r_ret, Variant(Variant::get_constant_value(Variant::Type(p_type), constant)));
 }
+
 static GDExtensionPtrUtilityFunction gdextension_variant_get_ptr_utility_function(GDExtensionConstStringNamePtr p_function, GDExtensionInt p_hash) {
 	StringName function = *reinterpret_cast<const StringName *>(p_function);
 	uint32_t hash = Variant::get_utility_function_hash(function);
@@ -870,7 +854,6 @@ static GDExtensionPtrUtilityFunction gdextension_variant_get_ptr_utility_functio
 }
 
 //string helpers
-
 static void gdextension_string_new_with_latin1_chars(GDExtensionUninitializedStringPtr r_dest, const char *p_contents) {
 	String *dest = memnew_placement(r_dest, String);
 	dest->parse_latin1(Span<char>(p_contents, p_contents ? strlen(p_contents) : 0));
@@ -957,6 +940,7 @@ static GDExtensionInt gdextension_string_to_latin1_chars(GDExtensionConstStringP
 	}
 	return len;
 }
+
 static GDExtensionInt gdextension_string_to_utf8_chars(GDExtensionConstStringPtr p_self, char *r_text, GDExtensionInt p_max_write_length) {
 	String *self = (String *)p_self;
 	CharString cs = self->utf8();
@@ -969,6 +953,7 @@ static GDExtensionInt gdextension_string_to_utf8_chars(GDExtensionConstStringPtr
 	}
 	return len;
 }
+
 static GDExtensionInt gdextension_string_to_utf16_chars(GDExtensionConstStringPtr p_self, char16_t *r_text, GDExtensionInt p_max_write_length) {
 	String *self = (String *)p_self;
 	Char16String cs = self->utf16();
@@ -981,6 +966,7 @@ static GDExtensionInt gdextension_string_to_utf16_chars(GDExtensionConstStringPt
 	}
 	return len;
 }
+
 static GDExtensionInt gdextension_string_to_utf32_chars(GDExtensionConstStringPtr p_self, char32_t *r_text, GDExtensionInt p_max_write_length) {
 	String *self = (String *)p_self;
 	GDExtensionInt len = self->length();
@@ -992,6 +978,7 @@ static GDExtensionInt gdextension_string_to_utf32_chars(GDExtensionConstStringPt
 	}
 	return len;
 }
+
 static GDExtensionInt gdextension_string_to_wide_chars(GDExtensionConstStringPtr p_self, wchar_t *r_text, GDExtensionInt p_max_write_length) {
 	if constexpr (sizeof(wchar_t) == 4) {
 		return gdextension_string_to_utf32_chars(p_self, (char32_t *)r_text, p_max_write_length);
@@ -1103,7 +1090,6 @@ static int64_t gdextension_worker_thread_pool_add_native_task(GDExtensionObjectP
 }
 
 /* Packed array functions */
-
 static uint8_t *gdextension_packed_byte_array_operator_index(GDExtensionTypePtr p_self, GDExtensionInt p_index) {
 	PackedByteArray *self = (PackedByteArray *)p_self;
 	if (unlikely(p_index < 0 || p_index >= self->size())) {
@@ -1294,7 +1280,6 @@ void gdextension_array_set_typed(GDExtensionTypePtr p_self, GDExtensionVariantTy
 }
 
 /* Dictionary functions */
-
 static GDExtensionVariantPtr gdextension_dictionary_operator_index(GDExtensionTypePtr p_self, GDExtensionConstVariantPtr p_key) {
 	Dictionary *self = (Dictionary *)p_self;
 	return (GDExtensionVariantPtr)&self->operator[](*(const Variant *)p_key);
@@ -1315,7 +1300,6 @@ void gdextension_dictionary_set_typed(GDExtensionTypePtr p_self, GDExtensionVari
 }
 
 /* OBJECT API */
-
 static void gdextension_object_method_bind_call(GDExtensionMethodBindPtr p_method_bind, GDExtensionObjectPtr p_instance, const GDExtensionConstVariantPtr *p_args, GDExtensionInt p_arg_count, GDExtensionUninitializedVariantPtr r_return, GDExtensionCallError *r_error) {
 	const MethodBind *mb = reinterpret_cast<const MethodBind *>(p_method_bind);
 	Object *o = (Object *)p_instance;
@@ -1554,14 +1538,9 @@ static void gdextension_placeholder_script_instance_update(GDExtensionScriptInst
 		Dictionary d = properties[i];
 		properties_list.push_back(PropertyInfo::from_dict(d));
 	}
-
-	List<Variant> keys;
-	values.get_key_list(&keys);
-
-	for (const Variant &E : keys) {
-		values_map.insert(E, values[E]);
+	for (const KeyValue<Variant, Variant> &kv : values) {
+		values_map.insert(kv.key, kv.value);
 	}
-
 	placeholder->update(properties_list, values_map);
 }
 
@@ -1580,7 +1559,6 @@ static GDExtensionScriptInstancePtr gdextension_object_get_script_instance(GDExt
 	if (language != p_language) {
 		return nullptr;
 	}
-
 	return script_instance_extension->instance;
 }
 
@@ -1597,7 +1575,7 @@ static void gdextension_object_set_script_instance(GDExtensionObjectPtr p_object
 static void gdextension_callable_custom_create(GDExtensionUninitializedTypePtr r_callable, GDExtensionCallableCustomInfo *p_custom_callable_info) {
 	memnew_placement(r_callable, Callable(memnew(CallableCustomExtension(p_custom_callable_info))));
 }
-#endif
+#endif // DISABLE_DEPRECATED
 
 static void gdextension_callable_custom_create2(GDExtensionUninitializedTypePtr r_callable, GDExtensionCallableCustomInfo2 *p_custom_callable_info) {
 	memnew_placement(r_callable, Callable(memnew(CallableCustomExtension(p_custom_callable_info))));
@@ -1629,7 +1607,7 @@ static GDExtensionMethodBindPtr gdextension_classdb_get_method_bind(GDExtensionC
 			mb = ClassDB::get_method_with_compatibility(classname, methodname, mapped_hash, &exists);
 		}
 	}
-#endif
+#endif // DISABLE_DEPRECATED
 
 	if (!mb && exists) {
 		ERR_PRINT(vformat("Method '%s.%s' has changed and no compatibility fallback has been provided. Please open an issue.", classname, methodname));
@@ -1644,7 +1622,7 @@ static GDExtensionObjectPtr gdextension_classdb_construct_object(GDExtensionCons
 	const StringName classname = *reinterpret_cast<const StringName *>(p_classname);
 	return (GDExtensionObjectPtr)ClassDB::instantiate_no_placeholders(classname);
 }
-#endif
+#endif // DISABLE_DEPRECATED
 
 static GDExtensionObjectPtr gdextension_classdb_construct_object2(GDExtensionConstStringNamePtr p_classname) {
 	const StringName classname = *reinterpret_cast<const StringName *>(p_classname);
@@ -1661,27 +1639,27 @@ static void gdextension_editor_add_plugin(GDExtensionConstStringNamePtr p_classn
 #ifdef TOOLS_ENABLED
 	const StringName classname = *reinterpret_cast<const StringName *>(p_classname);
 	GDExtensionEditorPlugins::add_extension_class(classname);
-#endif
+#endif // TOOLS_ENABLED
 }
 
 static void gdextension_editor_remove_plugin(GDExtensionConstStringNamePtr p_classname) {
 #ifdef TOOLS_ENABLED
 	const StringName classname = *reinterpret_cast<const StringName *>(p_classname);
 	GDExtensionEditorPlugins::remove_extension_class(classname);
-#endif
+#endif // TOOLS_ENABLED
 }
 
 static void gdextension_editor_help_load_xml_from_utf8_chars_and_len(const char *p_data, GDExtensionInt p_size) {
 #ifdef TOOLS_ENABLED
 	GDExtensionEditorHelp::load_xml_buffer((const uint8_t *)p_data, p_size);
-#endif
+#endif // TOOLS_ENABLED
 }
 
 static void gdextension_editor_help_load_xml_from_utf8_chars(const char *p_data) {
 #ifdef TOOLS_ENABLED
 	size_t len = strlen(p_data);
 	gdextension_editor_help_load_xml_from_utf8_chars_and_len(p_data, len);
-#endif
+#endif // TOOLS_ENABLED
 }
 
 #define REGISTER_INTERFACE_FUNC(m_name) GDExtension::register_interface_function(#m_name, (GDExtensionInterfaceFunctionPtr) & gdextension_##m_name)
@@ -1852,5 +1830,4 @@ void gdextension_setup_interface() {
 	REGISTER_INTERFACE_FUNC(image_ptrw);
 	REGISTER_INTERFACE_FUNC(image_ptr);
 }
-
 #undef REGISTER_INTERFACE_FUNCTION

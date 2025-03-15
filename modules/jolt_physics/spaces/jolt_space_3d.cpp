@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  jolt_space_3d.cpp                                                     */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "jolt_space_3d.h"
-
 #include "../joints/jolt_joint_3d.h"
 #include "../jolt_physics_server_3d.h"
 #include "../jolt_project_settings.h"
@@ -42,7 +12,6 @@
 #include "jolt_layers.h"
 #include "jolt_physics_direct_space_state_3d.h"
 #include "jolt_temp_allocator.h"
-
 #include "core/io/file_access.h"
 #include "core/os/time.h"
 #include "core/string/print_string.h"
@@ -51,7 +20,6 @@
 #include "Jolt/Physics/PhysicsScene.h"
 
 namespace {
-
 constexpr double DEFAULT_CONTACT_RECYCLE_RADIUS = 0.01;
 constexpr double DEFAULT_CONTACT_MAX_SEPARATION = 0.05;
 constexpr double DEFAULT_CONTACT_MAX_ALLOWED_PENETRATION = 0.01;
@@ -59,7 +27,6 @@ constexpr double DEFAULT_CONTACT_DEFAULT_BIAS = 0.8;
 constexpr double DEFAULT_SLEEP_THRESHOLD_LINEAR = 0.1;
 constexpr double DEFAULT_SLEEP_THRESHOLD_ANGULAR = 8.0 * Math_PI / 180;
 constexpr double DEFAULT_SOLVER_ITERATIONS = 8;
-
 } // namespace
 
 void JoltSpace3D::_pre_step(float p_step) {
@@ -98,23 +65,23 @@ JoltSpace3D::JoltSpace3D(JPH::JobSystem *p_job_system) :
 		layers(new JoltLayers()),
 		contact_listener(new JoltContactListener3D(this)),
 		physics_system(new JPH::PhysicsSystem()) {
-	physics_system->Init((JPH::uint)JoltProjectSettings::get_max_bodies(), 0, (JPH::uint)JoltProjectSettings::get_max_pairs(), (JPH::uint)JoltProjectSettings::get_max_contact_constraints(), *layers, *layers, *layers);
+	physics_system->Init((JPH::uint)JoltProjectSettings::max_bodies, 0, (JPH::uint)JoltProjectSettings::max_body_pairs, (JPH::uint)JoltProjectSettings::max_contact_constraints, *layers, *layers, *layers);
 
 	JPH::PhysicsSettings settings;
-	settings.mBaumgarte = JoltProjectSettings::get_baumgarte_stabilization_factor();
-	settings.mSpeculativeContactDistance = JoltProjectSettings::get_speculative_contact_distance();
-	settings.mPenetrationSlop = JoltProjectSettings::get_penetration_slop();
-	settings.mLinearCastThreshold = JoltProjectSettings::get_ccd_movement_threshold();
-	settings.mLinearCastMaxPenetration = JoltProjectSettings::get_ccd_max_penetration();
-	settings.mBodyPairCacheMaxDeltaPositionSq = JoltProjectSettings::get_body_pair_cache_distance_sq();
-	settings.mBodyPairCacheCosMaxDeltaRotationDiv2 = JoltProjectSettings::get_body_pair_cache_angle_cos_div2();
-	settings.mNumVelocitySteps = (JPH::uint)JoltProjectSettings::get_simulation_velocity_steps();
-	settings.mNumPositionSteps = (JPH::uint)JoltProjectSettings::get_simulation_position_steps();
-	settings.mMinVelocityForRestitution = JoltProjectSettings::get_bounce_velocity_threshold();
-	settings.mTimeBeforeSleep = JoltProjectSettings::get_sleep_time_threshold();
-	settings.mPointVelocitySleepThreshold = JoltProjectSettings::get_sleep_velocity_threshold();
-	settings.mUseBodyPairContactCache = JoltProjectSettings::is_body_pair_contact_cache_enabled();
-	settings.mAllowSleeping = JoltProjectSettings::is_sleep_allowed();
+	settings.mBaumgarte = JoltProjectSettings::baumgarte_stabilization_factor;
+	settings.mSpeculativeContactDistance = JoltProjectSettings::speculative_contact_distance;
+	settings.mPenetrationSlop = JoltProjectSettings::penetration_slop;
+	settings.mLinearCastThreshold = JoltProjectSettings::ccd_movement_threshold;
+	settings.mLinearCastMaxPenetration = JoltProjectSettings::ccd_max_penetration;
+	settings.mBodyPairCacheMaxDeltaPositionSq = JoltProjectSettings::body_pair_cache_distance_sq;
+	settings.mBodyPairCacheCosMaxDeltaRotationDiv2 = JoltProjectSettings::body_pair_cache_angle_cos_div2;
+	settings.mNumVelocitySteps = (JPH::uint)JoltProjectSettings::simulation_velocity_steps;
+	settings.mNumPositionSteps = (JPH::uint)JoltProjectSettings::simulation_position_steps;
+	settings.mMinVelocityForRestitution = JoltProjectSettings::bounce_velocity_threshold;
+	settings.mTimeBeforeSleep = JoltProjectSettings::sleep_time_threshold;
+	settings.mPointVelocitySleepThreshold = JoltProjectSettings::sleep_velocity_threshold;
+	settings.mUseBodyPairContactCache = JoltProjectSettings::body_pair_contact_cache_enabled;
+	settings.mAllowSleeping = JoltProjectSettings::sleep_allowed;
 
 	physics_system->SetPhysicsSettings(settings);
 	physics_system->SetGravity(JPH::Vec3::sZero());
@@ -169,21 +136,21 @@ void JoltSpace3D::step(float p_step) {
 		WARN_PRINT_ONCE(vformat("Jolt Physics manifold cache exceeded capacity and contacts were ignored. "
 								"Consider increasing maximum number of contact constraints in project settings. "
 								"Maximum number of contact constraints is currently set to %d.",
-				JoltProjectSettings::get_max_contact_constraints()));
+				JoltProjectSettings::max_contact_constraints));
 	}
 
 	if ((update_error & JPH::EPhysicsUpdateError::BodyPairCacheFull) != JPH::EPhysicsUpdateError::None) {
 		WARN_PRINT_ONCE(vformat("Jolt Physics body pair cache exceeded capacity and contacts were ignored. "
 								"Consider increasing maximum number of body pairs in project settings. "
 								"Maximum number of body pairs is currently set to %d.",
-				JoltProjectSettings::get_max_pairs()));
+				JoltProjectSettings::max_body_pairs));
 	}
 
 	if ((update_error & JPH::EPhysicsUpdateError::ContactConstraintsFull) != JPH::EPhysicsUpdateError::None) {
 		WARN_PRINT_ONCE(vformat("Jolt Physics contact constraint buffer exceeded capacity and contacts were ignored. "
 								"Consider increasing maximum number of contact constraints in project settings. "
 								"Maximum number of contact constraints is currently set to %d.",
-				JoltProjectSettings::get_max_contact_constraints()));
+				JoltProjectSettings::max_contact_constraints));
 	}
 
 	_post_step(p_step);
@@ -227,7 +194,7 @@ double JoltSpace3D::get_param(PhysicsServer3D::SpaceParameter p_param) const {
 			return DEFAULT_SLEEP_THRESHOLD_ANGULAR;
 		}
 		case PhysicsServer3D::SPACE_PARAM_BODY_TIME_TO_SLEEP: {
-			return JoltProjectSettings::get_sleep_time_threshold();
+			return JoltProjectSettings::sleep_time_threshold;
 		}
 		case PhysicsServer3D::SPACE_PARAM_SOLVER_ITERATIONS: {
 			return DEFAULT_SOLVER_ITERATIONS;
@@ -353,8 +320,7 @@ JPH::BodyID JoltSpace3D::add_rigid_body(const JoltObject3D &p_object, const JPH:
 		ERR_PRINT_ONCE(vformat("Failed to create underlying Jolt Physics body for '%s'. "
 							   "Consider increasing maximum number of bodies in project settings. "
 							   "Maximum number of bodies is currently set to %d.",
-				p_object.to_string(), JoltProjectSettings::get_max_bodies()));
-
+				p_object.to_string(), JoltProjectSettings::max_bodies));
 		return JPH::BodyID();
 	}
 
@@ -370,11 +336,9 @@ JPH::BodyID JoltSpace3D::add_soft_body(const JoltObject3D &p_object, const JPH::
 		ERR_PRINT_ONCE(vformat("Failed to create underlying Jolt Physics body for '%s'. "
 							   "Consider increasing maximum number of bodies in project settings. "
 							   "Maximum number of bodies is currently set to %d.",
-				p_object.to_string(), JoltProjectSettings::get_max_bodies()));
-
+				p_object.to_string(), JoltProjectSettings::max_bodies));
 		return JPH::BodyID();
 	}
-
 	bodies_added_since_optimizing += 1;
 
 	return body_id;
@@ -468,7 +432,6 @@ void JoltSpace3D::remove_joint(JoltJoint3D *p_joint) {
 }
 
 #ifdef DEBUG_ENABLED
-
 void JoltSpace3D::dump_debug_snapshot(const String &p_dir) {
 	const Dictionary datetime = Time::get_singleton()->get_datetime_dict_from_system();
 	const String datetime_str = vformat("%04d-%02d-%02d_%02d-%02d-%02d", datetime["year"], datetime["month"], datetime["day"], datetime["hour"], datetime["minute"], datetime["second"]);
@@ -516,5 +479,4 @@ int JoltSpace3D::get_max_debug_contacts() const {
 void JoltSpace3D::set_max_debug_contacts(int p_count) {
 	contact_listener->set_max_debug_contacts(p_count);
 }
-
-#endif
+#endif // DEBUG_ENABLED

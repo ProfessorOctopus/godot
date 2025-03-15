@@ -1,50 +1,17 @@
-/**************************************************************************/
-/*  codesign.cpp                                                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "codesign.h"
-
 #include "core/crypto/crypto_core.h"
 #include "core/io/dir_access.h"
 #include "core/io/plist.h"
 #include "editor/editor_paths.h"
 #include "lipo.h"
 #include "macho.h"
-
 #include "modules/regex/regex.h"
-
 #include <ctime>
 
 /*************************************************************************/
 /* CodeSignCodeResources                                                 */
 /*************************************************************************/
-
 String CodeSignCodeResources::hash_sha1_base64(const String &p_path) {
 	Ref<FileAccess> fa = FileAccess::open(p_path, FileAccess::READ);
 	ERR_FAIL_COND_V_MSG(fa.is_null(), String(), vformat("CodeSign/CodeResources: Can't open file: \"%s\".", p_path));
@@ -339,10 +306,8 @@ bool CodeSignCodeResources::add_folder_recursive(const String &p_root, const Str
 				ret = ret && add_file2(p_root, p_path.path_join(n));
 			}
 		}
-
 		n = da->get_next();
 	}
-
 	da->list_dir_end();
 	return ret;
 }
@@ -439,7 +404,6 @@ bool CodeSignCodeResources::save_to_file(const String &p_path) {
 /*************************************************************************/
 /* CodeSignRequirements                                                  */
 /*************************************************************************/
-
 CodeSignRequirements::CodeSignRequirements() {
 	blob.append_array({ 0xFA, 0xDE, 0x0C, 0x01 }); // Requirement set magic.
 	blob.append_array({ 0x00, 0x00, 0x00, 0x0C }); // Length of requirements set (12 bytes).
@@ -471,11 +435,8 @@ _FORCE_INLINE_ void CodeSignRequirements::_parse_key(uint32_t &r_pos, String &r_
 	ERR_FAIL_COND_MSG(r_pos >= p_rq_size, "CodeSign/Requirements: Out of bounds.");
 	const uint32_t key_size = _R(r_pos);
 	ERR_FAIL_COND_MSG(r_pos + key_size > p_rq_size, "CodeSign/Requirements: Out of bounds.");
-	CharString key;
-	key.resize(key_size);
-	memcpy(key.ptrw(), blob.ptr() + r_pos + 4, key_size);
 	r_pos += 4 + key_size + PAD(key_size, 4);
-	r_out += "[" + String::utf8(key) + "]";
+	r_out += "[" + String::utf8((const char *)blob.ptr() + r_pos + 4, key_size) + "]";
 #undef _R
 }
 
@@ -515,10 +476,7 @@ _FORCE_INLINE_ void CodeSignRequirements::_parse_hash_string(uint32_t &r_pos, St
 	ERR_FAIL_COND_MSG(r_pos >= p_rq_size, "CodeSign/Requirements: Out of bounds.");
 	uint32_t tag_size = _R(r_pos);
 	ERR_FAIL_COND_MSG(r_pos + tag_size > p_rq_size, "CodeSign/Requirements: Out of bounds.");
-	PackedByteArray data;
-	data.resize(tag_size);
-	memcpy(data.ptrw(), blob.ptr() + r_pos + 4, tag_size);
-	r_out += "H\"" + String::hex_encode_buffer(data.ptr(), data.size()) + "\"";
+	r_out += "H\"" + String::hex_encode_buffer(blob.ptr() + r_pos + 4, tag_size) + "\"";
 	r_pos += 4 + tag_size + PAD(tag_size, 4);
 #undef _R
 }
@@ -528,11 +486,8 @@ _FORCE_INLINE_ void CodeSignRequirements::_parse_value(uint32_t &r_pos, String &
 	ERR_FAIL_COND_MSG(r_pos >= p_rq_size, "CodeSign/Requirements: Out of bounds.");
 	const uint32_t key_size = _R(r_pos);
 	ERR_FAIL_COND_MSG(r_pos + key_size > p_rq_size, "CodeSign/Requirements: Out of bounds.");
-	CharString key;
-	key.resize(key_size);
-	memcpy(key.ptrw(), blob.ptr() + r_pos + 4, key_size);
 	r_pos += 4 + key_size + PAD(key_size, 4);
-	r_out += "\"" + String::utf8(key) + "\"";
+	r_out += "\"" + String::utf8((const char *)blob.ptr() + r_pos + 4, key_size) + "\"";
 #undef _R
 }
 
@@ -813,7 +768,6 @@ void CodeSignRequirements::write_to_file(Ref<FileAccess> p_file) const {
 /*************************************************************************/
 /* CodeSignEntitlementsText                                             */
 /*************************************************************************/
-
 CodeSignEntitlementsText::CodeSignEntitlementsText() {
 	blob.append_array({ 0xFA, 0xDE, 0x71, 0x71 }); // Text Entitlements set magic.
 	blob.append_array({ 0x00, 0x00, 0x00, 0x08 }); // Length (8 bytes).
@@ -867,7 +821,6 @@ void CodeSignEntitlementsText::write_to_file(Ref<FileAccess> p_file) const {
 /*************************************************************************/
 /* CodeSignEntitlementsBinary                                           */
 /*************************************************************************/
-
 CodeSignEntitlementsBinary::CodeSignEntitlementsBinary() {
 	blob.append_array({ 0xFA, 0xDE, 0x71, 0x72 }); // Binary Entitlements magic.
 	blob.append_array({ 0x00, 0x00, 0x00, 0x08 }); // Length (8 bytes).
@@ -922,7 +875,6 @@ void CodeSignEntitlementsBinary::write_to_file(Ref<FileAccess> p_file) const {
 /*************************************************************************/
 /* CodeSignCodeDirectory                                                 */
 /*************************************************************************/
-
 CodeSignCodeDirectory::CodeSignCodeDirectory() {
 	blob.append_array({ 0xFA, 0xDE, 0x0C, 0x02 }); // Code Directory magic.
 	blob.append_array({ 0x00, 0x00, 0x00, 0x00 }); // Size (8 bytes).
@@ -1044,7 +996,6 @@ void CodeSignCodeDirectory::write_to_file(Ref<FileAccess> p_file) const {
 /*************************************************************************/
 /* CodeSignSignature                                                     */
 /*************************************************************************/
-
 CodeSignSignature::CodeSignSignature() {
 	blob.append_array({ 0xFA, 0xDE, 0x0B, 0x01 }); // Signature magic.
 	uint32_t sign_size = 8; // Ad-hoc signature is empty.
@@ -1090,7 +1041,6 @@ void CodeSignSignature::write_to_file(Ref<FileAccess> p_file) const {
 /*************************************************************************/
 /* CodeSignSuperBlob                                                     */
 /*************************************************************************/
-
 bool CodeSignSuperBlob::add_blob(const Ref<CodeSignBlob> &p_blob) {
 	if (p_blob.is_valid()) {
 		blobs.push_back(p_blob);
@@ -1140,7 +1090,6 @@ void CodeSignSuperBlob::write_to_file(Ref<FileAccess> p_file) const {
 /*************************************************************************/
 /* CodeSign                                                              */
 /*************************************************************************/
-
 PackedByteArray CodeSign::file_hash_sha1(const String &p_path) {
 	PackedByteArray file_hash;
 	Ref<FileAccess> f = FileAccess::open(p_path, FileAccess::READ);
@@ -1159,7 +1108,6 @@ PackedByteArray CodeSign::file_hash_sha1(const String &p_path) {
 			break;
 		}
 	}
-
 	file_hash.resize(0x14);
 	ctx.finish(file_hash.ptrw());
 	return file_hash;
@@ -1183,7 +1131,6 @@ PackedByteArray CodeSign::file_hash_sha256(const String &p_path) {
 			break;
 		}
 	}
-
 	file_hash.resize(0x20);
 	ctx.finish(file_hash.ptrw());
 	return file_hash;

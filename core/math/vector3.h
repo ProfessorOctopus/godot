@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  vector3.h                                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/error/error_macros.h"
 #include "core/math/math_funcs.h"
 #include "core/string/ustring.h"
@@ -53,7 +23,6 @@ struct [[nodiscard]] Vector3 {
 			real_t y;
 			real_t z;
 		};
-
 		real_t coord[3] = { 0 };
 	};
 
@@ -141,15 +110,12 @@ struct [[nodiscard]] Vector3 {
 
 	_FORCE_INLINE_ real_t distance_to(const Vector3 &p_to) const;
 	_FORCE_INLINE_ real_t distance_squared_to(const Vector3 &p_to) const;
-
 	_FORCE_INLINE_ Vector3 posmod(real_t p_mod) const;
 	_FORCE_INLINE_ Vector3 posmodv(const Vector3 &p_modv) const;
 	_FORCE_INLINE_ Vector3 project(const Vector3 &p_to) const;
-
 	_FORCE_INLINE_ real_t angle_to(const Vector3 &p_to) const;
 	_FORCE_INLINE_ real_t signed_angle_to(const Vector3 &p_to, const Vector3 &p_axis) const;
 	_FORCE_INLINE_ Vector3 direction_to(const Vector3 &p_to) const;
-
 	_FORCE_INLINE_ Vector3 slide(const Vector3 &p_normal) const;
 	_FORCE_INLINE_ Vector3 bounce(const Vector3 &p_normal) const;
 	_FORCE_INLINE_ Vector3 reflect(const Vector3 &p_normal) const;
@@ -160,7 +126,6 @@ struct [[nodiscard]] Vector3 {
 	bool is_finite() const;
 
 	/* Operators */
-
 	_FORCE_INLINE_ Vector3 &operator+=(const Vector3 &p_v);
 	_FORCE_INLINE_ Vector3 operator+(const Vector3 &p_v) const;
 	_FORCE_INLINE_ Vector3 &operator-=(const Vector3 &p_v);
@@ -169,14 +134,11 @@ struct [[nodiscard]] Vector3 {
 	_FORCE_INLINE_ Vector3 operator*(const Vector3 &p_v) const;
 	_FORCE_INLINE_ Vector3 &operator/=(const Vector3 &p_v);
 	_FORCE_INLINE_ Vector3 operator/(const Vector3 &p_v) const;
-
 	_FORCE_INLINE_ Vector3 &operator*=(real_t p_scalar);
 	_FORCE_INLINE_ Vector3 operator*(real_t p_scalar) const;
 	_FORCE_INLINE_ Vector3 &operator/=(real_t p_scalar);
 	_FORCE_INLINE_ Vector3 operator/(real_t p_scalar) const;
-
 	_FORCE_INLINE_ Vector3 operator-() const;
-
 	_FORCE_INLINE_ bool operator==(const Vector3 &p_v) const;
 	_FORCE_INLINE_ bool operator!=(const Vector3 &p_v) const;
 	_FORCE_INLINE_ bool operator<(const Vector3 &p_v) const;
@@ -200,7 +162,6 @@ Vector3 Vector3::cross(const Vector3 &p_with) const {
 			(y * p_with.z) - (z * p_with.y),
 			(z * p_with.x) - (x * p_with.z),
 			(x * p_with.y) - (y * p_with.x));
-
 	return ret;
 }
 
@@ -338,7 +299,6 @@ Vector3 Vector3::get_any_perpendicular() const {
 }
 
 /* Operators */
-
 Vector3 &Vector3::operator+=(const Vector3 &p_v) {
 	x += p_v.x;
 	y += p_v.y;
@@ -392,7 +352,6 @@ Vector3 &Vector3::operator*=(real_t p_scalar) {
 
 // Multiplication operators required to workaround issues with LLVM using implicit conversion
 // to Vector3i instead for integers where it should not.
-
 _FORCE_INLINE_ Vector3 operator*(float p_scalar, const Vector3 &p_vec) {
 	return p_vec * p_scalar;
 }
@@ -549,3 +508,6 @@ Vector3 Vector3::reflect(const Vector3 &p_normal) const {
 #endif
 	return 2.0f * p_normal * dot(p_normal) - *this;
 }
+
+template <>
+struct is_zero_constructible<Vector3> : std::true_type {};

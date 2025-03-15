@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  array.cpp                                                             */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "array.h"
-
 #include "container_type_validate.h"
 #include "core/math/math_funcs.h"
 #include "core/object/script_language.h"
@@ -88,11 +58,11 @@ Array::Iterator Array::end() {
 }
 
 Array::ConstIterator Array::begin() const {
-	return ConstIterator(_p->array.ptr(), _p->read_only);
+	return ConstIterator(_p->array.ptr());
 }
 
 Array::ConstIterator Array::end() const {
-	return ConstIterator(_p->array.ptr() + _p->array.size(), _p->read_only);
+	return ConstIterator(_p->array.ptr() + _p->array.size());
 }
 
 Variant &Array::operator[](int p_idx) {
@@ -104,10 +74,6 @@ Variant &Array::operator[](int p_idx) {
 }
 
 const Variant &Array::operator[](int p_idx) const {
-	if (unlikely(_p->read_only)) {
-		*_p->read_only = _p->array[p_idx];
-		return *_p->read_only;
-	}
 	return _p->array[p_idx];
 }
 
@@ -155,7 +121,6 @@ bool Array::recursive_equal(const Array &p_array, int recursion_count) const {
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -172,7 +137,6 @@ bool Array::operator<(const Array &p_array) const {
 			return false;
 		}
 	}
-
 	return a_len < b_len;
 }
 
@@ -273,7 +237,6 @@ void Array::assign(const Array &p_array) {
 	} else {
 		ERR_FAIL_MSG(vformat(R"(Cannot assign contents of "Array[%s]" to "Array[%s]".)", Variant::get_type_name(source_typed.type), Variant::get_type_name(typed.type)));
 	}
-
 	_p->array = array;
 }
 
@@ -291,7 +254,6 @@ void Array::append_array(const Array &p_array) {
 	for (int i = 0; i < validated_array.size(); ++i) {
 		ERR_FAIL_COND(!_p->typed.validate(validated_array.write[i], "append_array"));
 	}
-
 	_p->array.append_array(validated_array);
 }
 
@@ -363,7 +325,6 @@ int Array::find(const Variant &p_value, int p_from) const {
 			break;
 		}
 	}
-
 	return ret;
 }
 
@@ -391,7 +352,6 @@ int Array::find_custom(const Callable &p_callable, int p_from) const {
 			return i;
 		}
 	}
-
 	return ret;
 }
 
@@ -416,7 +376,6 @@ int Array::rfind(const Variant &p_value, int p_from) const {
 			return i;
 		}
 	}
-
 	return -1;
 }
 
@@ -451,7 +410,6 @@ int Array::rfind_custom(const Callable &p_callable, int p_from) const {
 			return i;
 		}
 	}
-
 	return -1;
 }
 
@@ -468,7 +426,6 @@ int Array::count(const Variant &p_value) const {
 			amount++;
 		}
 	}
-
 	return amount;
 }
 
@@ -519,7 +476,6 @@ Array Array::recursive_duplicate(bool p_deep, int recursion_count) const {
 	} else {
 		new_arr._p->array = _p->array;
 	}
-
 	return new_arr;
 }
 
@@ -554,7 +510,6 @@ Array Array::slice(int p_begin, int p_end, int p_step, bool p_deep) const {
 		result[dest_idx] = p_deep ? get(src_idx).duplicate(true) : get(src_idx);
 		src_idx += p_step;
 	}
-
 	return result;
 }
 
@@ -600,10 +555,8 @@ Array Array::map(const Callable &p_callable) const {
 		if (ce.error != Callable::CallError::CALL_OK) {
 			ERR_FAIL_V_MSG(Array(), vformat("Error calling method from 'map': %s.", Variant::get_callable_error_text(p_callable, argptrs, 1, ce)));
 		}
-
 		new_arr[i] = result;
 	}
-
 	return new_arr;
 }
 
@@ -628,7 +581,6 @@ Variant Array::reduce(const Callable &p_callable, const Variant &p_accum) const 
 		}
 		ret = result;
 	}
-
 	return ret;
 }
 
@@ -650,7 +602,6 @@ bool Array::any(const Callable &p_callable) const {
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -672,7 +623,6 @@ bool Array::all(const Callable &p_callable) const {
 			return false;
 		}
 	}
-
 	return true;
 }
 

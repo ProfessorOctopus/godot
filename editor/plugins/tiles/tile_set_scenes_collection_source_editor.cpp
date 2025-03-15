@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  tile_set_scenes_collection_source_editor.cpp                          */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "tile_set_scenes_collection_source_editor.h"
-
 #include "editor/editor_file_system.h"
 #include "editor/editor_node.h"
 #include "editor/editor_resource_preview.h"
@@ -38,7 +8,6 @@
 #include "editor/gui/editor_file_dialog.h"
 #include "editor/plugins/tiles/tile_set_editor.h"
 #include "editor/themes/editor_scale.h"
-
 #include "scene/gui/button.h"
 #include "scene/gui/item_list.h"
 #include "scene/gui/label.h"
@@ -99,7 +68,6 @@ void TileSetScenesCollectionSourceEditor::TileSetScenesCollectionProxyObject::_b
 	ClassDB::bind_method(D_METHOD("get_id"), &TileSetScenesCollectionSourceEditor::TileSetScenesCollectionProxyObject::get_id);
 
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "id"), "set_id", "get_id");
-
 	ADD_SIGNAL(MethodInfo("changed", PropertyInfo(Variant::STRING, "what")));
 }
 
@@ -128,7 +96,6 @@ void TileSetScenesCollectionSourceEditor::TileSetScenesCollectionProxyObject::ed
 			tile_set_scenes_collection_source->connect(CoreStringName(property_list_changed), callable_mp((Object *)this, &Object::notify_property_list_changed));
 		}
 	}
-
 	notify_property_list_changed();
 }
 
@@ -161,7 +128,6 @@ bool TileSetScenesCollectionSourceEditor::SceneTileProxyObject::_set(const Strin
 		emit_signal(CoreStringName(changed), "display_placeholder");
 		return true;
 	}
-
 	return false;
 }
 
@@ -180,7 +146,6 @@ bool TileSetScenesCollectionSourceEditor::SceneTileProxyObject::_get(const Strin
 		r_ret = tile_set_scenes_collection_source->get_scene_tile_display_placeholder(scene_id);
 		return true;
 	}
-
 	return false;
 }
 
@@ -188,7 +153,6 @@ void TileSetScenesCollectionSourceEditor::SceneTileProxyObject::_get_property_li
 	if (!tile_set_scenes_collection_source) {
 		return;
 	}
-
 	p_list->push_back(PropertyInfo(Variant::INT, "id", PROPERTY_HINT_NONE, ""));
 	p_list->push_back(PropertyInfo(Variant::OBJECT, "scene", PROPERTY_HINT_RESOURCE_TYPE, "PackedScene"));
 	p_list->push_back(PropertyInfo(Variant::BOOL, "display_placeholder", PROPERTY_HINT_NONE, ""));
@@ -233,7 +197,7 @@ void TileSetScenesCollectionSourceEditor::_scene_thumbnail_done(const String &p_
 void TileSetScenesCollectionSourceEditor::_scenes_list_item_activated(int p_index) {
 	Ref<PackedScene> packed_scene = tile_set_scenes_collection_source->get_scene_tile_scene(scene_tiles_list->get_item_metadata(p_index));
 	if (packed_scene.is_valid()) {
-		EditorNode::get_singleton()->open_request(packed_scene->get_path());
+		EditorNode::get_singleton()->load_scene(packed_scene->get_path());
 	}
 }
 
@@ -365,13 +329,11 @@ void TileSetScenesCollectionSourceEditor::_notification(int p_what) {
 			tile_inspector->add_custom_property_description("SceneTileProxyObject", "scene", TTR("Absolute path to the scene associated with this tile."));
 			tile_inspector->add_custom_property_description("SceneTileProxyObject", "display_placeholder", TTR("If [code]true[/code], a placeholder marker will be displayed on top of the scene's preview. The marker is displayed anyway if the scene has no valid preview."));
 		} break;
-
 		case NOTIFICATION_THEME_CHANGED: {
 			scene_tile_add_button->set_button_icon(get_editor_theme_icon(SNAME("Add")));
 			scene_tile_delete_button->set_button_icon(get_editor_theme_icon(SNAME("Remove")));
 			_update_scenes_list();
 		} break;
-
 		case NOTIFICATION_INTERNAL_PROCESS: {
 			if (tile_set_scenes_collection_source_changed_needs_update) {
 				read_only = false;
@@ -388,7 +350,6 @@ void TileSetScenesCollectionSourceEditor::_notification(int p_what) {
 				tile_set_scenes_collection_source_changed_needs_update = false;
 			}
 		} break;
-
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			// Update things just in case.
 			_update_scenes_list();
@@ -436,7 +397,6 @@ void TileSetScenesCollectionSourceEditor::edit(Ref<TileSet> p_tile_set, TileSetS
 	if (tile_set_scenes_collection_source) {
 		tile_set_scenes_collection_source->connect_changed(callable_mp(this, &TileSetScenesCollectionSourceEditor::_tile_set_scenes_collection_source_changed));
 	}
-
 	// Update everything.
 	_update_source_inspector();
 	_update_scenes_list();
@@ -464,7 +424,6 @@ void TileSetScenesCollectionSourceEditor::_drop_data_fw(const Point2 &p_point, c
 				undo_redo->commit_action();
 			}
 		}
-
 		_update_scenes_list();
 		_update_action_buttons();
 		_update_tile_inspector();
@@ -494,7 +453,6 @@ bool TileSetScenesCollectionSourceEditor::_can_drop_data_fw(const Point2 &p_poin
 					return false;
 				}
 			}
-
 			return true;
 		}
 	}
@@ -503,7 +461,6 @@ bool TileSetScenesCollectionSourceEditor::_can_drop_data_fw(const Point2 &p_poin
 
 void TileSetScenesCollectionSourceEditor::_bind_methods() {
 	ADD_SIGNAL(MethodInfo("source_id_changed", PropertyInfo(Variant::INT, "source_id")));
-
 	ClassDB::bind_method(D_METHOD("_scene_thumbnail_done"), &TileSetScenesCollectionSourceEditor::_scene_thumbnail_done);
 }
 
@@ -530,7 +487,6 @@ TileSetScenesCollectionSourceEditor::TileSetScenesCollectionSourceEditor() {
 
 	scenes_collection_source_proxy_object = memnew(TileSetScenesCollectionProxyObject());
 	scenes_collection_source_proxy_object->connect(CoreStringName(changed), callable_mp(this, &TileSetScenesCollectionSourceEditor::_scenes_collection_source_proxy_object_changed));
-
 	scenes_collection_source_inspector = memnew(EditorInspector);
 	scenes_collection_source_inspector->set_vertical_scroll_mode(ScrollContainer::SCROLL_MODE_DISABLED);
 	scenes_collection_source_inspector->set_use_doc_hints(true);

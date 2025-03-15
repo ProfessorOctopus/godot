@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  aabb.h                                                                */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include "core/math/plane.h"
 #include "core/math/vector3.h"
 
@@ -37,7 +7,6 @@
  * AABB (Axis Aligned Bounding Box)
  * This is implemented by a point (position) and the box size.
  */
-
 class Variant;
 
 struct [[nodiscard]] AABB {
@@ -160,7 +129,6 @@ inline bool AABB::intersects(const AABB &p_aabb) const {
 	if ((position.z + size.z) <= p_aabb.position.z) {
 		return false;
 	}
-
 	return true;
 }
 
@@ -188,7 +156,6 @@ inline bool AABB::intersects_inclusive(const AABB &p_aabb) const {
 	if ((position.z + size.z) < p_aabb.position.z) {
 		return false;
 	}
-
 	return true;
 }
 
@@ -245,7 +212,6 @@ Vector3 AABB::get_endpoint(int p_point) const {
 		case 7:
 			return Vector3(position.x + size.x, position.y + size.y, position.z + size.z);
 	}
-
 	ERR_FAIL_V(Vector3());
 }
 
@@ -287,7 +253,6 @@ bool AABB::intersects_convex_shape(const Plane *p_planes, int p_plane_count, con
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -306,7 +271,6 @@ bool AABB::inside_convex_shape(const Plane *p_planes, int p_plane_count) const {
 			return false;
 		}
 	}
-
 	return true;
 }
 
@@ -334,7 +298,6 @@ bool AABB::has_point(const Vector3 &p_point) const {
 	if (p_point.z > position.z + size.z) {
 		return false;
 	}
-
 	return true;
 }
 
@@ -366,7 +329,6 @@ inline void AABB::expand_to(const Vector3 &p_vector) {
 	if (p_vector.z > end.z) {
 		end.z = p_vector.z;
 	}
-
 	position = begin;
 	size = end - begin;
 }
@@ -391,7 +353,6 @@ inline real_t AABB::get_longest_axis_size() const {
 	if (size.z > max_size) {
 		max_size = size.z;
 	}
-
 	return max_size;
 }
 
@@ -405,7 +366,6 @@ inline real_t AABB::get_shortest_axis_size() const {
 	if (size.z < max_size) {
 		max_size = size.z;
 	}
-
 	return max_size;
 }
 
@@ -478,7 +438,6 @@ void AABB::quantize(real_t p_unit) {
 	position.x -= Math::fposmodp(position.x, p_unit);
 	position.y -= Math::fposmodp(position.y, p_unit);
 	position.z -= Math::fposmodp(position.z, p_unit);
-
 	size.x -= Math::fposmodp(size.x, p_unit);
 	size.y -= Math::fposmodp(size.y, p_unit);
 	size.z -= Math::fposmodp(size.z, p_unit);
@@ -486,7 +445,6 @@ void AABB::quantize(real_t p_unit) {
 	size.x += p_unit;
 	size.y += p_unit;
 	size.z += p_unit;
-
 	size -= position;
 }
 
@@ -495,3 +453,6 @@ AABB AABB::quantized(real_t p_unit) const {
 	ret.quantize(p_unit);
 	return ret;
 }
+
+template <>
+struct is_zero_constructible<AABB> : std::true_type {};

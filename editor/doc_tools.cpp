@@ -1,35 +1,5 @@
-/**************************************************************************/
-/*  doc_tools.cpp                                                         */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "doc_tools.h"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/core_constants.h"
@@ -134,7 +104,6 @@ static void merge_constructors(Vector<DocData::MethodDoc> &p_to, const Vector<Do
 			if (from.name != to.name) {
 				continue;
 			}
-
 			{
 				// Since constructors can repeat, we need to check the type of
 				// the arguments so we make sure they are different.
@@ -162,7 +131,6 @@ static void merge_constructors(Vector<DocData::MethodDoc> &p_to, const Vector<Do
 					continue;
 				}
 			}
-
 			to.description = from.description;
 			to.is_deprecated = from.is_deprecated;
 			to.deprecated_message = from.deprecated_message;
@@ -327,25 +295,17 @@ void DocTools::merge_from(const DocTools &p_data) {
 		c.is_experimental = cf.is_experimental;
 		c.experimental_message = cf.experimental_message;
 		c.keywords = cf.keywords;
-
 		c.description = cf.description;
 		c.brief_description = cf.brief_description;
 		c.tutorials = cf.tutorials;
 
 		merge_constructors(c.constructors, cf.constructors);
-
 		merge_methods(c.methods, cf.methods);
-
 		merge_methods(c.signals, cf.signals);
-
 		merge_constants(c.constants, cf.constants);
-
 		merge_methods(c.annotations, cf.annotations);
-
 		merge_properties(c.properties, cf.properties);
-
 		merge_theme_properties(c.theme_properties, cf.theme_properties);
-
 		merge_operators(c.operators, cf.operators);
 	}
 }
@@ -366,6 +326,15 @@ void DocTools::remove_doc(const String &p_class_name) {
 		}
 	}
 	class_list.erase(p_class_name);
+}
+
+void DocTools::remove_script_doc_by_path(const String &p_path) {
+	for (KeyValue<String, DocData::ClassDoc> &E : class_list) {
+		if (E.value.is_script_doc && E.value.script_path == p_path) {
+			remove_doc(E.key);
+			return;
+		}
+	}
 }
 
 bool DocTools::has_doc(const String &p_class_name) {
@@ -394,7 +363,6 @@ static Variant get_documentation_default_value(const StringName &p_class_name, c
 			}
 		}
 	}
-
 	return default_value;
 }
 
@@ -586,7 +554,6 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 							prop.type = Variant::get_type_name(retinfo.type);
 						}
 					}
-
 					setters_getters.insert(getter);
 				}
 
@@ -601,10 +568,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 						prop.type = Variant::get_type_name(E.type);
 					}
 				}
-
 				c.properties.push_back(prop);
 			}
-
 			c.properties.sort();
 
 			List<MethodInfo> method_list;
@@ -638,10 +603,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 						}
 					}
 				}
-
 				c.methods.push_back(method);
 			}
-
 			c.methods.sort_custom<MethodCompare>();
 
 			List<MethodInfo> signal_list;
@@ -658,10 +621,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 
 						signal.arguments.push_back(argument);
 					}
-
 					c.signals.push_back(signal);
 				}
-
 				c.signals.sort_custom<MethodCompare>();
 			}
 
@@ -721,13 +682,10 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 					if (theme_item.data_type == Theme::DATA_TYPE_COLOR || theme_item.data_type == Theme::DATA_TYPE_CONSTANT) {
 						tid.default_value = DocData::get_default_value_string(default_theme->get_theme_item(theme_item.data_type, theme_item.item_name, cname));
 					}
-
 					c.theme_properties.push_back(tid);
 				}
-
 				c.theme_properties.sort();
 			}
-
 			classes.pop_front();
 		}
 	}
@@ -1021,10 +979,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 					md.arguments.push_back(ad);
 				}
 			}
-
 			c.methods.push_back(md);
 		}
-
 		c.methods.sort_custom<MethodCompare>();
 	}
 
@@ -1066,10 +1022,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 					if (darg_idx >= 0) {
 						ad.default_value = DocData::get_default_value_string(mi.default_arguments[darg_idx]);
 					}
-
 					md.arguments.push_back(ad);
 				}
-
 				c.methods.push_back(md);
 			}
 
@@ -1112,10 +1066,8 @@ void DocTools::generate(BitField<GenerateFlags> p_flags) {
 					if (darg_idx >= 0) {
 						ad.default_value = DocData::get_default_value_string(ai.default_arguments[darg_idx]);
 					}
-
 					atd.arguments.push_back(ad);
 				}
-
 				c.annotations.push_back(atd);
 			}
 
@@ -1152,7 +1104,7 @@ static Error _parse_methods(Ref<XMLParser> &parser, Vector<DocData::MethodDoc> &
 				if (parser->has_attribute("is_experimental")) {
 					method.is_experimental = parser->get_named_attribute_value("is_experimental").to_lower() == "true";
 				}
-#endif
+#endif // DISABLE_DEPRECATED
 				if (parser->has_attribute("deprecated")) {
 					method.is_deprecated = true;
 					method.deprecated_message = parser->get_named_attribute_value("deprecated");
@@ -1206,18 +1158,14 @@ static Error _parse_methods(Ref<XMLParser> &parser, Vector<DocData::MethodDoc> &
 						break;
 					}
 				}
-
 				methods.push_back(method);
-
 			} else {
 				ERR_FAIL_V_MSG(ERR_FILE_CORRUPT, "Invalid tag in doc file: " + parser->get_node_name() + ", expected " + element + ".");
 			}
-
 		} else if (parser->get_node_type() == XMLParser::NODE_ELEMENT_END && parser->get_node_name() == section) {
 			break;
 		}
 	}
-
 	return OK;
 }
 
@@ -1238,7 +1186,6 @@ Error DocTools::load_classes(const String &p_dir) {
 			if (err2) {
 				return err2;
 			}
-
 			_load(parser);
 		}
 		path = da->get_next();
@@ -1273,7 +1220,6 @@ Error DocTools::erase_classes(const String &p_dir) {
 		da->remove(to_erase.front()->get());
 		to_erase.pop_front();
 	}
-
 	return OK;
 }
 
@@ -1290,8 +1236,8 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 		}
 
 		ERR_FAIL_COND_V(parser->get_node_name() != "class", ERR_FILE_CORRUPT);
-
 		ERR_FAIL_COND_V(!parser->has_attribute("name"), ERR_FILE_CORRUPT);
+
 		String name = parser->get_named_attribute_value("name");
 		class_list[name] = DocData::ClassDoc();
 		DocData::ClassDoc &c = class_list[name];
@@ -1310,7 +1256,7 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 		if (parser->has_attribute("is_experimental")) {
 			c.is_experimental = parser->get_named_attribute_value("is_experimental").to_lower() == "true";
 		}
-#endif
+#endif // DISABLE_DEPRECATED
 		if (parser->has_attribute("deprecated")) {
 			c.is_deprecated = true;
 			c.deprecated_message = parser->get_named_attribute_value("deprecated");
@@ -1407,7 +1353,7 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 								if (parser->has_attribute("is_experimental")) {
 									prop2.is_experimental = parser->get_named_attribute_value("is_experimental").to_lower() == "true";
 								}
-#endif
+#endif // DISABLE_DEPRECATED
 								if (parser->has_attribute("deprecated")) {
 									prop2.is_deprecated = true;
 									prop2.deprecated_message = parser->get_named_attribute_value("deprecated");
@@ -1501,7 +1447,7 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 								if (parser->has_attribute("is_experimental")) {
 									constant2.is_experimental = parser->get_named_attribute_value("is_experimental").to_lower() == "true";
 								}
-#endif
+#endif // DISABLE_DEPRECATED
 								if (parser->has_attribute("deprecated")) {
 									constant2.is_deprecated = true;
 									constant2.deprecated_message = parser->get_named_attribute_value("deprecated");
@@ -1532,16 +1478,13 @@ Error DocTools::_load(Ref<XMLParser> parser) {
 				} else {
 					ERR_FAIL_V_MSG(ERR_FILE_CORRUPT, "Invalid tag in doc file: " + name2 + ".");
 				}
-
 			} else if (parser->get_node_type() == XMLParser::NODE_ELEMENT_END && parser->get_node_name() == "class") {
 				break; // End of <class>.
 			}
 		}
-
 		// Sort loaded constants for merging.
 		c.constants.sort();
 	}
-
 	return OK;
 }
 
@@ -1608,14 +1551,11 @@ static void _write_method_doc(Ref<FileAccess> f, const String &p_name, Vector<Do
 					_write_string(f, 3, "<param index=\"" + itos(j) + "\" name=\"" + a.name.xml_escape(true) + "\" type=\"" + a.type.xml_escape(true) + "\"" + enum_text + " />");
 				}
 			}
-
 			_write_string(f, 3, "<description>");
 			_write_string(f, 4, _translate_doc_string(m.description).strip_edges().xml_escape());
 			_write_string(f, 3, "</description>");
-
 			_write_string(f, 2, "</" + p_name + ">");
 		}
-
 		_write_string(f, 1, "</" + p_name + "s>");
 	}
 }
@@ -1664,15 +1604,12 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 				R"( xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="%s">)",
 				schema_path);
 		_write_string(f, 0, header);
-
 		_write_string(f, 1, "<brief_description>");
 		_write_string(f, 2, _translate_doc_string(c.brief_description).strip_edges().xml_escape());
 		_write_string(f, 1, "</brief_description>");
-
 		_write_string(f, 1, "<description>");
 		_write_string(f, 2, _translate_doc_string(c.description).strip_edges().xml_escape());
 		_write_string(f, 1, "</description>");
-
 		_write_string(f, 1, "<tutorials>");
 		for (int i = 0; i < c.tutorials.size(); i++) {
 			DocData::TutorialDoc tutorial = c.tutorials.get(i);
@@ -1680,9 +1617,7 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 			_write_string(f, 2, "<link" + title_attribute + ">" + tutorial.link.xml_escape() + "</link>");
 		}
 		_write_string(f, 1, "</tutorials>");
-
 		_write_method_doc(f, "constructor", c.constructors);
-
 		_write_method_doc(f, "method", c.methods);
 
 		if (!c.properties.is_empty()) {
@@ -1721,7 +1656,6 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 			}
 			_write_string(f, 1, "</members>");
 		}
-
 		_write_method_doc(f, "signal", c.signals);
 
 		if (!c.constants.is_empty()) {
@@ -1760,10 +1694,8 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 				_write_string(f, 3, _translate_doc_string(k.description).strip_edges().xml_escape());
 				_write_string(f, 2, "</constant>");
 			}
-
 			_write_string(f, 1, "</constants>");
 		}
-
 		_write_method_doc(f, "annotation", c.annotations);
 
 		if (!c.theme_properties.is_empty()) {
@@ -1784,21 +1716,15 @@ Error DocTools::save_classes(const String &p_default_path, const HashMap<String,
 				if (!ti.keywords.is_empty()) {
 					additional_attributes += String(" keywords=\"") + ti.keywords.xml_escape(true) + "\"";
 				}
-
 				_write_string(f, 2, "<theme_item name=\"" + ti.name.xml_escape(true) + "\" data_type=\"" + ti.data_type.xml_escape(true) + "\" type=\"" + ti.type.xml_escape(true) + "\"" + additional_attributes + ">");
-
 				_write_string(f, 3, _translate_doc_string(ti.description).strip_edges().xml_escape());
-
 				_write_string(f, 2, "</theme_item>");
 			}
 			_write_string(f, 1, "</theme_items>");
 		}
-
 		_write_method_doc(f, "operator", c.operators);
-
 		_write_string(f, 0, "</class>");
 	}
-
 	return OK;
 }
 

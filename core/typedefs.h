@@ -1,44 +1,11 @@
-/**************************************************************************/
-/*  typedefs.h                                                            */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #pragma once
-
 #include <stddef.h>
-
 /**
  * Basic definitions and simple functions to be used everywhere.
  */
-
 // Include first in case the platform needs to pre-define/include some things.
 #include "platform_config.h"
-
 // Should be available everywhere.
 #include "core/error/error_list.h"
 #include <cstdint>
@@ -191,7 +158,6 @@ static inline int get_shift_from_power_of_2(unsigned int p_bits) {
 			return i;
 		}
 	}
-
 	return -1;
 }
 
@@ -209,7 +175,6 @@ static _FORCE_INLINE_ T nearest_power_of_2_templated(T x) {
 	for (size_t i = 0; i < num; i++) {
 		x |= x >> (1 << i);
 	}
-
 	return ++x;
 }
 
@@ -220,7 +185,6 @@ static inline unsigned int nearest_shift(unsigned int p_number) {
 			return i + 1;
 		}
 	}
-
 	return 0;
 }
 
@@ -325,3 +289,21 @@ struct BuildIndexSequence<0, Is...> : IndexSequence<Is...> {};
 #define ____gd_is_defined(arg1_or_junk) __gd_take_second_arg(arg1_or_junk true, false)
 #define ___gd_is_defined(val) ____gd_is_defined(__GDARG_PLACEHOLDER_##val)
 #define GD_IS_DEFINED(x) ___gd_is_defined(x)
+
+// Whether the default value of a type is just all-0 bytes.
+// This can most commonly be exploited by using memset for these types instead of loop-construct.
+// Trivially constructible types are also zero-constructible.
+template <typename T>
+struct is_zero_constructible : std::is_trivially_constructible<T> {};
+
+template <typename T>
+struct is_zero_constructible<const T> : is_zero_constructible<T> {};
+
+template <typename T>
+struct is_zero_constructible<volatile T> : is_zero_constructible<T> {};
+
+template <typename T>
+struct is_zero_constructible<const volatile T> : is_zero_constructible<T> {};
+
+template <typename T>
+inline constexpr bool is_zero_constructible_v = is_zero_constructible<T>::value;

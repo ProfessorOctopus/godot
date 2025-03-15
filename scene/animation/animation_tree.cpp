@@ -1,36 +1,6 @@
-/**************************************************************************/
-/*  animation_tree.cpp                                                    */
-/**************************************************************************/
-/*                         This file is part of:                          */
-/*                             GODOT ENGINE                               */
-/*                        https://godotengine.org                         */
-/**************************************************************************/
-/* Copyright (c) 2014-present Godot Engine contributors (see AUTHORS.md). */
-/* Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur.                  */
-/*                                                                        */
-/* Permission is hereby granted, free of charge, to any person obtaining  */
-/* a copy of this software and associated documentation files (the        */
-/* "Software"), to deal in the Software without restriction, including    */
-/* without limitation the rights to use, copy, modify, merge, publish,    */
-/* distribute, sublicense, and/or sell copies of the Software, and to     */
-/* permit persons to whom the Software is furnished to do so, subject to  */
-/* the following conditions:                                              */
-/*                                                                        */
-/* The above copyright notice and this permission notice shall be         */
-/* included in all copies or substantial portions of the Software.        */
-/*                                                                        */
-/* THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,        */
-/* EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF     */
-/* MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. */
-/* IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY   */
-/* CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,   */
-/* TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE      */
-/* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                 */
-/**************************************************************************/
-
+//========= /*This file is part of : Godot Engine(see LICENSE.txt)*/ ============//
 #include "animation_tree.h"
 #include "animation_tree.compat.inc"
-
 #include "animation_blend_tree.h"
 #include "scene/animation/animation_player.h"
 
@@ -44,7 +14,6 @@ void AnimationNode::get_parameter_list(List<PropertyInfo> *r_list) const {
 			r_list->push_back(PropertyInfo::from_dict(d));
 		}
 	}
-
 	r_list->push_back(PropertyInfo(Variant::FLOAT, current_length, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY));
 	r_list->push_back(PropertyInfo(Variant::FLOAT, current_position, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY));
 	r_list->push_back(PropertyInfo(Variant::FLOAT, current_delta, PROPERTY_HINT_NONE, "", PROPERTY_USAGE_READ_ONLY));
@@ -65,7 +34,6 @@ bool AnimationNode::is_parameter_read_only(const StringName &p_parameter) const 
 	if (p_parameter == current_length || p_parameter == current_position || p_parameter == current_delta) {
 		return true;
 	}
-
 	return false;
 }
 
@@ -121,12 +89,10 @@ AnimationNode::NodeTimeInfo AnimationNode::get_node_time_info() const {
 void AnimationNode::get_child_nodes(List<ChildNode> *r_child_nodes) {
 	Dictionary cn;
 	if (GDVIRTUAL_CALL(_get_child_nodes, cn)) {
-		List<Variant> keys;
-		cn.get_key_list(&keys);
-		for (const Variant &E : keys) {
+		for (const KeyValue<Variant, Variant> &kv : cn) {
 			ChildNode child;
-			child.name = E;
-			child.node = cn[E];
+			child.name = kv.key;
+			child.node = kv.value;
 			r_child_nodes->push_back(child);
 		}
 	}
@@ -537,7 +503,7 @@ void AnimationNode::get_argument_options(const StringName &p_function, int p_idx
 	}
 	Resource::get_argument_options(p_function, p_idx, r_options);
 }
-#endif
+#endif // TOOLS_ENABLED
 
 void AnimationNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_input", "name"), &AnimationNode::add_input);
@@ -546,24 +512,17 @@ void AnimationNode::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_input_name", "input"), &AnimationNode::get_input_name);
 	ClassDB::bind_method(D_METHOD("get_input_count"), &AnimationNode::get_input_count);
 	ClassDB::bind_method(D_METHOD("find_input", "name"), &AnimationNode::find_input);
-
 	ClassDB::bind_method(D_METHOD("set_filter_path", "path", "enable"), &AnimationNode::set_filter_path);
 	ClassDB::bind_method(D_METHOD("is_path_filtered", "path"), &AnimationNode::is_path_filtered);
-
 	ClassDB::bind_method(D_METHOD("set_filter_enabled", "enable"), &AnimationNode::set_filter_enabled);
 	ClassDB::bind_method(D_METHOD("is_filter_enabled"), &AnimationNode::is_filter_enabled);
-
 	ClassDB::bind_method(D_METHOD("get_processing_animation_tree_instance_id"), &AnimationNode::get_processing_animation_tree_instance_id);
-
 	ClassDB::bind_method(D_METHOD("is_process_testing"), &AnimationNode::is_process_testing);
-
 	ClassDB::bind_method(D_METHOD("_set_filters", "filters"), &AnimationNode::_set_filters);
 	ClassDB::bind_method(D_METHOD("_get_filters"), &AnimationNode::_get_filters);
-
 	ClassDB::bind_method(D_METHOD("blend_animation", "animation", "time", "delta", "seeked", "is_external_seeking", "blend", "looped_flag"), &AnimationNode::blend_animation_ex, DEFVAL(Animation::LOOPED_FLAG_NONE));
 	ClassDB::bind_method(D_METHOD("blend_node", "name", "node", "time", "seek", "is_external_seeking", "blend", "filter", "sync", "test_only"), &AnimationNode::blend_node_ex, DEFVAL(FILTER_IGNORE), DEFVAL(true), DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("blend_input", "input_index", "time", "seek", "is_external_seeking", "blend", "filter", "sync", "test_only"), &AnimationNode::blend_input_ex, DEFVAL(FILTER_IGNORE), DEFVAL(true), DEFVAL(false));
-
 	ClassDB::bind_method(D_METHOD("set_parameter", "name", "value"), &AnimationNode::set_parameter);
 	ClassDB::bind_method(D_METHOD("get_parameter", "name"), &AnimationNode::get_parameter);
 
@@ -589,10 +548,7 @@ void AnimationNode::_bind_methods() {
 	BIND_ENUM_CONSTANT(FILTER_BLEND);
 }
 
-AnimationNode::AnimationNode() {
-}
-
-////////////////////
+AnimationNode::AnimationNode() {}
 
 void AnimationRootNode::_tree_changed() {
 	emit_signal(SNAME("tree_changed"));
@@ -605,8 +561,6 @@ void AnimationRootNode::_animation_node_renamed(const ObjectID &p_oid, const Str
 void AnimationRootNode::_animation_node_removed(const ObjectID &p_oid, const StringName &p_node) {
 	emit_signal(SNAME("animation_node_removed"), p_oid, p_node);
 }
-
-////////////////////
 
 void AnimationTree::set_root_animation_node(const Ref<AnimationRootNode> &p_animation_node) {
 	if (root_animation_node.is_valid()) {
@@ -680,7 +634,6 @@ bool AnimationTree::_blend_pre_process(double p_delta, int p_track_count, const 
 	if (!process_state.valid) {
 		return false; // State is not valid, abort process.
 	}
-
 	return true;
 }
 
@@ -890,7 +843,6 @@ void AnimationTree::_setup_animation_player() {
 			}
 		}
 	}
-
 	clear_caches();
 }
 
@@ -926,7 +878,6 @@ bool AnimationTree::_set(const StringName &p_name, const Variant &p_value) {
 		property_map[p_name].first = p_value;
 		return true;
 	}
-
 	return false;
 }
 
@@ -945,7 +896,6 @@ bool AnimationTree::_get(const StringName &p_name, Variant &r_ret) const {
 		r_ret = property_map[p_name].first;
 		return true;
 	}
-
 	return false;
 }
 
@@ -972,17 +922,14 @@ real_t AnimationTree::get_connection_activity(const StringName &p_path, int p_co
 	if ((*activity)[p_connection].last_pass != process_pass) {
 		return 0;
 	}
-
 	return (*activity)[p_connection].activity;
 }
 
 void AnimationTree::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_tree_root", "animation_node"), &AnimationTree::set_root_animation_node);
 	ClassDB::bind_method(D_METHOD("get_tree_root"), &AnimationTree::get_root_animation_node);
-
 	ClassDB::bind_method(D_METHOD("set_advance_expression_base_node", "path"), &AnimationTree::set_advance_expression_base_node);
 	ClassDB::bind_method(D_METHOD("get_advance_expression_base_node"), &AnimationTree::get_advance_expression_base_node);
-
 	ClassDB::bind_method(D_METHOD("set_animation_player", "path"), &AnimationTree::set_animation_player);
 	ClassDB::bind_method(D_METHOD("get_animation_player"), &AnimationTree::get_animation_player);
 
@@ -998,5 +945,4 @@ AnimationTree::AnimationTree() {
 	callback_mode_discrete = ANIMATION_CALLBACK_MODE_DISCRETE_FORCE_CONTINUOUS;
 }
 
-AnimationTree::~AnimationTree() {
-}
+AnimationTree::~AnimationTree() {}
