@@ -164,13 +164,6 @@ String GDScriptWarning::get_message() const {
 			return vformat(R"*(The default value uses "%s" which won't return nodes in the scene tree before "_ready()" is called. Use the "@onready" annotation to solve this.)*", symbols[0]);
 		case ONREADY_WITH_EXPORT:
 			return R"("@onready" will set the default value after "@export" takes effect and will override it.)";
-#ifndef DISABLE_DEPRECATED
-		// Never produced. These warnings migrated from 3.x by mistake.
-		case PROPERTY_USED_AS_FUNCTION: // There is already an error.
-		case CONSTANT_USED_AS_FUNCTION: // There is already an error.
-		case FUNCTION_USED_AS_PROPERTY: // This is valid, returns `Callable`.
-			break;
-#endif // DISABLE_DEPRECATED
 		case WARNING_MAX:
 			break; // Can't happen, but silences warning.
 	}
@@ -241,11 +234,6 @@ String GDScriptWarning::get_name_from_code(Code p_code) {
 		PNAME("NATIVE_METHOD_OVERRIDE"),
 		PNAME("GET_NODE_DEFAULT_WITHOUT_ONREADY"),
 		PNAME("ONREADY_WITH_EXPORT"),
-#ifndef DISABLE_DEPRECATED
-		"PROPERTY_USED_AS_FUNCTION",
-		"CONSTANT_USED_AS_FUNCTION",
-		"FUNCTION_USED_AS_PROPERTY",
-#endif // DISABLE_DEPRECATED
 	};
 
 	static_assert(std_size(names) == WARNING_MAX, "Amount of warning types don't match the amount of warning names.");

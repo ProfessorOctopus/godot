@@ -29,11 +29,8 @@
 /**************************************************************************/
 
 #include "openxr_api_extension.h"
-#include "openxr_api_extension.compat.inc"
-
 #include "core/object/class_db.h"
 #include "extensions/openxr_extension_wrapper.h"
-
 #include "servers/rendering/rendering_server.h" // ERR_NOT_ON_RENDER_THREAD_V
 
 void OpenXRAPIExtension::_bind_methods() {

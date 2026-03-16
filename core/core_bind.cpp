@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "core_bind.h"
-#include "core_bind.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/crypto/crypto_core.h"

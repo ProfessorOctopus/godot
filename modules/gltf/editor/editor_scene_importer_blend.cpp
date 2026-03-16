@@ -336,13 +336,7 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 		return nullptr;
 	}
 	ERR_FAIL_COND_V(!p_options.has("animation/fps"), nullptr);
-
-#ifndef DISABLE_DEPRECATED
-	bool trimming = p_options.has("animation/trimming") ? (bool)p_options["animation/trimming"] : false;
-	return gltf->generate_scene(state, (float)p_options["animation/fps"], trimming, false);
-#else
 	return gltf->generate_scene(state, (float)p_options["animation/fps"], (bool)p_options["animation/trimming"], false);
-#endif
 }
 
 Variant EditorSceneFormatImporterBlend::get_option_visibility(const String &p_path, const String &p_scene_import_type, const String &p_option,
@@ -391,8 +385,6 @@ void EditorSceneFormatImporterBlend::get_import_options(const String &p_path, Li
 
 	r_options->push_back(ResourceImporterScene::ImportOption(PropertyInfo(Variant::INT, "gltf/naming_version", PROPERTY_HINT_ENUM, "Godot 4.0 or 4.1,Godot 4.2 to 4.4,Godot 4.5 or later"), 2));
 }
-
-///////////////////////////
 
 static bool _test_blender_path(const String &p_path, String *r_err = nullptr) {
 	int major, minor;

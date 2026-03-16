@@ -42,11 +42,6 @@
 #include "openxr_api_extension.h"
 #include "openxr_interface.h"
 
-#ifndef DISABLE_DEPRECATED
-#include "extensions/openxr_extension_wrapper_extension.h"
-#include "scene/openxr_hand.h"
-#endif // DISABLE_DEPRECATED
-
 #include "scene/openxr_composition_layer.h"
 #include "scene/openxr_composition_layer_cylinder.h"
 #include "scene/openxr_composition_layer_equirect.h"
@@ -136,9 +131,6 @@ static void _editor_init() {
 void initialize_openxr_module(ModuleInitializationLevel p_level) {
 	if (p_level == MODULE_INITIALIZATION_LEVEL_CORE) {
 		GDREGISTER_VIRTUAL_CLASS(OpenXRExtensionWrapper);
-#ifndef DISABLE_DEPRECATED
-		GDREGISTER_VIRTUAL_CLASS(OpenXRExtensionWrapperExtension);
-#endif // DISABLE_DEPRECATED
 		GDREGISTER_ABSTRACT_CLASS(OpenXRFutureResult); // Declared abstract, should never be instantiated by a user (Q or should this be internal?)
 		GDREGISTER_CLASS(OpenXRFrameSynthesisExtension);
 		GDREGISTER_CLASS(OpenXRFutureExtension);
@@ -297,10 +289,6 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		GDREGISTER_CLASS(OpenXRCompositionLayerEquirect);
 		GDREGISTER_CLASS(OpenXRCompositionLayerCylinder);
 		GDREGISTER_CLASS(OpenXRCompositionLayerQuad);
-
-#ifndef DISABLE_DEPRECATED
-		GDREGISTER_CLASS(OpenXRHand);
-#endif
 
 		GDREGISTER_CLASS(OpenXRVisibilityMask);
 #ifdef MODULE_GLTF_ENABLED

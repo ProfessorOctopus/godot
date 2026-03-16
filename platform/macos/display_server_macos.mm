@@ -791,13 +791,7 @@ void DisplayServerMacOS::window_resize(DisplayServerEnums::WindowID p_window, in
 
 bool DisplayServerMacOS::has_feature(DisplayServerEnums::Feature p_feature) const {
 	switch (p_feature) {
-#ifndef DISABLE_DEPRECATED
-		case DisplayServerEnums::FEATURE_GLOBAL_MENU: {
-			return (native_menu && native_menu->has_feature(NativeMenu::FEATURE_GLOBAL_MENU));
-		} break;
-#endif
 		case DisplayServerEnums::FEATURE_SUBWINDOWS:
-		//case DisplayServerEnums::FEATURE_TOUCHSCREEN:
 		case DisplayServerEnums::FEATURE_MOUSE:
 		case DisplayServerEnums::FEATURE_MOUSE_WARP:
 		case DisplayServerEnums::FEATURE_CLIPBOARD:
@@ -813,7 +807,6 @@ bool DisplayServerMacOS::has_feature(DisplayServerEnums::Feature p_feature) cons
 		case DisplayServerEnums::FEATURE_HIDPI:
 		case DisplayServerEnums::FEATURE_ICON:
 		case DisplayServerEnums::FEATURE_NATIVE_ICON:
-		//case DisplayServerEnums::FEATURE_KEEP_SCREEN_ON:
 		case DisplayServerEnums::FEATURE_SWAP_BUFFERS:
 		case DisplayServerEnums::FEATURE_TEXT_TO_SPEECH:
 		case DisplayServerEnums::FEATURE_EXTEND_TO_TITLE:

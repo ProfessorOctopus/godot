@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "text_paragraph.h"
-#include "text_paragraph.compat.inc"
-
 #include "core/object/class_db.h"
 
 void TextParagraph::_bind_methods() {

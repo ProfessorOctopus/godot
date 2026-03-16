@@ -1119,10 +1119,6 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 							}
 						}
 
-#ifndef DISABLE_DEPRECATED
-						GDExtensionSpecialCompatHashes::get_legacy_hashes(class_name, method_name, compatibility);
-#endif
-
 						if (compatibility.size() > 0) {
 							d2["hash_compatibility"] = compatibility;
 						}

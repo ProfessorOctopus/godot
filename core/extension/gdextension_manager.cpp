@@ -488,17 +488,10 @@ void GDExtensionManager::_bind_methods() {
 GDExtensionManager::GDExtensionManager() {
 	ERR_FAIL_COND(singleton != nullptr);
 	singleton = this;
-
-#ifndef DISABLE_DEPRECATED
-	GDExtensionSpecialCompatHashes::initialize();
-#endif
 }
 
 GDExtensionManager::~GDExtensionManager() {
 	if (singleton == this) {
 		singleton = nullptr;
 	}
-#ifndef DISABLE_DEPRECATED
-	GDExtensionSpecialCompatHashes::finalize();
-#endif
 }

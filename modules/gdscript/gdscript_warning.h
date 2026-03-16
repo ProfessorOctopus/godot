@@ -90,17 +90,8 @@ public:
 		NATIVE_METHOD_OVERRIDE, // The script method overrides a native one, this may not work as intended.
 		GET_NODE_DEFAULT_WITHOUT_ONREADY, // A class variable uses `get_node()` (or the `$` notation) as its default value, but does not use the @onready annotation.
 		ONREADY_WITH_EXPORT, // The `@onready` annotation will set the value after `@export` which is likely not intended.
-#ifndef DISABLE_DEPRECATED
-		PROPERTY_USED_AS_FUNCTION, // Function not found, but there's a property with the same name.
-		CONSTANT_USED_AS_FUNCTION, // Function not found, but there's a constant with the same name.
-		FUNCTION_USED_AS_PROPERTY, // Property not found, but there's a function with the same name.
-#endif // DISABLE_DEPRECATED
 		WARNING_MAX,
 	};
-
-#ifndef DISABLE_DEPRECATED
-	static constexpr int FIRST_DEPRECATED_WARNING = PROPERTY_USED_AS_FUNCTION;
-#endif // DISABLE_DEPRECATED
 
 	constexpr static WarnLevel default_warning_levels[] = {
 		WARN, // UNASSIGNED_VARIABLE
@@ -148,11 +139,6 @@ public:
 		ERROR, // NATIVE_METHOD_OVERRIDE // May not work as expected.
 		ERROR, // GET_NODE_DEFAULT_WITHOUT_ONREADY // May not work as expected.
 		ERROR, // ONREADY_WITH_EXPORT // May not work as expected.
-#ifndef DISABLE_DEPRECATED
-		WARN, // PROPERTY_USED_AS_FUNCTION
-		WARN, // CONSTANT_USED_AS_FUNCTION
-		WARN, // FUNCTION_USED_AS_PROPERTY
-#endif // DISABLE_DEPRECATED
 	};
 
 	static_assert(std_size(default_warning_levels) == WARNING_MAX, "Amount of default levels does not match the amount of warnings.");

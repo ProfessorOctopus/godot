@@ -181,11 +181,6 @@ static String get_atom_name(Display *p_disp, Atom p_atom) {
 
 bool DisplayServerX11::has_feature(DisplayServerEnums::Feature p_feature) const {
 	switch (p_feature) {
-#ifndef DISABLE_DEPRECATED
-		case DisplayServerEnums::FEATURE_GLOBAL_MENU: {
-			return (native_menu && native_menu->has_feature(NativeMenu::FEATURE_GLOBAL_MENU));
-		} break;
-#endif
 		case DisplayServerEnums::FEATURE_SUBWINDOWS:
 #ifdef TOUCH_ENABLED
 		case DisplayServerEnums::FEATURE_TOUCHSCREEN:
@@ -197,9 +192,7 @@ bool DisplayServerX11::has_feature(DisplayServerEnums::Feature p_feature) const 
 		case DisplayServerEnums::FEATURE_CUSTOM_CURSOR_SHAPE:
 		case DisplayServerEnums::FEATURE_IME:
 		case DisplayServerEnums::FEATURE_WINDOW_TRANSPARENCY:
-		//case DisplayServerEnums::FEATURE_HIDPI:
 		case DisplayServerEnums::FEATURE_ICON:
-		//case DisplayServerEnums::FEATURE_NATIVE_ICON:
 		case DisplayServerEnums::FEATURE_SWAP_BUFFERS:
 #ifdef DBUS_ENABLED
 		case DisplayServerEnums::FEATURE_KEEP_SCREEN_ON:
@@ -209,9 +202,6 @@ bool DisplayServerX11::has_feature(DisplayServerEnums::Feature p_feature) const 
 		case DisplayServerEnums::FEATURE_WINDOW_DRAG: {
 			return true;
 		} break;
-
-		//case DisplayServerEnums::FEATURE_NATIVE_DIALOG:
-		//case DisplayServerEnums::FEATURE_NATIVE_DIALOG_INPUT:
 #ifdef DBUS_ENABLED
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE_EXTRA:

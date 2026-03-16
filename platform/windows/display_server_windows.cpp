@@ -125,11 +125,6 @@ static void track_mouse_leave_event(HWND hWnd) {
 
 bool DisplayServerWindows::has_feature(DisplayServerEnums::Feature p_feature) const {
 	switch (p_feature) {
-#ifndef DISABLE_DEPRECATED
-		case DisplayServerEnums::FEATURE_GLOBAL_MENU: {
-			return (native_menu && native_menu->has_feature(NativeMenu::FEATURE_GLOBAL_MENU));
-		} break;
-#endif
 		case DisplayServerEnums::FEATURE_SUBWINDOWS:
 		case DisplayServerEnums::FEATURE_TOUCHSCREEN:
 		case DisplayServerEnums::FEATURE_MOUSE:
@@ -146,7 +141,6 @@ bool DisplayServerWindows::has_feature(DisplayServerEnums::Feature p_feature) co
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_INPUT:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE_EXTRA:
-		//case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE_MIME:
 		case DisplayServerEnums::FEATURE_SWAP_BUFFERS:
 		case DisplayServerEnums::FEATURE_KEEP_SCREEN_ON:
 		case DisplayServerEnums::FEATURE_TEXT_TO_SPEECH:

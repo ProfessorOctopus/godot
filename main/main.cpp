@@ -130,10 +130,6 @@
 #if defined(TOOLS_ENABLED) && !defined(NO_EDITOR_SPLASH)
 #include "main/splash_editor.gen.h"
 #endif
-
-#ifndef DISABLE_DEPRECATED
-#include "editor/project_upgrade/project_converter_3_to_4.h"
-#endif // DISABLE_DEPRECATED
 #endif // TOOLS_ENABLED
 
 #if defined(STEAMAPI_ENABLED)
@@ -225,10 +221,6 @@ static bool auto_build_solutions = false;
 static String debug_server_uri;
 static bool wait_for_import = false;
 static bool restore_editor_window_layout = true;
-#ifndef DISABLE_DEPRECATED
-static int converter_max_kb_file = 4 * 1024; // 4MB
-static int converter_max_line_length = 100000;
-#endif // DISABLE_DEPRECATED
 
 HashMap<Main::CLIScope, Vector<String>> forwardable_cli_arguments;
 #endif
@@ -574,11 +566,7 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--scene <path>", "Path or UID of a scene in the project that should be started.\n", CLI_OPTION_AVAILABILITY_TEMPLATE_UNSAFE);
 	print_help_option("--main-pack <file>", "Path to a pack (.pck) file to load.\n", CLI_OPTION_AVAILABILITY_TEMPLATE_UNSAFE);
 #endif // defined(OVERRIDE_PATH_ENABLED)
-#ifdef DISABLE_DEPRECATED
-	print_help_option("--render-thread <mode>", "Render thread mode (\"safe\", \"separate\").\n");
-#else
 	print_help_option("--render-thread <mode>", "Render thread mode (\"unsafe\" [deprecated], \"safe\", \"separate\").\n");
-#endif // DISABLE_DEPRECATED
 #if defined(DEBUG_ENABLED) || defined(TOOLS_ENABLED)
 	print_help_option("--remote-fs <address>", "Remote filesystem (<host/IP>[:<port>] address).\n", CLI_OPTION_AVAILABILITY_TEMPLATE_DEBUG);
 	print_help_option("--remote-fs-password <password>", "Password for remote filesystem.\n", CLI_OPTION_AVAILABILITY_TEMPLATE_DEBUG);
@@ -700,13 +688,6 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--export-patch <preset> <path>", "Export pack with changed files only. See --export-pack description for other considerations.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--patches <paths>", "List of patches to use with --export-patch. The list is comma-separated.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--install-android-build-template", "Install the Android build template. Used in conjunction with --export-release or --export-debug.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-#ifndef DISABLE_DEPRECATED
-	// Commands are long; split the description to a second line.
-	print_help_option("--convert-3to4 ", "\n", CLI_OPTION_AVAILABILITY_HIDDEN);
-	print_help_option("  [max_file_kb] [max_line_size]", "Converts project from Godot 3.x to Godot 4.x.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--validate-conversion-3to4 ", "\n", CLI_OPTION_AVAILABILITY_HIDDEN);
-	print_help_option("  [max_file_kb] [max_line_size]", "Shows what elements will be renamed when converting project from Godot 3.x to Godot 4.x.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-#endif // DISABLE_DEPRECATED
 	print_help_option("--doctool [path]", "Dump the engine API reference to the given <path> (defaults to current directory) in XML format, merging if existing files are found.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--no-docbase", "Disallow dumping the base types (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--gdextension-docs", "Rather than dumping the engine API, generate API reference from all the GDExtensions loaded in the current project (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
@@ -1536,20 +1517,11 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			if (N) {
 				if (N->get() == "safe") {
 					separate_thread_render = 0;
-#ifndef DISABLE_DEPRECATED
-				} else if (N->get() == "unsafe") {
-					OS::get_singleton()->print("The --render-thread unsafe option is unsupported in Godot 4 and will be removed.\n");
-					separate_thread_render = 0;
-#endif
 				} else if (N->get() == "separate") {
 					separate_thread_render = 1;
 				} else {
 					OS::get_singleton()->print("Unknown render thread mode, aborting.\n");
-#ifdef DISABLE_DEPRECATED
-					OS::get_singleton()->print("Valid options are 'safe' and 'separate'.\n");
-#else
 					OS::get_singleton()->print("Valid options are 'unsafe', 'safe' and 'separate'.\n");
-#endif
 					goto error;
 				}
 
@@ -1667,41 +1639,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				OS::get_singleton()->print("Missing comma-separated list of patches after --patches, aborting.\n");
 				goto error;
 			}
-#ifndef DISABLE_DEPRECATED
-		} else if (arg == "--export") { // For users used to 3.x syntax.
-			OS::get_singleton()->print("The Godot 3 --export option was changed to more explicit --export-release / --export-debug / --export-pack options.\nSee the --help output for details.\n");
-			goto error;
-		} else if (arg == "--convert-3to4") {
-			// Actually handling is done in start().
-			cmdline_tool = true;
-			main_args.push_back(arg);
-
-			if (N && !N->get().begins_with("-")) {
-				if (itos(N->get().to_int()) == N->get()) {
-					converter_max_kb_file = N->get().to_int();
-				}
-				if (N->next() && !N->next()->get().begins_with("-")) {
-					if (itos(N->next()->get().to_int()) == N->next()->get()) {
-						converter_max_line_length = N->next()->get().to_int();
-					}
-				}
-			}
-		} else if (arg == "--validate-conversion-3to4") {
-			// Actually handling is done in start().
-			cmdline_tool = true;
-			main_args.push_back(arg);
-
-			if (N && !N->get().begins_with("-")) {
-				if (itos(N->get().to_int()) == N->get()) {
-					converter_max_kb_file = N->get().to_int();
-				}
-				if (N->next() && !N->next()->get().begins_with("-")) {
-					if (itos(N->next()->get().to_int()) == N->next()->get()) {
-						converter_max_line_length = N->next()->get().to_int();
-					}
-				}
-			}
-#endif // DISABLE_DEPRECATED
 		} else if (arg == "--doctool") {
 			// Actually handling is done in start().
 			cmdline_tool = true;
@@ -3981,10 +3918,6 @@ int Main::start() {
 #ifdef MODULE_GDSCRIPT_ENABLED
 	String gdscript_docs_path;
 #endif
-#ifndef DISABLE_DEPRECATED
-	bool converting_project = false;
-	bool validating_converting_project = false;
-#endif // DISABLE_DEPRECATED
 #endif // TOOLS_ENABLED
 
 	main_timer_sync.init(OS::get_singleton()->get_ticks_usec());
@@ -3992,7 +3925,6 @@ int Main::start() {
 
 	for (List<String>::Element *E = args.front(); E; E = E->next()) {
 		// First check parameters that do not have an argument to the right.
-
 		// Doctest Unit Testing Handler
 		// Designed to override and pass arguments to the unit test handler.
 		if (E->get() == "--check-only") {
@@ -4003,12 +3935,6 @@ int Main::start() {
 		} else if (E->get() == "--gdextension-docs") {
 			gen_flags.set_flag(DocTools::GENERATE_FLAG_SKIP_BASIC_TYPES);
 			gen_flags.set_flag(DocTools::GENERATE_FLAG_EXTENSION_CLASSES_ONLY);
-#ifndef DISABLE_DEPRECATED
-		} else if (E->get() == "--convert-3to4") {
-			converting_project = true;
-		} else if (E->get() == "--validate-conversion-3to4") {
-			validating_converting_project = true;
-#endif // DISABLE_DEPRECATED
 		} else if (E->get() == "-e" || E->get() == "--editor") {
 			editor = true;
 		} else if (E->get() == "-p" || E->get() == "--project-manager") {
@@ -4250,18 +4176,6 @@ int Main::start() {
 			return valid ? EXIT_SUCCESS : EXIT_FAILURE;
 		}
 	}
-
-#ifndef DISABLE_DEPRECATED
-	if (converting_project) {
-		int ret = ProjectConverter3To4(converter_max_kb_file, converter_max_line_length).convert();
-		return ret ? EXIT_SUCCESS : EXIT_FAILURE;
-	}
-	if (validating_converting_project) {
-		bool ret = ProjectConverter3To4(converter_max_kb_file, converter_max_line_length).validate_conversion();
-		return ret ? EXIT_SUCCESS : EXIT_FAILURE;
-	}
-#endif // DISABLE_DEPRECATED
-
 #endif // TOOLS_ENABLED
 
 #if defined(OVERRIDE_PATH_ENABLED)

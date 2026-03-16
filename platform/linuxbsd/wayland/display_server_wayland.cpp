@@ -250,11 +250,6 @@ void DisplayServerWayland::_update_window_rect(const Rect2i &p_rect, DisplayServ
 
 bool DisplayServerWayland::has_feature(DisplayServerEnums::Feature p_feature) const {
 	switch (p_feature) {
-#ifndef DISABLE_DEPRECATED
-		case DisplayServerEnums::FEATURE_GLOBAL_MENU: {
-			return (native_menu && native_menu->has_feature(NativeMenu::FEATURE_GLOBAL_MENU));
-		} break;
-#endif
 		case DisplayServerEnums::FEATURE_MOUSE:
 		case DisplayServerEnums::FEATURE_MOUSE_WARP:
 		case DisplayServerEnums::FEATURE_CLIPBOARD:
@@ -273,9 +268,6 @@ bool DisplayServerWayland::has_feature(DisplayServerEnums::Feature p_feature) co
 		case DisplayServerEnums::FEATURE_SELF_FITTING_WINDOWS: {
 			return true;
 		} break;
-
-		//case DisplayServerEnums::FEATURE_NATIVE_DIALOG:
-		//case DisplayServerEnums::FEATURE_NATIVE_DIALOG_INPUT:
 #ifdef DBUS_ENABLED
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE_EXTRA:

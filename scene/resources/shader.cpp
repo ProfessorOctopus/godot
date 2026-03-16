@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "shader.h"
-#include "shader.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/io/file_access.h"
 #include "core/object/callable_mp.h"

@@ -43,10 +43,6 @@ protected:
 	GDVIRTUAL1R(TypedArray<PackedStringArray>, _parse_file, String)
 	GDVIRTUAL0RC(Vector<String>, _get_recognized_extensions)
 
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL3_COMPAT(_parse_file_bind_compat_99297, _parse_file, String, TypedArray<String>, TypedArray<Array>)
-#endif
-
 public:
 	virtual Error parse_file(const String &p_path, Vector<Vector<String>> *r_translations);
 	virtual void get_recognized_extensions(List<String> *r_extensions) const;

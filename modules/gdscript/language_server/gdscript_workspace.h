@@ -33,24 +33,10 @@
 #include "core/error/error_macros.h"
 #include "gdscript_extend_parser.h"
 #include "godot_lsp.h"
-
 #include "core/variant/variant.h"
 
 class GDScriptWorkspace : public RefCounted {
 	GDCLASS(GDScriptWorkspace, RefCounted);
-
-private:
-#ifndef DISABLE_DEPRECATED
-	void didDeleteFiles(const Dictionary &p_params) {}
-	Error parse_script(const String &p_path, const String &p_content) {
-		WARN_DEPRECATED;
-		return Error::FAILED;
-	}
-	Error parse_local_script(const String &p_path) {
-		WARN_DEPRECATED;
-		return Error::FAILED;
-	}
-#endif // DISABLE_DEPRECATED
 
 protected:
 	static void _bind_methods();

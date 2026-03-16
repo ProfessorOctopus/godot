@@ -106,10 +106,7 @@ void ScriptLanguageExtension::_bind_methods() {
 	GDVIRTUAL_BIND(_validate, "script", "path", "validate_functions", "validate_errors", "validate_warnings", "validate_safe_lines");
 
 	GDVIRTUAL_BIND(_validate_path, "path");
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL_BIND(_create_script);
-	GDVIRTUAL_BIND(_has_named_classes);
-#endif
+
 	GDVIRTUAL_BIND(_supports_builtin_mode);
 	GDVIRTUAL_BIND(_supports_documentation);
 	GDVIRTUAL_BIND(_can_inherit_from_file);

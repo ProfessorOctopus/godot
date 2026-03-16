@@ -544,12 +544,6 @@ Object *ClassDB::_instantiate_internal(const StringName &p_class, bool p_require
 		}
 		ERR_FAIL_NULL_V_MSG(ti, nullptr, vformat("Cannot get class '%s'.", String(p_class)));
 		ERR_FAIL_COND_V_MSG(ti->disabled, nullptr, vformat("Class '%s' is disabled.", String(p_class)));
-#ifndef DISABLE_DEPRECATED
-		// Force legacy unexposed classes to skip the exposed check to preserve backcompat.
-		if (ti->gdextension && ti->gdextension->legacy_unexposed_class) {
-			p_exposed_only = false;
-		}
-#endif // DISABLE_DEPRECATED
 		if (p_exposed_only) {
 			ERR_FAIL_COND_V_MSG(!ti->exposed, nullptr, vformat("Class '%s' isn't exposed.", String(p_class)));
 		}
@@ -571,11 +565,6 @@ Object *ClassDB::_instantiate_internal(const StringName &p_class, bool p_require
 			if (ti->gdextension->create_instance2) {
 				can_create_placeholder = true;
 			}
-#ifndef DISABLE_DEPRECATED
-			else if (ti->gdextension->create_instance) {
-				can_create_placeholder = true;
-			}
-#endif // DISABLE_DEPRECATED
 		} else if (!ti->inherits_ptr || !ti->inherits_ptr->creation_func) {
 			ERR_PRINT(vformat("Cannot make a placeholder instance of runtime class %s because its parent cannot be constructed.", ti->gdtype->get_name()));
 		} else {
@@ -593,12 +582,6 @@ Object *ClassDB::_instantiate_internal(const StringName &p_class, bool p_require
 		ObjectGDExtension *extension = ti->gdextension;
 		return (Object *)extension->create_instance2(extension->class_userdata, p_notify_postinitialize);
 	}
-#ifndef DISABLE_DEPRECATED
-	else if (ti->gdextension && ti->gdextension->create_instance) {
-		ObjectGDExtension *extension = ti->gdextension;
-		return (Object *)extension->create_instance(extension->class_userdata);
-	}
-#endif // DISABLE_DEPRECATED
 	else {
 		return ti->creation_func(p_notify_postinitialize);
 	}
@@ -608,13 +591,6 @@ bool ClassDB::_can_instantiate(ClassInfo *p_class_info, bool p_exposed_only) {
 	if (!p_class_info) {
 		return false;
 	}
-
-#ifndef DISABLE_DEPRECATED
-	// Force legacy unexposed classes to skip the exposed check to preserve backcompat.
-	if (p_class_info->gdextension && p_class_info->gdextension->legacy_unexposed_class) {
-		p_exposed_only = false;
-	}
-#endif // DISABLE_DEPRECATED
 
 	if (p_exposed_only && !p_class_info->exposed) {
 		return false;
@@ -631,12 +607,6 @@ bool ClassDB::_can_instantiate(ClassInfo *p_class_info, bool p_exposed_only) {
 	if (p_class_info->gdextension->create_instance2) {
 		return true;
 	}
-
-#ifndef DISABLE_DEPRECATED
-	if (p_class_info->gdextension->create_instance) {
-		return true;
-	}
-#endif //  DISABLE_DEPRECATED
 	return false;
 }
 
@@ -713,31 +683,18 @@ ObjectGDExtension *ClassDB::get_placeholder_extension(const StringName &p_class)
 	placeholder_extension->property_can_revert = &PlaceholderExtensionInstance::placeholder_instance_property_can_revert;
 	placeholder_extension->property_get_revert = &PlaceholderExtensionInstance::placeholder_instance_property_get_revert;
 	placeholder_extension->validate_property = &PlaceholderExtensionInstance::placeholder_instance_validate_property;
-#ifndef DISABLE_DEPRECATED
-	placeholder_extension->notification = nullptr;
-	placeholder_extension->free_property_list = nullptr;
-#endif // DISABLE_DEPRECATED
 	placeholder_extension->notification2 = &PlaceholderExtensionInstance::placeholder_instance_notification;
 	placeholder_extension->to_string = &PlaceholderExtensionInstance::placeholder_instance_to_string;
 	placeholder_extension->reference = &PlaceholderExtensionInstance::placeholder_instance_reference;
 	placeholder_extension->unreference = &PlaceholderExtensionInstance::placeholder_instance_unreference;
 	placeholder_extension->get_rid = &PlaceholderExtensionInstance::placeholder_instance_get_rid;
-
 	placeholder_extension->class_userdata = ti;
-#ifndef DISABLE_DEPRECATED
-	placeholder_extension->create_instance = nullptr;
-#endif // DISABLE_DEPRECATED
 	placeholder_extension->create_instance2 = &PlaceholderExtensionInstance::placeholder_class_create_instance;
 	placeholder_extension->free_instance = &PlaceholderExtensionInstance::placeholder_class_free_instance;
-#ifndef DISABLE_DEPRECATED
-	placeholder_extension->get_virtual = nullptr;
-	placeholder_extension->get_virtual_call_data = nullptr;
-#endif // DISABLE_DEPRECATED
 	placeholder_extension->get_virtual2 = &PlaceholderExtensionInstance::placeholder_class_get_virtual;
 	placeholder_extension->get_virtual_call_data2 = nullptr;
 	placeholder_extension->call_virtual_with_data = nullptr;
 	placeholder_extension->recreate_instance = &PlaceholderExtensionInstance::placeholder_class_recreate_instance;
-
 	placeholder_extension->create_gdtype();
 
 	return placeholder_extension;
@@ -825,11 +782,7 @@ bool ClassDB::is_abstract(const StringName &p_class) {
 		if (!ti->gdextension) {
 			return true;
 		}
-#ifndef DISABLE_DEPRECATED
-		return ti->gdextension->create_instance2 == nullptr && ti->gdextension->create_instance == nullptr;
-#else
 		return ti->gdextension->create_instance2 == nullptr;
-#endif //  DISABLE_DEPRECATED
 	}
 
 use_script:

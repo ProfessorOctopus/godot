@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "code_edit.h"
-#include "code_edit.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/input/input.h"

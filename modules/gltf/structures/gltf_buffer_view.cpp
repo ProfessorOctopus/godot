@@ -29,10 +29,7 @@
 /**************************************************************************/
 
 #include "gltf_buffer_view.h"
-#include "gltf_buffer_view.compat.inc"
-
 #include "../gltf_state.h"
-
 #include "core/object/class_db.h"
 
 void GLTFBufferView::_bind_methods() {

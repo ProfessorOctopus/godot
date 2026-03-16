@@ -67,11 +67,6 @@ DisplayServerAndroid *DisplayServerAndroid::get_singleton() {
 
 bool DisplayServerAndroid::has_feature(DisplayServerEnums::Feature p_feature) const {
 	switch (p_feature) {
-#ifndef DISABLE_DEPRECATED
-		case DisplayServerEnums::FEATURE_GLOBAL_MENU: {
-			return (native_menu && native_menu->has_feature(NativeMenu::FEATURE_GLOBAL_MENU));
-		} break;
-#endif
 		case DisplayServerEnums::FEATURE_PIP_MODE: {
 			GodotJavaWrapper *godot_java = OS_Android::get_singleton()->get_godot_java();
 			ERR_FAIL_NULL_V(godot_java, false);
@@ -79,18 +74,11 @@ bool DisplayServerAndroid::has_feature(DisplayServerEnums::Feature p_feature) co
 		} break;
 
 		case DisplayServerEnums::FEATURE_CURSOR_SHAPE:
-		//case DisplayServerEnums::FEATURE_CUSTOM_CURSOR_SHAPE:
-		//case DisplayServerEnums::FEATURE_HIDPI:
-		//case DisplayServerEnums::FEATURE_ICON:
-		//case DisplayServerEnums::FEATURE_IME:
 		case DisplayServerEnums::FEATURE_MOUSE:
-		//case DisplayServerEnums::FEATURE_MOUSE_WARP:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_INPUT:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE:
-		//case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE_EXTRA:
 		case DisplayServerEnums::FEATURE_NATIVE_DIALOG_FILE_MIME:
-		//case DisplayServerEnums::FEATURE_NATIVE_ICON:
 		case DisplayServerEnums::FEATURE_WINDOW_TRANSPARENCY:
 		case DisplayServerEnums::FEATURE_CLIPBOARD:
 		case DisplayServerEnums::FEATURE_KEEP_SCREEN_ON:

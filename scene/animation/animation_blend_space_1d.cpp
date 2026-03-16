@@ -29,10 +29,7 @@
 /**************************************************************************/
 
 #include "animation_blend_space_1d.h"
-#include "animation_blend_space_1d.compat.inc"
-
 #include "animation_blend_tree.h"
-
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"
 
@@ -139,15 +136,8 @@ void AnimationNodeBlendSpace1D::add_blend_point(const Ref<AnimationRootNode> &p_
 	ERR_FAIL_COND(blend_points_used >= MAX_BLEND_POINTS);
 	ERR_FAIL_COND(p_node.is_null());
 	ERR_FAIL_COND(p_at_index < -1 || p_at_index > blend_points_used);
-#ifndef DISABLE_DEPRECATED
-	if (p_name == StringName()) {
-		_add_blend_point_bind_compat_110369(p_node, p_position, p_at_index);
-		WARN_PRINT_ED("AnimationNodeBlendSpace1D::add_blend_point: No name provided, using safe index as reference. In the future, empty names will be deprecated, so explicitly passing a name is recommended.");
-		return;
-	}
-#else
 	ERR_FAIL_COND(p_name == StringName());
-#endif
+
 	if (p_at_index == -1 || p_at_index == blend_points_used) {
 		p_at_index = blend_points_used;
 	} else {
@@ -324,19 +314,11 @@ bool AnimationNodeBlendSpace1D::_set(const StringName &p_name, const Variant &p_
 		String what = prop.get_slicec('/', 1);
 		if (what == "node") {
 			Ref<AnimationRootNode> node = p_value;
-#ifndef DISABLE_DEPRECATED
-			if (idx == blend_points_used) {
-				add_blend_point(node, 0, -1, blend_points[idx].name.is_empty() ? StringName(itos(idx)) : blend_points[idx].name);
-			} else {
-				set_blend_point_node(idx, node);
-			}
-#else
 			if (idx == blend_points_used) {
 				add_blend_point(node, 0, -1, blend_points[idx].name);
 			} else {
 				set_blend_point_node(idx, node);
 			}
-#endif // DISABLE_DEPRECATED
 		} else if (what == "pos") {
 			set_blend_point_position(idx, p_value);
 		} else if (what == "name") {

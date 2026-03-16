@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "editor_inspector.h"
-#include "editor_inspector.compat.inc"
-
 #include "core/input/input.h"
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"

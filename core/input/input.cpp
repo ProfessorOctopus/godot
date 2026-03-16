@@ -29,19 +29,15 @@
 /**************************************************************************/
 
 #include "input.h"
-#include "input.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/input/default_controller_mappings.h"
 #include "core/input/input_map.h"
 #include "core/object/class_db.h"
 #include "core/os/os.h"
-
 #ifdef DEV_ENABLED
 #include "core/os/thread.h"
 #endif
-
 #include "thirdparty/gamepadmotionhelpers/GamepadMotion.hpp"
 
 #define STANDARD_GRAVITY 9.80665f

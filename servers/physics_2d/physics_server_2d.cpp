@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "physics_server_2d.h"
-#include "physics_server_2d.compat.inc"
-
 #include "core/config/project_settings.h"
 #include "core/object/class_db.h"
 #include "core/variant/typed_array.h"

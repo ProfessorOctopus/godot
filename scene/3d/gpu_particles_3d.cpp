@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "gpu_particles_3d.h"
-#include "gpu_particles_3d.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/object/callable_mp.h"
 #include "core/object/class_db.h"

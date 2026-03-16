@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "file_dialog.h"
-#include "file_dialog.compat.inc"
-
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 #include "core/io/file_access.h"

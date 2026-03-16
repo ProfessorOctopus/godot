@@ -70,13 +70,7 @@ Node *EditorSceneFormatImporterGLTF::import_scene(const String &p_path, uint32_t
 	if (p_options.has("animation/import")) {
 		state->set_create_animations(bool(p_options["animation/import"]));
 	}
-
-#ifndef DISABLE_DEPRECATED
-	bool trimming = p_options.has("animation/trimming") ? (bool)p_options["animation/trimming"] : false;
-	return gltf->generate_scene(state, state->get_bake_fps(), trimming, false);
-#else
 	return gltf->generate_scene(state, state->get_bake_fps(), (bool)p_options["animation/trimming"], false);
-#endif
 }
 
 void EditorSceneFormatImporterGLTF::get_import_options(const String &p_path,

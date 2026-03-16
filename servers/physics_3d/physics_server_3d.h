@@ -804,12 +804,6 @@ public:
 	/* MISC */
 
 	virtual void free_rid(RID p_rid) = 0;
-#ifndef DISABLE_DEPRECATED
-	[[deprecated("Use `free_rid()` instead.")]] void free(RID p_rid) {
-		free_rid(p_rid);
-	}
-#endif // DISABLE_DEPRECATED
-
 	virtual void set_active(bool p_active) = 0;
 	virtual void init() = 0;
 	virtual void step(real_t p_step) = 0;

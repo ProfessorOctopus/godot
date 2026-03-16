@@ -328,9 +328,6 @@ struct ObjectGDExtension {
 	bool is_runtime = false;
 	bool is_placeholder = false;
 #endif
-#ifndef DISABLE_DEPRECATED
-	bool legacy_unexposed_class = false;
-#endif // DISABLE_DEPRECATED
 	GDExtensionClassSet set;
 	GDExtensionClassGet get;
 	GDExtensionClassGetPropertyList get_property_list;
@@ -338,10 +335,6 @@ struct ObjectGDExtension {
 	GDExtensionClassPropertyCanRevert property_can_revert;
 	GDExtensionClassPropertyGetRevert property_get_revert;
 	GDExtensionClassValidateProperty validate_property;
-#ifndef DISABLE_DEPRECATED
-	GDExtensionClassNotification notification;
-	GDExtensionClassFreePropertyList free_property_list;
-#endif // DISABLE_DEPRECATED
 	GDExtensionClassNotification2 notification2;
 	GDExtensionClassToString to_string;
 	GDExtensionClassReference reference;
@@ -350,15 +343,8 @@ struct ObjectGDExtension {
 
 	void *class_userdata = nullptr;
 
-#ifndef DISABLE_DEPRECATED
-	GDExtensionClassCreateInstance create_instance;
-#endif // DISABLE_DEPRECATED
 	GDExtensionClassCreateInstance2 create_instance2;
 	GDExtensionClassFreeInstance free_instance;
-#ifndef DISABLE_DEPRECATED
-	GDExtensionClassGetVirtual get_virtual;
-	GDExtensionClassGetVirtualCallData get_virtual_call_data;
-#endif // DISABLE_DEPRECATED
 	GDExtensionClassGetVirtual2 get_virtual2;
 	GDExtensionClassGetVirtualCallData2 get_virtual_call_data2;
 	GDExtensionClassCallVirtualWithData call_virtual_with_data;

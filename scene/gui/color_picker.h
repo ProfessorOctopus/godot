@@ -101,12 +101,8 @@ public:
 	enum ColorModeType {
 		MODE_RGB,
 		MODE_HSV,
-#ifndef DISABLE_DEPRECATED
-		MODE_RAW = 2,
-#endif
 		MODE_LINEAR = 2,
 		MODE_OKHSL,
-
 		MODE_MAX
 	};
 
@@ -118,7 +114,6 @@ public:
 		SHAPE_NONE,
 		SHAPE_OK_HS_RECTANGLE,
 		SHAPE_OK_HL_RECTANGLE,
-
 		SHAPE_MAX
 	};
 

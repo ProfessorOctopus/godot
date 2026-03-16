@@ -361,10 +361,7 @@ public:
 	}
 
 	EXBIND1RC(String, validate_path, const String &)
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL0RC(Object *, _create_script)
-	GDVIRTUAL0RC(bool, _has_named_classes)
-#endif
+
 	EXBIND0RC(bool, supports_builtin_mode)
 	EXBIND0RC(bool, supports_documentation)
 	EXBIND0RC(bool, can_inherit_from_file)
@@ -681,16 +678,6 @@ class ScriptInstanceExtension : public ScriptInstance {
 public:
 	const GDExtensionScriptInstanceInfo3 *native_info;
 
-#ifndef DISABLE_DEPRECATED
-	bool free_native_info = false;
-	struct DeprecatedNativeInfo {
-		GDExtensionScriptInstanceNotification notification_func = nullptr;
-		GDExtensionScriptInstanceFreePropertyList free_property_list_func = nullptr;
-		GDExtensionScriptInstanceFreeMethodList free_method_list_func = nullptr;
-	};
-	DeprecatedNativeInfo *deprecated_native_info = nullptr;
-#endif // DISABLE_DEPRECATED
-
 	GDExtensionScriptInstanceDataPtr instance = nullptr;
 
 	GODOT_GCC_WARNING_PUSH_AND_IGNORE("-Wignored-qualifiers") // There should not be warnings on explicit casts.
@@ -733,10 +720,6 @@ public:
 			}
 			if (native_info->free_property_list_func) {
 				native_info->free_property_list_func(instance, pinfo, pcount);
-#ifndef DISABLE_DEPRECATED
-			} else if (deprecated_native_info && deprecated_native_info->free_property_list_func) {
-				deprecated_native_info->free_property_list_func(instance, pinfo);
-#endif // DISABLE_DEPRECATED
 			}
 		}
 	}
@@ -814,10 +797,6 @@ public:
 			}
 			if (native_info->free_method_list_func) {
 				native_info->free_method_list_func(instance, minfo, mcount);
-#ifndef DISABLE_DEPRECATED
-			} else if (deprecated_native_info && deprecated_native_info->free_method_list_func) {
-				deprecated_native_info->free_method_list_func(instance, minfo);
-#endif // DISABLE_DEPRECATED
 			}
 		}
 	}
@@ -856,10 +835,6 @@ public:
 	virtual void notification(int p_notification, bool p_reversed = false) override {
 		if (native_info->notification_func) {
 			native_info->notification_func(instance, p_notification, p_reversed);
-#ifndef DISABLE_DEPRECATED
-		} else if (deprecated_native_info && deprecated_native_info->notification_func) {
-			deprecated_native_info->notification_func(instance, p_notification);
-#endif // DISABLE_DEPRECATED
 		}
 	}
 
@@ -933,15 +908,6 @@ public:
 		if (native_info->free_func) {
 			native_info->free_func(instance);
 		}
-#ifndef DISABLE_DEPRECATED
-		if (free_native_info) {
-			memfree(const_cast<GDExtensionScriptInstanceInfo3 *>(native_info));
-		}
-		if (deprecated_native_info) {
-			memfree(deprecated_native_info);
-		}
-#endif // DISABLE_DEPRECATED
 	}
-
 	GODOT_GCC_WARNING_POP
 };

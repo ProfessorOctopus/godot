@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "viewport.h"
-#include "viewport.compat.inc"
 
 STATIC_ASSERT_INCOMPLETE_TYPE(class, RenderingServer);
 
@@ -3561,34 +3560,6 @@ void Viewport::push_input(RequiredParam<InputEvent> rp_event, bool p_local_coord
 	event_count++;
 }
 
-#ifndef DISABLE_DEPRECATED
-void Viewport::push_unhandled_input(RequiredParam<InputEvent> rp_event, bool p_local_coords) {
-	ERR_MAIN_THREAD_GUARD;
-	WARN_DEPRECATED_MSG(R"*(The "push_unhandled_input()" method is deprecated, use "push_input()" instead.)*");
-	ERR_FAIL_COND(!is_inside_tree());
-	EXTRACT_PARAM_OR_FAIL(p_event, rp_event);
-
-	local_input_handled = false;
-
-	if (disable_input || disable_input_override || !_can_consume_input_events()) {
-		return;
-	}
-
-	if (Engine::get_singleton()->is_editor_hint() && get_tree()->get_edited_scene_root() && get_tree()->get_edited_scene_root()->is_ancestor_of(this)) {
-		return;
-	}
-
-	Ref<InputEvent> ev;
-	if (!p_local_coords) {
-		ev = _make_input_local(p_event);
-	} else {
-		ev = p_event;
-	}
-
-	_push_unhandled_input_internal(ev);
-}
-#endif // DISABLE_DEPRECATED
-
 void Viewport::_push_unhandled_input_internal(const Ref<InputEvent> &p_event) {
 	// Shortcut Input.
 	if (Object::cast_to<InputEventKey>(*p_event) != nullptr || Object::cast_to<InputEventShortcut>(*p_event) != nullptr || Object::cast_to<InputEventJoypadButton>(*p_event) != nullptr) {
@@ -5170,9 +5141,6 @@ void Viewport::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_viewport_rid"), &Viewport::get_viewport_rid);
 	ClassDB::bind_method(D_METHOD("push_text_input", "text"), &Viewport::push_text_input);
 	ClassDB::bind_method(D_METHOD("push_input", "event", "in_local_coords"), &Viewport::push_input, DEFVAL(false));
-#ifndef DISABLE_DEPRECATED
-	ClassDB::bind_method(D_METHOD("push_unhandled_input", "event", "in_local_coords"), &Viewport::push_unhandled_input, DEFVAL(false));
-#endif // DISABLE_DEPRECATED
 	ClassDB::bind_method(D_METHOD("notify_mouse_entered"), &Viewport::notify_mouse_entered);
 	ClassDB::bind_method(D_METHOD("notify_mouse_exited"), &Viewport::notify_mouse_exited);
 

@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "performance.h"
-#include "performance.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/object/class_db.h"
 #include "core/os/os.h"

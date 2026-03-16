@@ -113,11 +113,6 @@ public:
 	GDVIRTUAL2R(uint64_t, _set_view_configuration_and_get_next_pointer, uint32_t, GDExtensionPtr<void>);
 	GDVIRTUAL1C(_print_view_configuration_info, int);
 
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL0R_COMPAT(_get_requested_extensions_bind_compat_109302, Dictionary, _get_requested_extensions);
-	GDVIRTUAL1R_COMPAT(_set_instance_create_info_and_get_next_pointer_bind_compat_109302, uint64_t, _set_instance_create_info_and_get_next_pointer, GDExtensionPtr<void>);
-#endif
-
 	virtual PackedStringArray get_suggested_tracker_names();
 
 	GDVIRTUAL0R(PackedStringArray, _get_suggested_tracker_names);

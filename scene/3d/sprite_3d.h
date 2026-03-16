@@ -222,7 +222,6 @@ public:
 	virtual Rect2 get_item_rect() const override;
 
 	Sprite3D();
-	//~Sprite3D();
 };
 
 class AnimatedSprite3D : public SpriteBase3D {
@@ -247,9 +246,6 @@ class AnimatedSprite3D : public SpriteBase3D {
 	void _stop_internal(bool p_reset);
 
 protected:
-#ifndef DISABLE_DEPRECATED
-	bool _set(const StringName &p_name, const Variant &p_value);
-#endif
 	virtual void _draw() override;
 	static void _bind_methods();
 	void _notification(int p_what);
