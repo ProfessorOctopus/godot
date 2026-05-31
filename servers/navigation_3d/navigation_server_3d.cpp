@@ -1009,16 +1009,6 @@ void NavigationServer3DManager::finalize_server() {
 
 const String NavigationServer3DManager::setting_property_name(PNAME("navigation/3d/navigation_engine"));
 
-void NavigationServer3DManager::on_servers_changed() {
-	String navigation_servers_enum_str("DEFAULT");
-	for (int i = get_servers_count() - 1; 0 <= i; --i) {
-		navigation_servers_enum_str += "," + get_server_name(i);
-	}
-	ProjectSettings::get_singleton()->set_custom_property_info(PropertyInfo(Variant::STRING, setting_property_name, PROPERTY_HINT_ENUM, navigation_servers_enum_str));
-	ProjectSettings::get_singleton()->set_restart_if_changed(setting_property_name, true);
-	ProjectSettings::get_singleton()->set_as_basic(setting_property_name, true);
-}
-
 void NavigationServer3DManager::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("register_server", "name", "create_callback"), &NavigationServer3DManager::register_server);
 	ClassDB::bind_method(D_METHOD("set_default_server", "name", "priority"), &NavigationServer3DManager::set_default_server);
@@ -1031,7 +1021,6 @@ NavigationServer3DManager *NavigationServer3DManager::get_singleton() {
 void NavigationServer3DManager::register_server(const String &p_name, const Callable &p_create_callback) {
 	ERR_FAIL_COND(find_server_id(p_name) != -1);
 	navigation_servers.push_back(ClassInfo(p_name, p_create_callback));
-	on_servers_changed();
 }
 
 void NavigationServer3DManager::set_default_server(const String &p_name, int p_priority) {

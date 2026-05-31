@@ -1162,16 +1162,6 @@ PhysicsServer3D::~PhysicsServer3D() {
 PhysicsServer3DManager *PhysicsServer3DManager::singleton = nullptr;
 const String PhysicsServer3DManager::setting_property_name(PNAME("physics/3d/physics_engine"));
 
-void PhysicsServer3DManager::on_servers_changed() {
-	String physics_servers2("DEFAULT");
-	for (int i = get_servers_count() - 1; 0 <= i; --i) {
-		physics_servers2 += "," + get_server_name(i);
-	}
-	ProjectSettings::get_singleton()->set_custom_property_info(PropertyInfo(Variant::STRING, setting_property_name, PROPERTY_HINT_ENUM, physics_servers2));
-	ProjectSettings::get_singleton()->set_restart_if_changed(setting_property_name, true);
-	ProjectSettings::get_singleton()->set_as_basic(setting_property_name, true);
-}
-
 void PhysicsServer3DManager::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("register_server", "name", "create_callback"), &PhysicsServer3DManager::register_server);
 	ClassDB::bind_method(D_METHOD("set_default_server", "name", "priority"), &PhysicsServer3DManager::set_default_server);
@@ -1182,10 +1172,8 @@ PhysicsServer3DManager *PhysicsServer3DManager::get_singleton() {
 }
 
 void PhysicsServer3DManager::register_server(const String &p_name, const Callable &p_create_callback) {
-	//ERR_FAIL_COND(!p_create_callback.is_valid());
 	ERR_FAIL_COND(find_server_id(p_name) != -1);
 	physics_servers.push_back(ClassInfo(p_name, p_create_callback));
-	on_servers_changed();
 }
 
 void PhysicsServer3DManager::set_default_server(const String &p_name, int p_priority) {

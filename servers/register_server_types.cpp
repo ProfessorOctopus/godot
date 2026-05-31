@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "register_server_types.h"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/object/callable_mp.h"
@@ -79,7 +78,6 @@
 #include "servers/text/text_server.h"
 #include "servers/text/text_server_dummy.h"
 #include "servers/text/text_server_extension.h"
-
 #include "audio/audio_effect.h"
 #include "audio/audio_server.h"
 #include "audio/audio_stream.h"
@@ -161,25 +159,12 @@
 
 ShaderTypes *shader_types = nullptr;
 
-#ifndef PHYSICS_2D_DISABLED
-static PhysicsServer2D *_create_dummy_physics_server_2d() {
-	return memnew(PhysicsServer2DDummy);
-}
-#endif // PHYSICS_2D_DISABLED
-
-#ifndef PHYSICS_3D_DISABLED
-static PhysicsServer3D *_create_dummy_physics_server_3d() {
-	return memnew(PhysicsServer3DDummy);
-}
-#endif // PHYSICS_3D_DISABLED
-
 static bool has_server_feature_callback(const String &p_feature) {
 	if (RenderingServer::get_singleton()) {
 		if (RenderingServer::get_singleton()->has_os_feature(p_feature)) {
 			return true;
 		}
 	}
-
 	return false;
 }
 
@@ -318,7 +303,7 @@ void register_server_types() {
 	GDREGISTER_CLASS(NavigationPathQueryParameters2D);
 	GDREGISTER_CLASS(NavigationPathQueryResult2D);
 
-	GLOBAL_DEF(PropertyInfo(Variant::STRING, NavigationServer2DManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"), "DEFAULT");
+	GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, NavigationServer2DManager::setting_property_name, PROPERTY_HINT_ENUM, "GodotNavigation2D"), "GodotNavigation2D");
 
 	NavigationServer2DManager::get_singleton()->register_server("Dummy", callable_mp_static(NavigationServer2DManager::create_dummy_server_callback));
 #endif // NAVIGATION_2D_DISABLED
@@ -346,9 +331,7 @@ void register_server_types() {
 	GDREGISTER_CLASS(PhysicsTestMotionParameters2D);
 	GDREGISTER_CLASS(PhysicsTestMotionResult2D);
 
-	GLOBAL_DEF(PropertyInfo(Variant::STRING, PhysicsServer2DManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"), "DEFAULT");
-
-	PhysicsServer2DManager::get_singleton()->register_server("Dummy", callable_mp_static(_create_dummy_physics_server_2d));
+	GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, PhysicsServer2DManager::setting_property_name, PROPERTY_HINT_ENUM, "GodotPhysics2D"), "GodotPhysics2D");
 #endif // PHYSICS_2D_DISABLED
 
 #ifndef NAVIGATION_3D_DISABLED
@@ -359,9 +342,7 @@ void register_server_types() {
 	GDREGISTER_CLASS(NavigationPathQueryParameters3D);
 	GDREGISTER_CLASS(NavigationPathQueryResult3D);
 
-	GLOBAL_DEF(PropertyInfo(Variant::STRING, NavigationServer3DManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"), "DEFAULT");
-
-	NavigationServer3DManager::get_singleton()->register_server("Dummy", callable_mp_static(NavigationServer3DManager::create_dummy_server_callback));
+	GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, NavigationServer3DManager::setting_property_name, PROPERTY_HINT_ENUM, "GodotNavigation3D"), "GodotNavigation3D");
 #endif // NAVIGATION_3D_DISABLED
 
 #ifndef PHYSICS_3D_DISABLED
@@ -389,9 +370,7 @@ void register_server_types() {
 	GDREGISTER_CLASS(PhysicsTestMotionParameters3D);
 	GDREGISTER_CLASS(PhysicsTestMotionResult3D);
 
-	GLOBAL_DEF(PropertyInfo(Variant::STRING, PhysicsServer3DManager::setting_property_name, PROPERTY_HINT_ENUM, "DEFAULT"), "DEFAULT");
-
-	PhysicsServer3DManager::get_singleton()->register_server("Dummy", callable_mp_static(_create_dummy_physics_server_3d));
+	GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, PhysicsServer3DManager::setting_property_name, PROPERTY_HINT_ENUM, "Jolt Physics,GodotPhysics3D"), "Jolt Physics");
 #endif // PHYSICS_3D_DISABLED
 
 #ifndef XR_DISABLED

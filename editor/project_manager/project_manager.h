@@ -95,7 +95,6 @@ class ProjectManager : public Control {
 
 	enum MainViewTab {
 		MAIN_VIEW_PROJECTS,
-		MAIN_VIEW_ASSETLIB,
 		MAIN_VIEW_MAX
 	};
 
@@ -111,9 +110,7 @@ class ProjectManager : public Control {
 	void _select_main_view(int p_id);
 
 	VBoxContainer *local_projects_vb = nullptr;
-	EditorAssetLibrary *asset_library = nullptr;
 
-	void _open_asset_library_confirmed();
 	void _project_list_menu_option(int p_option);
 
 	AcceptDialog *error_dialog = nullptr;
@@ -129,12 +126,10 @@ class ProjectManager : public Control {
 	void _restart_confirmed();
 
 	// Project list.
-
 	VBoxContainer *empty_list_placeholder = nullptr;
 	RichTextLabel *empty_list_message = nullptr;
 	Button *empty_list_create_project = nullptr;
 	Button *empty_list_import_project = nullptr;
-	Button *empty_list_open_assetlib = nullptr;
 	Label *empty_list_online_warning = nullptr;
 
 	void _update_list_placeholder();

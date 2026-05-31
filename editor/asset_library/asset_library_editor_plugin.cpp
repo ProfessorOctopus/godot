@@ -1588,11 +1588,6 @@ void EditorAssetLibrary::_api_request(const String &p_request, RequestType p_req
 		error_hb->hide();
 	}
 
-	if (loading_blocked) {
-		_set_library_message_with_action(TTRC("The Asset Store requires an online connection and involves sending data over the internet."), TTRC("Go Online"), callable_mp(this, &EditorAssetLibrary::_force_online_mode));
-		return;
-	}
-
 	HTTPRequest *requester = nullptr;
 	if (p_is_parallel) {
 		requester = memnew(HTTPRequest);

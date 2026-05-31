@@ -926,16 +926,6 @@ PhysicsServer2D::~PhysicsServer2D() {
 PhysicsServer2DManager *PhysicsServer2DManager::singleton = nullptr;
 const String PhysicsServer2DManager::setting_property_name(PNAME("physics/2d/physics_engine"));
 
-void PhysicsServer2DManager::on_servers_changed() {
-	String physics_servers("DEFAULT");
-	for (int i = get_servers_count() - 1; 0 <= i; --i) {
-		physics_servers += "," + get_server_name(i);
-	}
-	ProjectSettings::get_singleton()->set_custom_property_info(PropertyInfo(Variant::STRING, setting_property_name, PROPERTY_HINT_ENUM, physics_servers));
-	ProjectSettings::get_singleton()->set_restart_if_changed(setting_property_name, true);
-	ProjectSettings::get_singleton()->set_as_basic(setting_property_name, true);
-}
-
 void PhysicsServer2DManager::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("register_server", "name", "create_callback"), &PhysicsServer2DManager::register_server);
 	ClassDB::bind_method(D_METHOD("set_default_server", "name", "priority"), &PhysicsServer2DManager::set_default_server);
@@ -946,10 +936,8 @@ PhysicsServer2DManager *PhysicsServer2DManager::get_singleton() {
 }
 
 void PhysicsServer2DManager::register_server(const String &p_name, const Callable &p_create_callback) {
-	//ERR_FAIL_COND(!p_create_callback.is_valid());
 	ERR_FAIL_COND(find_server_id(p_name) != -1);
 	physics_2d_servers.push_back(ClassInfo(p_name, p_create_callback));
-	on_servers_changed();
 }
 
 void PhysicsServer2DManager::set_default_server(const String &p_name, int p_priority) {

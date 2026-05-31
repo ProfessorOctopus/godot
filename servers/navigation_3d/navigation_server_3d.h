@@ -533,8 +533,6 @@ class NavigationServer3DManager : public Object {
 	int default_server_id = -1;
 	int default_server_priority = -1;
 
-	void on_servers_changed();
-
 protected:
 	static void _bind_methods();
 
