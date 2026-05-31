@@ -34,6 +34,51 @@
 #include "core/config/project_settings.h"
 #include "core/object/callable_mp.h"
 #include "core/os/os.h"
+#include "servers/audio/audio_effect.h"
+#include "servers/audio/audio_server.h"
+#include "servers/audio/audio_stream.h"
+#include "servers/audio/effects/audio_effect_amplify.h"
+#include "servers/audio/effects/audio_effect_capture.h"
+#include "servers/audio/effects/audio_effect_chorus.h"
+#include "servers/audio/effects/audio_effect_compressor.h"
+#include "servers/audio/effects/audio_effect_delay.h"
+#include "servers/audio/effects/audio_effect_distortion.h"
+#include "servers/audio/effects/audio_effect_eq.h"
+#include "servers/audio/effects/audio_effect_filter.h"
+#include "servers/audio/effects/audio_effect_hard_limiter.h"
+#include "servers/audio/effects/audio_effect_panner.h"
+#include "servers/audio/effects/audio_effect_phaser.h"
+#include "servers/audio/effects/audio_effect_pitch_shift.h"
+#include "servers/audio/effects/audio_effect_record.h"
+#include "servers/audio/effects/audio_effect_reverb.h"
+#include "servers/audio/effects/audio_effect_spectrum_analyzer.h"
+#include "servers/audio/effects/audio_effect_stereo_enhance.h"
+#include "servers/audio/effects/audio_stream_generator.h"
+#include "servers/camera/camera_feed.h"
+#include "servers/camera/camera_server.h"
+#include "servers/debugger/servers_debugger.h"
+#include "servers/display/accessibility_server.h"
+#include "servers/display/display_server.h"
+#include "servers/display/native_menu.h"
+#include "servers/movie_writer/movie_writer.h"
+#include "servers/movie_writer/movie_writer_pngwav.h"
+#include "servers/rendering/renderer_rd/framebuffer_cache_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_data_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_scene_buffers_rd.h"
+#include "servers/rendering/renderer_rd/storage_rd/render_scene_data_rd.h"
+#include "servers/rendering/renderer_rd/uniform_set_cache_rd.h"
+#include "servers/rendering/rendering_device.h"
+#include "servers/rendering/rendering_device_binds.h"
+#include "servers/rendering/rendering_server.h"
+#include "servers/rendering/shader_include_db.h"
+#include "servers/rendering/shader_types.h"
+#include "servers/rendering/storage/render_data.h"
+#include "servers/rendering/storage/render_data_extension.h"
+#include "servers/rendering/storage/render_scene_buffers.h"
+#include "servers/rendering/storage/render_scene_data.h"
+#include "servers/text/text_server.h"
+#include "servers/text/text_server_dummy.h"
+#include "servers/text/text_server_extension.h"
 
 #include "audio/audio_effect.h"
 #include "audio/audio_server.h"
@@ -103,15 +148,15 @@
 
 // XR
 #ifndef XR_DISABLED
-#include "xr/xr_body_tracker.h"
-#include "xr/xr_controller_tracker.h"
-#include "xr/xr_face_tracker.h"
-#include "xr/xr_hand_tracker.h"
-#include "xr/xr_interface.h"
-#include "xr/xr_interface_extension.h"
-#include "xr/xr_positional_tracker.h"
-#include "xr/xr_server.h"
-#include "xr/xr_vrs.h"
+#include "servers/xr/xr_body_tracker.h"
+#include "servers/xr/xr_controller_tracker.h"
+#include "servers/xr/xr_face_tracker.h"
+#include "servers/xr/xr_hand_tracker.h"
+#include "servers/xr/xr_interface.h"
+#include "servers/xr/xr_interface_extension.h"
+#include "servers/xr/xr_positional_tracker.h"
+#include "servers/xr/xr_server.h"
+#include "servers/xr/xr_vrs.h"
 #endif // XR_DISABLED
 
 ShaderTypes *shader_types = nullptr;
@@ -238,6 +283,10 @@ void register_server_types() {
 	GDREGISTER_CLASS(RDShaderSPIRV);
 	GDREGISTER_CLASS(RDShaderFile);
 	GDREGISTER_CLASS(RDPipelineSpecializationConstant);
+	GDREGISTER_CLASS(RDAccelerationStructureGeometry);
+	GDREGISTER_CLASS(RDAccelerationStructureInstance);
+	GDREGISTER_CLASS(RDPipelineShader);
+	GDREGISTER_CLASS(RDHitGroup);
 
 	GDREGISTER_ABSTRACT_CLASS(RenderData);
 	GDREGISTER_CLASS(RenderDataExtension);

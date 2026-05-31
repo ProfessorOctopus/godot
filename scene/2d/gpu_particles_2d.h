@@ -123,7 +123,7 @@ public:
 	void set_trail_sections(int p_sections);
 	void set_trail_section_subdivisions(int p_subdivisions);
 	void set_interp_to_end(float p_interp);
-	void request_particles_process(real_t p_requested_process_time);
+	void request_particles_process(real_t p_requested_process_time, real_t p_requested_process_time_residual);
 
 #ifdef TOOLS_ENABLED
 	void set_show_gizmos(bool p_show_gizmos);

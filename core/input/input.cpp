@@ -38,7 +38,8 @@
 #ifdef DEV_ENABLED
 #include "core/os/thread.h"
 #endif
-#include "thirdparty/gamepadmotionhelpers/GamepadMotion.hpp"
+
+#include <thirdparty/gamepadmotionhelpers/GamepadMotion.hpp>
 
 #define STANDARD_GRAVITY 9.80665f
 

@@ -99,6 +99,7 @@ protected:
 	virtual void _update_rids() const;
 	virtual void reset_state() override;
 
+
 public:
 	virtual bool _is_cyclic(const Ref<Font> &p_f, int p_depth) const;
 	virtual bool _is_base_cyclic(const Ref<Font> &p_f, int p_depth) const;
@@ -111,7 +112,7 @@ public:
 	virtual TypedArray<Font> get_fallbacks() const;
 
 	// Output.
-	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0) const { return RID(); }
+	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0, int64_t p_palette_index = 0, const Vector<Color> &p_custom_colors = Vector<Color>()) const { return RID(); }
 	virtual RID _get_rid() const { return RID(); }
 	virtual TypedArray<RID> get_rids() const;
 
@@ -128,6 +129,10 @@ public:
 	virtual BitField<TextServer::FontStyle> get_font_style() const;
 	virtual int get_font_weight() const;
 	virtual int get_font_stretch() const;
+
+	virtual int64_t get_palette_count() const;
+	virtual String get_palette_name(int64_t p_index) const;
+	virtual Vector<Color> get_palette_colors(int64_t p_index) const;
 
 	virtual int get_spacing(TextServer::SpacingType p_spacing) const { return 0; }
 	virtual Dictionary get_opentype_features() const;
@@ -283,7 +288,7 @@ public:
 	virtual real_t get_oversampling() const;
 
 	// Cache.
-	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0) const override;
+	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0, int64_t p_palette_index = 0, const Vector<Color> &p_custom_colors = Vector<Color>()) const override;
 	virtual RID _get_rid() const override;
 
 	virtual int get_cache_count() const;
@@ -410,9 +415,12 @@ class FontVariation : public Font {
 	Dictionary opentype_features;
 	int extra_spacing[TextServer::SPACING_MAX];
 	float baseline_offset = 0.0;
+	int64_t palette_index = 0;
+	Vector<Color> custom_colors;
 
 protected:
 	static void _bind_methods();
+	void _validate_property(PropertyInfo &p_property) const;
 
 	virtual void _update_rids() const override;
 
@@ -444,8 +452,14 @@ public:
 	virtual float get_baseline_offset() const;
 	virtual void set_baseline_offset(float p_baseline_offset);
 
+	virtual int64_t get_palette_index() const;
+	virtual void set_palette_index(int64_t p_palette_index);
+
+	virtual Vector<Color> get_palette_custom_colors() const;
+	virtual void set_palette_custom_colors(const Vector<Color> &p_colors);
+
 	// Output.
-	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0) const override;
+	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0, int64_t p_palette_index = 0, const Vector<Color> &p_custom_colors = Vector<Color>()) const override;
 	virtual RID _get_rid() const override;
 
 	FontVariation();
@@ -551,7 +565,7 @@ public:
 
 	virtual int get_spacing(TextServer::SpacingType p_spacing) const override;
 
-	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0) const override;
+	virtual RID find_variation(const Dictionary &p_variation_coordinates, int p_face_index = 0, float p_strength = 0.0, Transform2D p_transform = Transform2D(), int p_spacing_top = 0, int p_spacing_bottom = 0, int p_spacing_space = 0, int p_spacing_glyph = 0, float p_baseline_offset = 0.0, int64_t p_palette_index = 0, const Vector<Color> &p_custom_colors = Vector<Color>()) const override;
 	virtual RID _get_rid() const override;
 
 	int64_t get_face_count() const override;

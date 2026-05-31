@@ -129,7 +129,8 @@ private:
 
 	double lifetime = 1.0;
 	double pre_process_time = 0.0;
-	double _requested_process_time = 0.0;
+	real_t _request_process_time = 0.0;
+	real_t _request_process_time_residual = 0.0;
 	real_t explosiveness_ratio = 0.0;
 	real_t randomness_ratio = 0.0;
 	double lifetime_randomness = 0.0;
@@ -260,7 +261,7 @@ public:
 #endif
 	uint32_t get_seed() const;
 
-	void request_particles_process(real_t p_requested_process_time);
+	void request_particles_process(real_t p_requested_process_time, real_t p_requested_process_time_residual = 0.);
 
 	///////////////////
 

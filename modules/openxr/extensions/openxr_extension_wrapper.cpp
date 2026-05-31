@@ -55,7 +55,7 @@ void OpenXRExtensionWrapper::_bind_methods() {
 	GDVIRTUAL_BIND(_get_composition_layer, "index");
 	GDVIRTUAL_BIND(_get_composition_layer_order, "index");
 	GDVIRTUAL_BIND(_get_suggested_tracker_names);
-	GDVIRTUAL_BIND(_on_register_metadata);
+	GDVIRTUAL_BIND(_on_register_metadata, "interaction_profile_metadata");
 	GDVIRTUAL_BIND(_on_before_instance_created);
 	GDVIRTUAL_BIND(_on_instance_created, "instance");
 	GDVIRTUAL_BIND(_on_instance_destroyed);
@@ -259,8 +259,14 @@ int OpenXRExtensionWrapper::get_composition_layer_order(int p_index) {
 	return order;
 }
 
-void OpenXRExtensionWrapper::on_register_metadata() {
-	GDVIRTUAL_CALL(_on_register_metadata);
+void OpenXRExtensionWrapper::on_register_metadata(OpenXRInteractionProfileMetadata *p_interaction_profile_metadata) {
+	if (GDVIRTUAL_CALL(_on_register_metadata, p_interaction_profile_metadata)) {
+		return;
+	}
+
+#ifndef DISABLE_DEPRECATED
+	GDVIRTUAL_CALL(_on_register_metadata_bind_compat_117399);
+#endif
 }
 
 void OpenXRExtensionWrapper::on_before_instance_created() {

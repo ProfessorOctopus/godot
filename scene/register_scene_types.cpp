@@ -32,6 +32,8 @@
 
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
+#include "core/io/resource_loader.h"
+#include "core/io/resource_saver.h"
 #include "core/object/class_db.h"
 #include "core/os/os.h"
 #include "scene/animation/animation_blend_space_1d.h"
@@ -122,6 +124,7 @@
 #include "scene/resources/color_palette.h"
 #include "scene/resources/compositor.h"
 #include "scene/resources/compressed_texture.h"
+#include "scene/resources/compressed_texture_resource_format.h"
 #include "scene/resources/curve_texture.h"
 #include "scene/resources/drawable_texture_2d.h"
 #include "scene/resources/environment.h"
@@ -146,6 +149,8 @@
 #include "scene/resources/portable_compressed_texture.h"
 #include "scene/resources/resource_format_text.h"
 #include "scene/resources/shader_include.h"
+#include "scene/resources/shader_include_resource_format.h"
+#include "scene/resources/shader_resource_format.h"
 #include "scene/resources/skeleton_profile.h"
 #include "scene/resources/sky.h"
 #include "scene/resources/style_box.h"
@@ -160,10 +165,6 @@
 #include "scene/resources/texture_rd.h"
 #include "scene/resources/theme.h"
 #include "scene/resources/video_stream.h"
-#include "scene/resources/visual_shader.h"
-#include "scene/resources/visual_shader_nodes.h"
-#include "scene/resources/visual_shader_particle_nodes.h"
-#include "scene/resources/visual_shader_sdf_nodes.h"
 #include "scene/theme/theme_db.h"
 #include "servers/display/display_server.h"
 #include "servers/rendering/rendering_server.h"
@@ -636,6 +637,7 @@ void register_scene_types() {
 	GDREGISTER_CLASS(DirectionalLight3D);
 	GDREGISTER_CLASS(OmniLight3D);
 	GDREGISTER_CLASS(SpotLight3D);
+	GDREGISTER_CLASS(AreaLight3D);
 	GDREGISTER_CLASS(ReflectionProbe);
 	GDREGISTER_CLASS(Decal);
 	GDREGISTER_CLASS(VoxelGI);
@@ -757,7 +759,6 @@ void register_scene_types() {
 	/* REGISTER SHADER */
 
 	GDREGISTER_CLASS(Shader);
-	GDREGISTER_CLASS(VisualShader);
 	GDREGISTER_CLASS(ShaderInclude);
 	GDREGISTER_ABSTRACT_CLASS(VisualShaderNode);
 	GDREGISTER_CLASS(VisualShaderNodeCustom);
