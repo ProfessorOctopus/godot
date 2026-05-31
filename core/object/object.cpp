@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "object.h"
-#include "object.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/io/resource.h"
@@ -1690,7 +1688,6 @@ void Object::initialize_class() {
 	_add_class_to_classdb(get_gdtype_static_mutable(), nullptr);
 	get_gdtype_static_mutable().initialize();
 	_bind_methods();
-	_bind_compatibility_methods();
 	initialized = true;
 }
 

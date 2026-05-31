@@ -34,7 +34,6 @@
 #include "scene/gui/scroll_container.h"
 
 class CheckBox;
-class EditorAbout;
 class EditorAssetLibrary;
 class EditorFileDialog;
 class EditorTitleBar;
@@ -114,9 +113,6 @@ class ProjectManager : public Control {
 	VBoxContainer *local_projects_vb = nullptr;
 	EditorAssetLibrary *asset_library = nullptr;
 
-	EditorAbout *about_dialog = nullptr;
-
-	void _show_about();
 	void _open_asset_library_confirmed();
 	void _project_list_menu_option(int p_option);
 
@@ -163,7 +159,6 @@ class ProjectManager : public Control {
 	Button *manage_tags_btn = nullptr;
 	Button *erase_btn = nullptr;
 	Button *erase_missing_btn = nullptr;
-	Button *donate_btn = nullptr;
 
 	HBoxContainer *open_btn_container = nullptr;
 	PopupMenu *open_options_popup = nullptr;
@@ -186,7 +181,6 @@ class ProjectManager : public Control {
 	void _run_project();
 	void _run_project_confirm();
 	void _open_selected_projects();
-	void _open_selected_projects_with_migration();
 	void _open_selected_projects_check_warnings();
 	void _open_selected_projects_check_recovery_mode();
 
@@ -204,7 +198,6 @@ class ProjectManager : public Control {
 	void _update_project_buttons();
 	void _open_options_popup();
 	void _open_recovery_mode_ask(bool manual = false);
-	void _open_donate_page();
 
 	void _on_project_created(const String &dir, bool edit);
 	void _on_project_duplicated(const String &p_original_path, const String &p_duplicate_path, bool p_edit);
@@ -240,26 +233,10 @@ class ProjectManager : public Control {
 	void _set_new_tag_name(const String p_name);
 	void _create_new_tag();
 
-	// Project converter/migration tool.
-
-	ConfirmationDialog *ask_full_convert_dialog = nullptr;
-	ConfirmationDialog *ask_update_settings = nullptr;
-	VBoxContainer *ask_update_vb = nullptr;
-	Label *ask_update_label = nullptr;
-	CheckBox *ask_update_backup = nullptr;
-	Button *full_convert_button = nullptr;
-	Button *migration_guide_button = nullptr;
-
-	String version_convert_feature;
 	bool open_in_recovery_mode = false;
 	bool open_in_verbose_mode = false;
 
-	void _full_convert_button_pressed();
-	void _migration_guide_button_pressed();
-	void _perform_full_project_conversion();
-
 	// Input and I/O.
-
 	virtual void shortcut_input(const Ref<InputEvent> &p_ev) override;
 
 	void _files_dropped(PackedStringArray p_files);

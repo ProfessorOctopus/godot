@@ -70,7 +70,6 @@ class BackgroundProgress;
 class DependencyErrorDialog;
 class DockSplitContainer;
 class DynamicFontImportSettingsDialog;
-class EditorAbout;
 class EditorBuildProfileManager;
 class EditorBottomPanel;
 class EditorCommandPalette;
@@ -204,11 +203,6 @@ public:
 		HELP_FORUM,
 		HELP_COMMUNITY,
 		HELP_COPY_SYSTEM_INFO,
-		HELP_REPORT_A_BUG,
-		HELP_SUGGEST_A_FEATURE,
-		HELP_SEND_DOCS_FEEDBACK,
-		HELP_ABOUT,
-		HELP_SUPPORT_GODOT_DEVELOPMENT,
 
 		// Update spinner menu.
 		SPINNER_UPDATE_CONTINUOUSLY,
@@ -383,7 +377,6 @@ private:
 	Button *select_current_scene_button = nullptr;
 	AcceptDialog *accept = nullptr;
 	AcceptDialog *save_accept = nullptr;
-	EditorAbout *about = nullptr;
 	AcceptDialog *warning = nullptr;
 	EditorPlugin *plugin_to_save = nullptr;
 
@@ -831,8 +824,6 @@ public:
 	void clear_node_reference(Ref<Resource> p_res);
 	int get_resource_count(Ref<Resource> p_res);
 	List<Node *> get_resource_node_list(Ref<Resource> p_res);
-
-	void show_about() { _menu_option_confirm(HELP_ABOUT, false); }
 
 	void push_item(Object *p_object, const String &p_property = "", bool p_inspector_only = false);
 	void push_item_no_inspector(Object *p_object);

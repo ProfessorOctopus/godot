@@ -545,21 +545,7 @@ Object *ClassDB::_instantiate_from_gdextension(ObjectGDExtension *p_object_gd_ex
 			// Caller expects refcount=1, creation func returns with refcount=1. It's a match.
 			return (Object *)p_object_gd_extension->create_instance3(p_object_gd_extension->class_userdata, p_notify_postinitialize);
 		}
-#ifndef DISABLE_DEPRECATED
-		Object *object = (Object *)p_object_gd_extension->create_instance2(p_object_gd_extension->class_userdata, p_notify_postinitialize);
-		if (object != nullptr && object->is_ref_counted()) {
-			// Caller expects a refcount, creation func didn't increment, so do it now.
-			((RefCounted *)object)->init_ref();
-		}
-		return object;
-#endif
 	} else {
-#ifndef DISABLE_DEPRECATED
-		if (p_object_gd_extension->create_instance2 != nullptr) {
-			// Caller expects no refcount, creation func returns without refcount. It's a match.
-			return (Object *)p_object_gd_extension->create_instance2(p_object_gd_extension->class_userdata, p_notify_postinitialize);
-		}
-#endif
 		if (p_object_gd_extension->create_instance3 != nullptr) {
 			Object *object = (Object *)p_object_gd_extension->create_instance3(p_object_gd_extension->class_userdata, p_notify_postinitialize);
 			if (object != nullptr && object->is_ref_counted()) {

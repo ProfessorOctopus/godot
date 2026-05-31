@@ -162,37 +162,23 @@ PropertyInfo Script::get_class_category() const {
 
 void Script::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("can_instantiate"), &Script::can_instantiate);
-	//ClassDB::bind_method(D_METHOD("instance_create","base_object"),&Script::instance_create);
 	ClassDB::bind_method(D_METHOD("has_source_code"), &Script::has_source_code);
 	ClassDB::bind_method(D_METHOD("get_source_code"), &Script::get_source_code);
 	ClassDB::bind_method(D_METHOD("set_source_code", "source"), &Script::set_source_code);
 	ClassDB::bind_method(D_METHOD("reload", "keep_state"), &Script::reload, DEFVAL(false));
 	ClassDB::bind_method(D_METHOD("get_base_script"), &Script::get_base_script);
 	ClassDB::bind_method(D_METHOD("get_instance_base_type"), &Script::get_instance_base_type);
-
 	ClassDB::bind_method(D_METHOD("get_global_name"), &Script::get_global_name);
-
 	ClassDB::bind_method(D_METHOD("has_script_method", "method_name"), &Script::has_method);
 	ClassDB::bind_method(D_METHOD("has_script_signal", "signal_name"), &Script::has_script_signal);
-
 	ClassDB::bind_method(D_METHOD("get_script_property_list"), &Script::_get_script_property_list);
 	ClassDB::bind_method(D_METHOD("get_script_method_list"), &Script::_get_script_method_list);
 	ClassDB::bind_method(D_METHOD("get_script_signal_list"), &Script::_get_script_signal_list);
 	ClassDB::bind_method(D_METHOD("get_script_constant_map"), &Script::_get_script_constant_map);
 	ClassDB::bind_method(D_METHOD("get_property_default_value", "property"), &Script::_get_property_default_value);
-
 	ClassDB::bind_method(D_METHOD("is_tool"), &Script::is_tool);
 	ClassDB::bind_method(D_METHOD("is_abstract"), &Script::is_abstract);
-
 	ClassDB::bind_method(D_METHOD("get_rpc_config"), &Script::_get_rpc_config_bind);
-
-#ifndef DISABLE_DEPRECATED
-	GODOT_PUSH_IGNORE_DEPRECATION();
-
-	ClassDB::bind_method(D_METHOD("instance_has", "base_object"), &Script::instance_has);
-
-	GODOT_POP_IGNORE_DEPRECATION();
-#endif // !DISABLE_DEPRECATED
 
 	ADD_PROPERTY(PropertyInfo(Variant::STRING, "source_code", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NONE), "set_source_code", "get_source_code");
 }

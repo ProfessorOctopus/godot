@@ -263,10 +263,6 @@ void OpenXRExtensionWrapper::on_register_metadata(OpenXRInteractionProfileMetada
 	if (GDVIRTUAL_CALL(_on_register_metadata, p_interaction_profile_metadata)) {
 		return;
 	}
-
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL_CALL(_on_register_metadata_bind_compat_117399);
-#endif
 }
 
 void OpenXRExtensionWrapper::on_before_instance_created() {

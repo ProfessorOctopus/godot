@@ -269,9 +269,6 @@ protected: \
 	_FORCE_INLINE_ static void (*_get_bind_methods())() { \
 		return &m_class::_bind_methods; \
 	} \
-	_FORCE_INLINE_ static void (*_get_bind_compatibility_methods())() { \
-		return &m_class::_bind_compatibility_methods; \
-	} \
 \
 public: \
 	static void initialize_class() { \
@@ -290,9 +287,6 @@ public: \
 		get_gdtype_static_mutable().initialize(); \
 		if (m_class::_get_bind_methods() != m_inherits::_get_bind_methods()) { \
 			_bind_methods(); \
-		} \
-		if (m_class::_get_bind_compatibility_methods() != m_inherits::_get_bind_compatibility_methods()) { \
-			_bind_compatibility_methods(); \
 		} \
 		initialized = true; \
 	} \
@@ -523,7 +517,6 @@ protected:
 	virtual String _to_string();
 
 	static void _bind_methods();
-	static void _bind_compatibility_methods();
 	bool _set(const StringName &p_name, const Variant &p_property) { return false; }
 	bool _get(const StringName &p_name, Variant &r_property) const { return false; }
 	void _get_property_list(List<PropertyInfo> *p_list) const {}
@@ -534,9 +527,6 @@ protected:
 
 	_FORCE_INLINE_ static void (*_get_bind_methods())() {
 		return &Object::_bind_methods;
-	}
-	_FORCE_INLINE_ static void (*_get_bind_compatibility_methods())() {
-		return &Object::_bind_compatibility_methods;
 	}
 	_FORCE_INLINE_ bool (Object::*_get_get() const)(const StringName &p_name, Variant &r_ret) const {
 		return &Object::_get;
@@ -596,10 +586,6 @@ protected:
 	};
 
 	mutable VirtualMethodTracker *virtual_method_list = nullptr;
-#endif
-
-#ifndef DISABLE_DEPRECATED
-	bool _is_class_bind_compat_118582(const String &p_name) const;
 #endif
 
 public: // Should be protected, but bug in clang++.

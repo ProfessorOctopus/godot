@@ -171,11 +171,6 @@ public:
 	void set_cyclic_length(double p_length);
 	double get_cyclic_length() const;
 
-#ifndef DISABLE_DEPRECATED
-	void set_use_sync(bool p_sync); // Compat: maps to SYNC_MODE_INDEPENDENT or SYNC_MODE_NONE.
-	bool is_using_sync() const; // Compat: returns sync_mode != SYNC_MODE_NONE.
-#endif // DISABLE_DEPRECATED
-
 	void set_sync_mode(SyncMode p_sync_mode);
 	SyncMode get_sync_mode() const;
 

@@ -213,10 +213,6 @@ public:
 		GDVIRTUAL_CALL(_get_rpc_config, ret);
 		return ret;
 	}
-
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL1RC(bool, _instance_has, const Object *)
-#endif // !DISABLE_DEPRECATED
 };
 
 typedef ScriptLanguage::ProfilingInfo ScriptLanguageExtensionProfilingInfo;

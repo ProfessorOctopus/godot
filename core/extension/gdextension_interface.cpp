@@ -1341,17 +1341,6 @@ static GDExtensionBool gdextension_object_get_class_name(GDExtensionConstObjectP
 	return true;
 }
 
-#ifndef DISABLE_DEPRECATED
-static GDExtensionObjectPtr gdextension_object_cast_to(GDExtensionConstObjectPtr p_object, void *p_class_tag) {
-	if (!p_object) {
-		return nullptr;
-	}
-	Object *o = (Object *)p_object;
-
-	return o->is_class_ptr(p_class_tag) ? (GDExtensionObjectPtr)o : (GDExtensionObjectPtr) nullptr;
-}
-#endif
-
 static GDObjectInstanceID gdextension_object_get_instance_id(GDExtensionConstObjectPtr p_object) {
 	const Object *o = (const Object *)p_object;
 	return (GDObjectInstanceID)o->get_instance_id();
@@ -1663,9 +1652,6 @@ void gdextension_setup_interface() {
 	REGISTER_INTERFACE_FUNC(object_free_instance_binding);
 	REGISTER_INTERFACE_FUNC(object_set_instance);
 	REGISTER_INTERFACE_FUNC(object_get_class_name);
-#ifndef DISABLE_DEPRECATED
-	REGISTER_INTERFACE_FUNC(object_cast_to);
-#endif // DISABLE_DEPRECATED
 	REGISTER_INTERFACE_FUNC(object_get_instance_from_id);
 	REGISTER_INTERFACE_FUNC(object_get_instance_id);
 	REGISTER_INTERFACE_FUNC(object_has_script_method);
