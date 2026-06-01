@@ -2618,20 +2618,20 @@ void ResourceImporterScene::get_import_options(const String &p_path, List<Import
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "nodes/use_name_suffixes", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "nodes/use_node_type_suffixes"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/ensure_tangents"), true));
-	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/generate_lods"), true));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/generate_lods"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/create_shadow_meshes"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "meshes/light_baking", PROPERTY_HINT_ENUM, "Disabled,Static,Static Lightmaps,Dynamic", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), 1));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "meshes/lightmap_texel_size", PROPERTY_HINT_RANGE, "0.001,100,0.001"), 0.2));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "meshes/force_disable_compression"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "skins/use_named_skins"), true));
-	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/import"), true));
-	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "animation/fps", PROPERTY_HINT_RANGE, "1,120,1"), 30));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/import"), false));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::FLOAT, "animation/fps", PROPERTY_HINT_RANGE, "1,120,1"), 59));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/trimming"), trimming_defaults_on));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/remove_immutable_tracks"), true));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::BOOL, "animation/import_rest_as_RESET"), false));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "import_script/path", PROPERTY_HINT_FILE, script_ext_hint), ""));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "materials/extract", PROPERTY_HINT_ENUM, "Keep Internal,Extract Once,Extract and Overwrite"), 0));
-	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "materials/extract_format", PROPERTY_HINT_ENUM, "Text (*.tres),Binary (*.res),Material (*.material)"), 0));
+	r_options->push_back(ImportOption(PropertyInfo(Variant::INT, "materials/extract_format", PROPERTY_HINT_ENUM, "Text (*.tres),Binary (*.res),Material (*.material)"), 2));
 	r_options->push_back(ImportOption(PropertyInfo(Variant::STRING, "materials/extract_path", PROPERTY_HINT_DIR, ""), ""));
 
 	r_options->push_back(ImportOption(PropertyInfo(Variant::DICTIONARY, "_subresources", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), Dictionary()));

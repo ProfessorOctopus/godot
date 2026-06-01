@@ -47,10 +47,6 @@ Node *EditorSceneFormatImporterGLTF::import_scene(const String &p_path, uint32_t
 	gltf_doc.instantiate();
 	Ref<GLTFState> gltf_state;
 	gltf_state.instantiate();
-	if (p_options.has("gltf/naming_version")) {
-		int naming_version = p_options["gltf/naming_version"];
-		gltf_doc->set_naming_version(naming_version);
-	}
 	if (p_options.has("gltf/embedded_image_handling")) {
 		int32_t enum_option = p_options["gltf/embedded_image_handling"];
 		gltf_state->set_handle_binary_image_mode((GLTFState::HandleBinaryImageMode)enum_option);
@@ -84,7 +80,6 @@ void EditorSceneFormatImporterGLTF::get_import_options(const String &p_path,
 	String file_extension = p_path.get_extension().to_lower();
 	// Returns all the options when path is empty because that means it's for the Project Settings.
 	if (p_path.is_empty() || file_extension == "gltf" || file_extension == "glb") {
-		r_options->push_back(ResourceImporterScene::ImportOption(PropertyInfo(Variant::INT, "gltf/naming_version", PROPERTY_HINT_ENUM, "Godot 4.0 or 4.1,Godot 4.2 to 4.4,Godot 4.5 or later"), 2));
 		r_options->push_back(ResourceImporterScene::ImportOption(PropertyInfo(Variant::INT, "gltf/embedded_image_handling", PROPERTY_HINT_ENUM, "Discard All Textures,Extract Textures,Embed as Basis Universal,Embed as Uncompressed", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), GLTFState::HANDLE_BINARY_IMAGE_MODE_EXTRACT_TEXTURES));
 		r_options->push_back(ResourceImporterScene::ImportOption(PropertyInfo(Variant::INT, "gltf/texture_map_mode", PROPERTY_HINT_ENUM, "Do Not Remap,Remap to StandardMaterial3D", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), GLTFDocument::TEXTURE_MAP_MODE_REMAP_TO_STANDARD_MATERIAL));
 	}

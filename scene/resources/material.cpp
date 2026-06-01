@@ -3876,16 +3876,16 @@ BaseMaterial3D::BaseMaterial3D(bool p_orm) :
 	orm = p_orm;
 	// Initialize to the same values as the shader
 	set_albedo(Color(1.0, 1.0, 1.0, 1.0));
-	set_specular(0.5);
+	set_specular(0.0);
 	set_roughness(1.0);
 	set_metallic(0.0);
 	set_emission(Color(0, 0, 0));
 	set_emission_energy_multiplier(1.0);
 	set_normal_scale(1);
 	set_rim(1.0);
-	set_rim_tint(0.5);
+	set_rim_tint(0.0);
 	set_clearcoat(1);
-	set_clearcoat_roughness(0.5);
+	set_clearcoat_roughness(0.0);
 	set_anisotropy(0);
 	set_heightmap_scale(5.0);
 	set_subsurface_scattering_strength(0);

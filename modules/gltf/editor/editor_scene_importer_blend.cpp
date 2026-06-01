@@ -329,10 +329,6 @@ Node *EditorSceneFormatImporterBlend::import_scene(const String &p_path, uint32_
 	Ref<GLTFState> state;
 	state.instantiate();
 
-	if (p_options.has("gltf/naming_version")) {
-		int naming_version = p_options["gltf/naming_version"];
-		gltf->set_naming_version(naming_version);
-	}
 	if (p_options.has("gltf/texture_map_mode")) {
 		int texture_map_mode = p_options["gltf/texture_map_mode"];
 		gltf->set_texture_map_mode((GLTFDocument::TextureMapMode)texture_map_mode);
@@ -398,7 +394,6 @@ void EditorSceneFormatImporterBlend::get_import_options(const String &p_path, Li
 	ADD_OPTION_BOOL("blender/animation/always_sample", true);
 	ADD_OPTION_BOOL("blender/animation/group_tracks", true);
 
-	r_options->push_back(ResourceImporterScene::ImportOption(PropertyInfo(Variant::INT, "gltf/naming_version", PROPERTY_HINT_ENUM, "Godot 4.0 or 4.1,Godot 4.2 to 4.4,Godot 4.5 or later"), 2));
 	r_options->push_back(ResourceImporterScene::ImportOption(PropertyInfo(Variant::INT, "gltf/texture_map_mode", PROPERTY_HINT_ENUM, "Do Not Remap,Remap to StandardMaterial3D", PROPERTY_USAGE_DEFAULT | PROPERTY_USAGE_UPDATE_ALL_IF_MODIFIED), GLTFDocument::TEXTURE_MAP_MODE_REMAP_TO_STANDARD_MATERIAL));
 }
 
