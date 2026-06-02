@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "editor_theme_manager.h"
-
 #include "core/error/error_macros.h"
 #include "core/io/resource_loader.h"
 #include "core/object/callable_mp.h"
@@ -57,23 +56,19 @@ uint32_t EditorThemeManager::ThemeConfiguration::hash() {
 	uint32_t hash = hash_murmur3_one_float(EDSCALE);
 
 	// Basic properties.
-
 	hash = hash_murmur3_one_32(style.hash(), hash);
 	hash = hash_murmur3_one_32(preset.hash(), hash);
 	hash = hash_murmur3_one_32(spacing_preset.hash(), hash);
-
 	hash = hash_murmur3_one_32(base_color.to_rgba32(), hash);
 	hash = hash_murmur3_one_32(accent_color.to_rgba32(), hash);
 	hash = hash_murmur3_one_float(contrast, hash);
 	hash = hash_murmur3_one_float(icon_saturation, hash);
 
 	// Extra properties.
-
 	hash = hash_murmur3_one_32(base_spacing, hash);
 	hash = hash_murmur3_one_32(extra_spacing, hash);
 	hash = hash_murmur3_one_32(border_width, hash);
 	hash = hash_murmur3_one_32(corner_radius, hash);
-
 	hash = hash_murmur3_one_32((int)draw_extra_borders, hash);
 	hash = hash_murmur3_one_float(relationship_line_opacity, hash);
 	hash = hash_murmur3_one_32(thumb_size, hash);
@@ -82,11 +77,9 @@ uint32_t EditorThemeManager::ThemeConfiguration::hash() {
 	hash = hash_murmur3_one_float(gizmo_handle_scale, hash);
 	hash = hash_murmur3_one_32(inspector_property_height, hash);
 	hash = hash_murmur3_one_float(subresource_hue_tint, hash);
-
 	hash = hash_murmur3_one_float(default_contrast, hash);
 
 	// Generated properties.
-
 	hash = hash_murmur3_one_32((int)dark_theme, hash);
 	hash = hash_murmur3_one_32((int)dark_icon_and_font, hash);
 
@@ -97,7 +90,6 @@ uint32_t EditorThemeManager::ThemeConfiguration::hash_fonts() {
 	uint32_t hash = hash_murmur3_one_float(EDSCALE);
 
 	// TODO: Implement the hash based on what editor_register_fonts() uses.
-
 	return hash;
 }
 
@@ -116,19 +108,16 @@ uint32_t EditorThemeManager::ThemeConfiguration::hash_icons() {
 }
 
 // Benchmarks.
-
 int EditorThemeManager::benchmark_run = 0;
 
 String EditorThemeManager::get_benchmark_key() {
 	if (benchmark_run == 0) {
 		return "EditorTheme (Startup)";
 	}
-
 	return vformat("EditorTheme (Run %d)", benchmark_run);
 }
 
 // Generation helper methods.
-
 Ref<StyleBoxTexture> EditorThemeManager::make_stylebox(Ref<Texture2D> p_texture, float p_left, float p_top, float p_right, float p_bottom, float p_margin_left, float p_margin_top, float p_margin_right, float p_margin_bottom, bool p_draw_center) {
 	Ref<StyleBoxTexture> style(memnew(StyleBoxTexture));
 	style->set_texture(p_texture);
@@ -165,7 +154,6 @@ Ref<StyleBoxLine> EditorThemeManager::make_line_stylebox(Color p_color, int p_th
 }
 
 // Theme generation and population routines.
-
 Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &p_old_theme) {
 	OS::get_singleton()->benchmark_begin_measure(get_benchmark_key(), "Create Base Theme");
 
@@ -219,7 +207,6 @@ Ref<EditorTheme> EditorThemeManager::_create_base_theme(const Ref<EditorTheme> &
 	}
 
 	// TODO: Check if existing style definitions from the old theme are usable and copy them.
-
 	print_verbose("EditorTheme: Generating new styles.");
 
 	if (is_default_style) {
@@ -329,17 +316,6 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 				// The contrast rate value is irrelevant on a fully black theme.
 				preset_contrast = 0.0;
 				preset_draw_extra_borders = true;
-			} else if (config.preset == "Breeze Dark") {
-				preset_accent_color = Color(0.239, 0.682, 0.914);
-				preset_base_color = Color(0.1255, 0.1373, 0.149);
-			} else if (config.preset == "Godot 2") {
-				preset_accent_color = Color(0.53, 0.67, 0.89);
-				preset_base_color = Color(0.24, 0.23, 0.27);
-				preset_icon_saturation = 1;
-			} else if (config.preset == "Godot 3") {
-				preset_accent_color = Color(0.44, 0.73, 0.98);
-				preset_base_color = Color(0.21, 0.24, 0.29);
-				preset_icon_saturation = 1;
 			} else if (config.preset == "Gray") {
 				preset_accent_color = Color(0.44, 0.73, 0.98);
 				preset_base_color = Color(0.24, 0.24, 0.24);
@@ -348,17 +324,10 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 				preset_base_color = Color(0.9, 0.9, 0.9);
 				preset_contrast = light_contrast;
 				preset_icon_saturation = 1;
-			} else if (config.preset == "Solarized (Dark)") {
-				preset_accent_color = Color(0.15, 0.55, 0.82);
-				preset_base_color = Color(0.03, 0.21, 0.26);
-				preset_contrast = 0.23;
-			} else if (config.preset == "Solarized (Light)") {
-				preset_accent_color = Color(0.15, 0.55, 0.82);
-				preset_base_color = Color(0.89, 0.86, 0.79);
-				preset_contrast = light_contrast;
 			} else { // Default
-				preset_accent_color = Color(0.337, 0.62, 1.0);
-				preset_base_color = Color(0.161, 0.161, 0.161);
+				preset_accent_color = Color(0.239, 0.682, 0.914);
+				preset_base_color = Color(0.0, 0.274510, 0.274510);
+				preset_draw_extra_borders = true;
 			}
 
 			config.accent_color = preset_accent_color;
@@ -424,7 +393,6 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 	}
 
 	// Generated properties.
-
 	config.dark_theme = is_dark_theme();
 	config.dark_icon_and_font = is_dark_icon_and_font();
 
@@ -432,6 +400,7 @@ EditorThemeManager::ThemeConfiguration EditorThemeManager::_create_theme_config(
 	config.increased_margin = config.base_spacing + config.extra_spacing * 0.75;
 	config.separation_margin = (config.base_spacing + config.extra_spacing / 2) * EDSCALE;
 	config.popup_margin = config.base_margin * 2.4 * EDSCALE;
+
 	// Make sure content doesn't stick to window decorations; this can be fixed in future with layout changes.
 	config.window_border_margin = MAX(1, config.base_margin * EDSCALE);
 	config.top_bar_separation = MAX(1, config.base_margin * EDSCALE);
@@ -481,9 +450,8 @@ void _load_text_editor_theme() {
 void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_theme, ThemeConfiguration &p_config) {
 	const String text_editor_color_theme = EDITOR_GET("text_editor/theme/color_theme");
 	const bool is_default_theme = text_editor_color_theme == "Default";
-	const bool is_godot2_theme = text_editor_color_theme == "Godot 2";
 	const bool is_custom_theme = text_editor_color_theme == "Custom";
-	if (is_default_theme || is_godot2_theme || is_custom_theme) {
+	if (is_default_theme || is_custom_theme) {
 		HashMap<StringName, Color> colors;
 		if (is_default_theme || is_custom_theme) {
 			// Adaptive colors for comments and elements with lower relevance.
@@ -561,13 +529,11 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 				colors["text_editor/theme/highlighting/comment_markers/warning_color"] = Color(0.75, 0.39, 0.03);
 				colors["text_editor/theme/highlighting/comment_markers/notice_color"] = Color(0.24, 0.54, 0.09);
 			}
-		} else if (is_godot2_theme) {
-			colors = EditorSettings::get_godot2_text_editor_theme();
 		}
 		EditorSettings *settings = EditorSettings::get_singleton();
 		for (const KeyValue<StringName, Color> &setting : colors) {
 			settings->set_initial_value(setting.key, setting.value);
-			if (is_default_theme || is_godot2_theme) {
+			if (is_default_theme) {
 				settings->set_manually(setting.key, setting.value);
 			}
 		}
@@ -580,7 +546,6 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 	p_theme->set_font(SceneStringName(font), "CodeEdit", p_theme->get_font(SNAME("source"), EditorStringName(EditorFonts)));
 	p_theme->set_font_size(SceneStringName(font_size), "CodeEdit", p_theme->get_font_size(SNAME("source_size"), EditorStringName(EditorFonts)));
 
-	/* clang-format off */
 	p_theme->set_icon("tab",                  "CodeEdit", p_theme->get_icon(SNAME("GuiTab"), EditorStringName(EditorIcons)));
 	p_theme->set_icon("space",                "CodeEdit", p_theme->get_icon(SNAME("GuiSpace"), EditorStringName(EditorIcons)));
 	p_theme->set_icon("folded",               "CodeEdit", p_theme->get_icon(SNAME("CodeFoldedRightArrow"), EditorStringName(EditorIcons)));
@@ -589,7 +554,6 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 	p_theme->set_icon("can_fold_code_region", "CodeEdit", p_theme->get_icon(SNAME("CodeRegionFoldDownArrow"), EditorStringName(EditorIcons)));
 	p_theme->set_icon("executing_line",       "CodeEdit", p_theme->get_icon(SNAME("TextEditorPlay"), EditorStringName(EditorIcons)));
 	p_theme->set_icon("breakpoint",           "CodeEdit", p_theme->get_icon(SNAME("Breakpoint"), EditorStringName(EditorIcons)));
-	/* clang-format on */
 
 	p_theme->set_constant("line_spacing", "CodeEdit", EDITOR_GET("text_editor/appearance/whitespace/line_spacing"));
 
@@ -598,8 +562,6 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 	p_theme->set_stylebox(CoreStringName(normal), "CodeEdit", code_edit_stylebox);
 	p_theme->set_stylebox("read_only", "CodeEdit", code_edit_stylebox);
 	p_theme->set_stylebox("focus", "CodeEdit", memnew(StyleBoxEmpty));
-
-	/* clang-format off */
 	p_theme->set_color("completion_background_color",     "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/completion_background_color"));
 	p_theme->set_color("completion_selected_color",       "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/completion_selected_color"));
 	p_theme->set_color("completion_existing_color",       "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/completion_existing_color"));
@@ -621,7 +583,6 @@ void EditorThemeManager::_populate_text_editor_styles(const Ref<EditorTheme> &p_
 	p_theme->set_color("folded_code_region_color",        "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/folded_code_region_color"));
 	p_theme->set_color("search_result_color",             "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/search_result_color"));
 	p_theme->set_color("search_result_border_color",      "CodeEdit", EDITOR_GET("text_editor/theme/highlighting/search_result_border_color"));
-	/* clang-format on */
 }
 
 void EditorThemeManager::_populate_visual_shader_styles(const Ref<EditorTheme> &p_theme, ThemeConfiguration &p_config) {
@@ -682,7 +643,6 @@ void EditorThemeManager::_reset_dirty_flag() {
 }
 
 // Public interface for theme generation.
-
 Ref<EditorTheme> EditorThemeManager::generate_theme(const Ref<EditorTheme> &p_old_theme) {
 	OS::get_singleton()->benchmark_begin_measure(get_benchmark_key(), "Generate Theme");
 
@@ -706,31 +666,6 @@ Ref<EditorTheme> EditorThemeManager::generate_theme(const Ref<EditorTheme> &p_ol
 	return theme;
 }
 
-bool EditorThemeManager::is_generated_theme_outdated() {
-	// This list includes settings used by files in the editor/themes folder.
-	// Note that the editor scale is purposefully omitted because it cannot be changed
-	// without a restart, so there is no point regenerating the theme.
-
-	if (outdated_cache_dirty) {
-		// TODO: We can use this information more intelligently to do partial theme updates and speed things up.
-		outdated_cache = EditorSettings::get_singleton()->check_changed_settings_in_group("interface/theme") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("interface/editor/fonts") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("interface/touchscreen/enable_touch_optimizations") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("editors/visual_editors") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor/theme") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor/help/help") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("docks/property_editor/subresource_hue_tint") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("filesystem/file_dialog/thumbnail_size") ||
-				EditorSettings::get_singleton()->check_changed_settings_in_group("run/output/font_size");
-
-		// The outdated flag is relevant at the moment of changing editor settings.
-		callable_mp_static(&EditorThemeManager::_reset_dirty_flag).call_deferred();
-		outdated_cache_dirty = false;
-	}
-
-	return outdated_cache;
-}
-
 bool EditorThemeManager::is_dark_theme() {
 	Color base_color = EDITOR_GET("interface/theme/base_color");
 	return base_color.get_luminance() < 0.5;
@@ -741,7 +676,6 @@ bool EditorThemeManager::is_dark_icon_and_font() {
 	if (icon_font_color_setting == ColorMode::AUTO_COLOR) {
 		return is_dark_theme();
 	}
-
 	return icon_font_color_setting == ColorMode::LIGHT_COLOR;
 }
 

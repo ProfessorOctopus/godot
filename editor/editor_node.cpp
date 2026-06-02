@@ -1095,13 +1095,6 @@ void EditorNode::_notification(int p_what) {
 			follow_system_theme = EDITOR_GET("interface/theme/follow_system_theme");
 			use_system_accent_color = EDITOR_GET("interface/theme/use_system_accent_color");
 
-			if (EditorThemeManager::is_generated_theme_outdated()) {
-				class_icon_cache.clear();
-				_update_theme();
-				_build_icon_type_cache();
-				recent_scenes->reset_size();
-			}
-
 			if (EditorSettings::get_singleton()->check_changed_settings_in_group("interface/editor/timers/dragging_")) {
 				theme->set_constant("dragging_unfold_wait_msec", "Tree", (float)EDITOR_GET("interface/editor/timers/dragging_hover_wait_seconds") * 1000);
 				theme->set_constant("hover_switch_wait_msec", "TabBar", (float)EDITOR_GET("interface/editor/timers/dragging_hover_wait_seconds") * 1000);

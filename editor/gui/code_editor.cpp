@@ -137,12 +137,6 @@ GotoLinePopup::GotoLinePopup() {
 
 void FindReplaceBar::_notification(int p_what) {
 	switch (p_what) {
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			if (!EditorThemeManager::is_generated_theme_outdated()) {
-				break;
-			}
-			[[fallthrough]];
-		}
 		case NOTIFICATION_READY: {
 			find_prev->set_button_icon(get_editor_theme_icon(SNAME("MoveUp")));
 			find_next->set_button_icon(get_editor_theme_icon(SNAME("MoveDown")));

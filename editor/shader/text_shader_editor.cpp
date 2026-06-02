@@ -1660,14 +1660,6 @@ void TextShaderEditor::_prepare_edit_menu() {
 
 void TextShaderEditor::_notification(int p_what) {
 	switch (p_what) {
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			if (EditorThemeManager::is_generated_theme_outdated() ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("interface/editor/fonts") ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor")) {
-				_apply_editor_settings();
-			}
-		} break;
-
 		case NOTIFICATION_VISIBILITY_CHANGED: {
 			if (is_visible_in_tree() && preview_timer->is_inside_tree()) {
 				preview_timer->start();

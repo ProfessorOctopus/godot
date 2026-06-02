@@ -284,10 +284,6 @@ void EditorSettingsDialog::_notification(int p_what) {
 		} break;
 
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			if (EditorThemeManager::is_generated_theme_outdated()) {
-				_update_icons();
-			}
-
 			bool update_shortcuts_tab =
 					EditorSettings::get_singleton()->check_changed_settings_in_group("shortcuts") ||
 					EditorSettings::get_singleton()->check_changed_settings_in_group("builtin_action_overrides");

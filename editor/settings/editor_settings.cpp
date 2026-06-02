@@ -525,7 +525,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 
 	EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "interface/editor/behavior/import_resources_when_unfocused", false, "")
 
-	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "interface/editor/display/vsync_mode", 1, "Disabled,Enabled,Adaptive,Mailbox")
+	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "interface/editor/display/vsync_mode", 2, "Disabled,Enabled,Adaptive,Mailbox")
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "interface/editor/display/update_continuously", false, "")
 
 	bool is_android_editor = false;
@@ -573,11 +573,11 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	// Theme
 	EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_ENUM, "interface/theme/follow_system_theme", false, "")
 	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/style", "Modern", "Modern,Classic")
-	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/color_preset", "Default", "Default,Breeze Dark,Godot 2,Godot 3,Gray,Light,Solarized (Dark),Solarized (Light),Black (OLED),Custom")
+	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/color_preset", "Default", "Default,Gray,Light,Black (OLED),Custom")
 	EDITOR_SETTING_BASIC(Variant::STRING, PROPERTY_HINT_ENUM, "interface/theme/spacing_preset", "Default", "Compact,Default,Spacious,Custom")
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_ENUM, "interface/theme/icon_and_font_color", 0, "Auto,Dark,Light")
-	EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/base_color", Color(0.14, 0.14, 0.14), "")
-	EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/accent_color", Color(0.34, 0.62, 1.0), "")
+	EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/base_color", Color(0.0, 0.274510, 0.274510), "")
+	EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, "interface/theme/accent_color", Color(0.686275, 0.0, 0.274510), "")
 	EDITOR_SETTING_BASIC(Variant::BOOL, PROPERTY_HINT_NONE, "interface/theme/use_system_accent_color", false, "")
 	EDITOR_SETTING_BASIC(Variant::FLOAT, PROPERTY_HINT_RANGE, "interface/theme/contrast", 0.3, "-1,1,0.01")
 	EDITOR_SETTING(Variant::BOOL, PROPERTY_HINT_NONE, "interface/theme/draw_extra_borders", false, "")
@@ -727,15 +727,6 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 		"text_editor/theme/highlighting/member_variable_color",
 		"text_editor/theme/highlighting/mark_color",
 	};
-	// These values will be overwritten by EditorThemeManager, but can still be seen in some edge cases.
-	const HashMap<StringName, Color> text_colors = get_godot2_text_editor_theme();
-	for (const KeyValue<StringName, Color> &text_color : text_colors) {
-		if (basic_text_editor_settings.has(text_color.key)) {
-			EDITOR_SETTING_BASIC(Variant::COLOR, PROPERTY_HINT_NONE, text_color.key, text_color.value, "")
-		} else {
-			EDITOR_SETTING(Variant::COLOR, PROPERTY_HINT_NONE, text_color.key, text_color.value, "")
-		}
-	}
 
 	// The list is based on <https://github.com/KDE/syntax-highlighting/blob/master/data/syntax/alert.xml>.
 	_initial_set("text_editor/theme/highlighting/comment_markers/critical_list", "ALERT,ATTENTION,CAUTION,CRITICAL,DANGER,SECURITY");
@@ -1750,62 +1741,6 @@ void EditorSettings::load_favorites_and_recent_dirs() {
 		}
 	}
 	FileDialog::set_recent_list(recent_dirs);
-}
-
-HashMap<StringName, Color> EditorSettings::get_godot2_text_editor_theme() {
-	// Godot 2 is only a dark theme; it doesn't have a light theme counterpart.
-	HashMap<StringName, Color> colors;
-	colors["text_editor/theme/highlighting/symbol_color"] = Color(0.73, 0.87, 1.0);
-	colors["text_editor/theme/highlighting/keyword_color"] = Color(1.0, 1.0, 0.7);
-	colors["text_editor/theme/highlighting/control_flow_keyword_color"] = Color(1.0, 0.85, 0.7);
-	colors["text_editor/theme/highlighting/base_type_color"] = Color(0.64, 1.0, 0.83);
-	colors["text_editor/theme/highlighting/engine_type_color"] = Color(0.51, 0.83, 1.0);
-	colors["text_editor/theme/highlighting/user_type_color"] = Color(0.42, 0.67, 0.93);
-	colors["text_editor/theme/highlighting/comment_color"] = Color(0.4, 0.4, 0.4);
-	colors["text_editor/theme/highlighting/doc_comment_color"] = Color(0.5, 0.6, 0.7);
-	colors["text_editor/theme/highlighting/string_color"] = Color(0.94, 0.43, 0.75);
-	colors["text_editor/theme/highlighting/string_placeholder_color"] = Color(1, 0.75, 0.4);
-	colors["text_editor/theme/highlighting/background_color"] = Color(0.13, 0.12, 0.15);
-	colors["text_editor/theme/highlighting/completion_background_color"] = Color(0.17, 0.16, 0.2);
-	colors["text_editor/theme/highlighting/completion_selected_color"] = Color(0.26, 0.26, 0.27);
-	colors["text_editor/theme/highlighting/completion_existing_color"] = Color(0.87, 0.87, 0.87, 0.13);
-	colors["text_editor/theme/highlighting/completion_scroll_color"] = Color(1, 1, 1, 0.29);
-	colors["text_editor/theme/highlighting/completion_scroll_hovered_color"] = Color(1, 1, 1, 0.4);
-	colors["text_editor/theme/highlighting/completion_font_color"] = Color(0.67, 0.67, 0.67);
-	colors["text_editor/theme/highlighting/text_color"] = Color(0.67, 0.67, 0.67);
-	colors["text_editor/theme/highlighting/line_number_color"] = Color(0.67, 0.67, 0.67, 0.4);
-	colors["text_editor/theme/highlighting/safe_line_number_color"] = Color(0.67, 0.78, 0.67, 0.6);
-	colors["text_editor/theme/highlighting/caret_color"] = Color(0.67, 0.67, 0.67);
-	colors["text_editor/theme/highlighting/caret_background_color"] = Color(0, 0, 0);
-	colors["text_editor/theme/highlighting/text_selected_color"] = Color(0, 0, 0, 0);
-	colors["text_editor/theme/highlighting/selection_color"] = Color(0.41, 0.61, 0.91, 0.35);
-	colors["text_editor/theme/highlighting/brace_mismatch_color"] = Color(1, 0.2, 0.2);
-	colors["text_editor/theme/highlighting/current_line_color"] = Color(0.3, 0.5, 0.8, 0.15);
-	colors["text_editor/theme/highlighting/line_length_guideline_color"] = Color(0.3, 0.5, 0.8, 0.1);
-	colors["text_editor/theme/highlighting/word_highlighted_color"] = Color(0.8, 0.9, 0.9, 0.15);
-	colors["text_editor/theme/highlighting/number_color"] = Color(0.92, 0.58, 0.2);
-	colors["text_editor/theme/highlighting/function_color"] = Color(0.4, 0.64, 0.81);
-	colors["text_editor/theme/highlighting/member_variable_color"] = Color(0.9, 0.31, 0.35);
-	colors["text_editor/theme/highlighting/mark_color"] = Color(1.0, 0.4, 0.4, 0.4);
-	colors["text_editor/theme/highlighting/warning_color"] = Color(1.0, 0.8, 0.4, 0.1);
-	colors["text_editor/theme/highlighting/bookmark_color"] = Color(0.08, 0.49, 0.98);
-	colors["text_editor/theme/highlighting/breakpoint_color"] = Color(0.9, 0.29, 0.3);
-	colors["text_editor/theme/highlighting/executing_line_color"] = Color(0.98, 0.89, 0.27);
-	colors["text_editor/theme/highlighting/code_folding_color"] = Color(0.8, 0.8, 0.8, 0.8);
-	colors["text_editor/theme/highlighting/folded_code_region_color"] = Color(0.68, 0.46, 0.77, 0.2);
-	colors["text_editor/theme/highlighting/search_result_color"] = Color(0.05, 0.25, 0.05, 1);
-	colors["text_editor/theme/highlighting/search_result_border_color"] = Color(0.41, 0.61, 0.91, 0.38);
-	colors["text_editor/theme/highlighting/gdscript/function_definition_color"] = Color(0.4, 0.9, 1.0);
-
-	colors["text_editor/theme/highlighting/gdscript/global_function_color"] = Color(0.64, 0.64, 0.96);
-	colors["text_editor/theme/highlighting/gdscript/node_path_color"] = Color(0.72, 0.77, 0.49);
-	colors["text_editor/theme/highlighting/gdscript/node_reference_color"] = Color(0.39, 0.76, 0.35);
-	colors["text_editor/theme/highlighting/gdscript/annotation_color"] = Color(1.0, 0.7, 0.45);
-	colors["text_editor/theme/highlighting/gdscript/string_name_color"] = Color(1.0, 0.76, 0.65);
-	colors["text_editor/theme/highlighting/comment_markers/critical_color"] = Color(0.77, 0.35, 0.35);
-	colors["text_editor/theme/highlighting/comment_markers/warning_color"] = Color(0.72, 0.61, 0.48);
-	colors["text_editor/theme/highlighting/comment_markers/notice_color"] = Color(0.56, 0.67, 0.51);
-	return colors;
 }
 
 bool EditorSettings::is_default_text_editor_theme(const String &p_theme_name) {

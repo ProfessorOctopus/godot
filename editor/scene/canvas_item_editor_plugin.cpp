@@ -4492,16 +4492,6 @@ void CanvasItemEditor::_notification(int p_what) {
 			connect("item_group_status_changed", callable_mp(this, &CanvasItemEditor::_update_lock_and_group_button));
 		} break;
 
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			if (EditorThemeManager::is_generated_theme_outdated() ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("editors/panning") ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("editors/2d") ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("editors/polygon_editor")) {
-				_update_editor_settings();
-				update_viewport();
-			}
-		} break;
-
 		case NOTIFICATION_APPLICATION_FOCUS_OUT:
 		case NOTIFICATION_WM_WINDOW_FOCUS_OUT: {
 			if (drag_type != DRAG_NONE) {

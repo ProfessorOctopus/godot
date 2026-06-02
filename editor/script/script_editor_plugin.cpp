@@ -892,16 +892,6 @@ void _save_text_editor_theme_as(const String &p_file) {
 
 	const String theme_section = "color_theme";
 	const Ref<ConfigFile> cf = memnew(ConfigFile);
-
-	// Use the keys from the Godot 2 theme to know which settings to save.
-	HashMap<StringName, Color> text_colors = EditorSettings::get_godot2_text_editor_theme();
-	text_colors.sort();
-	for (const KeyValue<StringName, Color> &text_color : text_colors) {
-		const Color val = EditorSettings::get_singleton()->get_setting(text_color.key);
-		const String &key = text_color.key.operator String().replace("text_editor/theme/highlighting/", "");
-		cf->set_value(theme_section, key, val.to_html());
-	}
-
 	const Error err = cf->save(file);
 	if (err != OK) {
 		EditorToaster::get_singleton()->popup_str(TTR("Saving theme failed."), EditorToaster::SEVERITY_ERROR);
@@ -1477,15 +1467,6 @@ void ScriptEditor::_notification(int p_what) {
 
 			if (is_inside_tree()) {
 				_update_script_names();
-			}
-		} break;
-
-		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
-			if (EditorThemeManager::is_generated_theme_outdated() ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("interface/editor/fonts") ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("text_editor") ||
-					EditorSettings::get_singleton()->check_changed_settings_in_group("docks/filesystem")) {
-				_apply_editor_settings();
 			}
 		} break;
 

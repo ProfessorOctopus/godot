@@ -694,11 +694,6 @@ void FileSystemDock::_notification(int p_what) {
 			if (do_redraw) {
 				update_all();
 			}
-
-			if (EditorThemeManager::is_generated_theme_outdated()) {
-				// Change full tree mode.
-				_update_display_mode();
-			}
 		} break;
 	}
 }
