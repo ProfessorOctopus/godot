@@ -3865,7 +3865,7 @@ RID RenderForwardClustered::_setup_render_pass_uniform_set(RenderListType p_rend
 	}
 	{
 		RD::Uniform u;
-		u.binding = 37;
+		u.binding = 39;
 		u.uniform_type = RD::UNIFORM_TYPE_TEXTURE;
 
 		RID sscs;
