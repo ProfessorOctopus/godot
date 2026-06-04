@@ -145,10 +145,10 @@ private:
 		// SSCS
 		bool sscs_enabled = false;
 		RSE::EnvironmentSSCSSampleCount sscs_sample_count = RSE::ENV_SSCS_SAMPLE_COUNT_191;
-		float sscs_bilinear_threshold = 0.02f;
-		float sscs_shadow_contrast = 2.0f;
-		float sscs_surface_thickness = 0.005f;
-		bool sscs_ignore_edge_pixels = false;
+		float sscs_bilinear_threshold = 0.008f;
+		float sscs_shadow_contrast = 4.0f;
+		float sscs_surface_thickness = 0.017f;
+		bool sscs_ignore_edge_pixels = true;
 		float sscs_depth_begin = 0.0f;
 		float sscs_depth_end = 1.0f;
 

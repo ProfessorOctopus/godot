@@ -724,25 +724,25 @@ RSE::EnvironmentSSCSSampleCount RendererEnvironmentStorage::environment_get_sscs
 
 float RendererEnvironmentStorage::environment_get_sscs_bilinear_threshold(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
-	ERR_FAIL_NULL_V(env, 0.02f);
+	ERR_FAIL_NULL_V(env, 0.008f);
 	return env->sscs_bilinear_threshold;
 }
 
 float RendererEnvironmentStorage::environment_get_sscs_shadow_contrast(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
-	ERR_FAIL_NULL_V(env, 2.0f);
+	ERR_FAIL_NULL_V(env, 4.0f);
 	return env->sscs_shadow_contrast;
 }
 
 float RendererEnvironmentStorage::environment_get_sscs_surface_thickness(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
-	ERR_FAIL_NULL_V(env, 0.005f);
+	ERR_FAIL_NULL_V(env, 0.017f);
 	return env->sscs_surface_thickness;
 }
 
 bool RendererEnvironmentStorage::environment_get_sscs_ignore_edge_pixels(RID p_env) const {
 	Environment *env = environment_owner.get_or_null(p_env);
-	ERR_FAIL_NULL_V(env, false);
+	ERR_FAIL_NULL_V(env, true);
 	return env->sscs_ignore_edge_pixels;
 }
 
