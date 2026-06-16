@@ -1066,7 +1066,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 		game_embed_mode_hints = "Disabled:-1,Auto (based on screen size):0,Enabled:1";
 	}
 #endif
-	int default_game_embed_mode = OS::get_singleton()->has_feature("xr_editor") ? -1 : 0;
+	int default_game_embed_mode = OS::get_singleton()->has_feature("xr_editor") ? -1 : 1;
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/window_placement/game_embed_mode", default_game_embed_mode, game_embed_mode_hints);
 
 	// Auto save
@@ -1077,7 +1077,7 @@ void EditorSettings::_load_defaults(Ref<ConfigFile> p_extra_config) {
 	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_ENUM, "run/bottom_panel/action_on_stop", EditorNode::ACTION_ON_STOP_DO_NOTHING, "Do Nothing,Close Bottom Panel")
 
 	// Output
-	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_RANGE, "run/output/font_size", 13, "8,48,1")
+	EDITOR_SETTING_BASIC(Variant::INT, PROPERTY_HINT_RANGE, "run/output/font_size", 14, "8,48,1")
 	_initial_set("run/output/always_clear_output_on_play", true, true);
 
 	EDITOR_SETTING(Variant::INT, PROPERTY_HINT_RANGE, "run/output/max_lines", 10000, "100,100000,1")

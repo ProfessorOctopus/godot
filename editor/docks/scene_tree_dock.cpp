@@ -1577,6 +1577,7 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				undo_redo->commit_action();
 			}
 		} break;
+		case TOOL_CREATE_OPEN_WORLD_SCENE:
 		case TOOL_CREATE_2D_SCENE:
 		case TOOL_CREATE_3D_SCENE:
 		case TOOL_CREATE_USER_INTERFACE:
@@ -1604,6 +1605,9 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 				}
 			} else {
 				switch (p_tool) {
+					case TOOL_CREATE_OPEN_WORLD_SCENE:
+						new_node = memnew(Node3D);
+						break;
 					case TOOL_CREATE_2D_SCENE:
 						new_node = memnew(Node2D);
 						break;
@@ -1620,7 +1624,6 @@ void SceneTreeDock::_tool_selected(int p_tool, bool p_confirm_override) {
 					} break;
 				}
 			}
-
 			add_root_node(new_node);
 
 			if (GLOBAL_GET("editor/naming/node_name_casing").operator int() != NAME_CASING_PASCAL_CASE) {
@@ -1735,6 +1738,12 @@ void SceneTreeDock::_notification(int p_what) {
 
 			beginner_node_shortcuts = memnew(VBoxContainer);
 			node_shortcuts->add_child(beginner_node_shortcuts);
+
+			button_open_world = memnew(Button);
+			beginner_node_shortcuts->add_child(button_open_world);
+			button_open_world->set_text(TTR("Open World Scene"));
+			button_open_world->set_button_icon(get_editor_theme_icon(SNAME("NodeOpenWorld")));
+			button_open_world->connect(SceneStringName(pressed), callable_mp(this, &SceneTreeDock::_tool_selected).bind(TOOL_CREATE_OPEN_WORLD_SCENE, false));
 
 			button_2d = memnew(Button);
 			beginner_node_shortcuts->add_child(button_2d);

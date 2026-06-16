@@ -426,39 +426,6 @@ void finalize_theme_db() {
 #define MAIN_PRINT(m_txt)
 #endif
 
-void Main::print_header(bool p_rich) {
-	if (GODOT_VERSION_TIMESTAMP > 0) {
-		// Version timestamp available.
-		if (p_rich) {
-			Engine::get_singleton()->print_header_rich("\u001b[38;5;39m" + String(GODOT_VERSION_NAME) + "\u001b[0m v" + get_full_version_string() + " (" + Time::get_singleton()->get_datetime_string_from_unix_time(GODOT_VERSION_TIMESTAMP, true) + " UTC) - \u001b[4m" + String(GODOT_VERSION_WEBSITE));
-		} else {
-			Engine::get_singleton()->print_header(String(GODOT_VERSION_NAME) + " v" + get_full_version_string() + " (" + Time::get_singleton()->get_datetime_string_from_unix_time(GODOT_VERSION_TIMESTAMP, true) + " UTC) - " + String(GODOT_VERSION_WEBSITE));
-		}
-	} else {
-		if (p_rich) {
-			Engine::get_singleton()->print_header_rich("\u001b[38;5;39m" + String(GODOT_VERSION_NAME) + "\u001b[0m v" + get_full_version_string() + " - \u001b[4m" + String(GODOT_VERSION_WEBSITE));
-		} else {
-			Engine::get_singleton()->print_header(String(GODOT_VERSION_NAME) + " v" + get_full_version_string() + " - " + String(GODOT_VERSION_WEBSITE));
-		}
-	}
-}
-
-/**
- * Prints a copyright notice in the command-line help with colored text. A newline is
- * automatically added at the end.
- */
-void Main::print_help_copyright(const char *p_notice) {
-	OS::get_singleton()->print("\u001b[90m%s\u001b[0m\n", p_notice);
-}
-
-/**
- * Prints a title in the command-line help with colored text. A newline is
- * automatically added at beginning and at the end.
- */
-void Main::print_help_title(const char *p_title) {
-	OS::get_singleton()->print("\n\u001b[1;93m%s:\u001b[0m\n", p_title);
-}
-
 /**
  * Returns the option string with required and optional arguments colored separately from the rest of the option.
  * This color replacement must be done *after* calling `rpad()` for the length padding to be done correctly.
@@ -515,11 +482,15 @@ void Main::print_help_option(const char *p_option, const char *p_description, CL
 	}
 }
 
-void Main::print_help(const char *p_binary) {
-	print_header(true);
-	print_help_copyright("Free and open source software under the terms of the MIT license.");
-	print_help_copyright("(c) 2014-present Godot Engine contributors. (c) 2007-present Juan Linietsky, Ariel Manzur.");
+/**
+ * Prints a title in the command-line help with colored text. A newline is
+ * automatically added at beginning and at the end.
+ */
+void Main::print_help_title(const char *p_title) {
+	OS::get_singleton()->print("\n\u001b[1;93m%s:\u001b[0m\n", p_title);
+}
 
+void Main::print_help(const char *p_binary) {
 	print_help_title("Usage");
 	OS::get_singleton()->print("  %s \u001b[96m[options] [path to \"project.godot\" file]\u001b[0m\n", p_binary);
 
@@ -2968,9 +2939,6 @@ Error Main::setup2(bool p_show_boot_logo) {
 
 	Thread::make_main_thread(); // Make whatever thread call this the main thread.
 	set_current_thread_safe_for_nodes(true);
-
-	// Don't use rich formatting to prevent ANSI escape codes from being written to log files.
-	print_header(false);
 
 #ifdef TOOLS_ENABLED
 	int accessibility_mode_editor = 0;
