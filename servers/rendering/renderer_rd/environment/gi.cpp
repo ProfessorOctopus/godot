@@ -3211,7 +3211,7 @@ void GI::init(SkyRD *p_sky) {
 
 		defines += "\n#define SH_SIZE " + itos(HDDAGI::SH_SIZE) + "\n";
 		if (p_sky->sky_use_octmap_array) {
-			defines += "\n#define USE_OCTMAP_ARRAY\n";
+			defines += "\n#define USE_RADIANCE_OCTMAP_ARRAY\n";
 		}
 
 		Vector<String> integrate_modes;
