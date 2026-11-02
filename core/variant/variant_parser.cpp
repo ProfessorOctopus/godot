@@ -261,9 +261,6 @@ Error VariantParser::get_token(Stream *p_stream, Token &r_token, int &r_line, St
 				r_token.type = TK_COLOR;
 				return OK;
 			}
-#ifndef DISABLE_DEPRECATED
-			case '@': // Compatibility with 3.x StringNames.
-#endif
 			case '&': { // StringName.
 				cchar = p_stream->get_char();
 				if (cchar != '"') {

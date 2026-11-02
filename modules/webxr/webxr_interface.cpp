@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "webxr_interface.h"
-#include "webxr_interface.compat.inc"
-
 #include "core/object/class_db.h"
 
 void WebXRInterface::_bind_methods() {

@@ -199,10 +199,6 @@ protected:
 
 	GDVIRTUAL8R_REQUIRED(bool, _body_collide_shape, RID, int, RID, const Transform2D &, const Vector2 &, GDExtensionPtr<Vector2>, int, GDExtensionPtr<int>)
 
-#ifndef DISABLE_DEPRECATED
-	GDVIRTUAL4_COMPAT(_body_set_shape_as_one_way_collision_bind_compat_104736, _body_set_shape_as_one_way_collision, RID, int, bool, real_t)
-#endif
-
 public:
 	// The warning is valid, but unavoidable. If the function is not overridden it will error anyway.
 
@@ -291,7 +287,6 @@ public:
 
 	/* BODY API */
 
-	//EXBIND2RID(body,BodyMode,bool);
 	EXBIND0R(RID, body_create)
 
 	EXBIND2(body_set_space, RID, RID)

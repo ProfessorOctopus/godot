@@ -63,12 +63,6 @@ struct RayResult {
 	int face_index = -1;
 
 	_FORCE_INLINE_ Object *get_collider() const {
-#ifndef DISABLE_DEPRECATED
-		if (collider != nullptr) {
-			return collider;
-		}
-#endif // !DISABLE_DEPRECATED
-
 		if (collider_id.is_valid()) {
 			return ObjectDB::get_instance(collider_id);
 		} else {
@@ -86,12 +80,6 @@ struct ShapeResult {
 	int shape = 0;
 
 	_FORCE_INLINE_ Object *get_collider() const {
-#ifndef DISABLE_DEPRECATED
-		if (collider != nullptr) {
-			return collider;
-		}
-#endif // !DISABLE_DEPRECATED
-
 		if (collider_id.is_valid()) {
 			return ObjectDB::get_instance(collider_id);
 		} else {
@@ -176,10 +164,6 @@ struct MotionResult {
 	MotionCollision collisions[MAX_COLLISIONS];
 	int collision_count = 0;
 };
-
-#ifndef DISABLE_DEPRECATED
-// Graveyard.
-#endif
 
 } // namespace PhysicsServer3DTypes
 

@@ -40,19 +40,6 @@
 class GDScriptWorkspace : public RefCounted {
 	GDCLASS(GDScriptWorkspace, RefCounted);
 
-private:
-#ifndef DISABLE_DEPRECATED
-	void didDeleteFiles(const Dictionary &p_params) {}
-	Error parse_script(const String &p_path, const String &p_content) {
-		WARN_DEPRECATED;
-		return Error::FAILED;
-	}
-	Error parse_local_script(const String &p_path) {
-		WARN_DEPRECATED;
-		return Error::FAILED;
-	}
-#endif // DISABLE_DEPRECATED
-
 protected:
 	static void _bind_methods();
 	bool initialized = false;
@@ -75,7 +62,6 @@ protected:
 public:
 	HashMap<StringName, ClassMembers> native_members;
 
-public:
 	Error initialize();
 
 	String get_file_path(const String &p_uri);

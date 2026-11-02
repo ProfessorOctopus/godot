@@ -403,28 +403,14 @@ void DisplayServerMacOSEmbedded::_window_callback(const Callable &p_callable, co
 
 bool DisplayServerMacOSEmbedded::has_feature(DisplayServerEnums::Feature p_feature) const {
 	switch (p_feature) {
-#ifndef DISABLE_DEPRECATED
-		case DisplayServerEnums::FEATURE_GLOBAL_MENU: {
-			return (native_menu && native_menu->has_feature(NativeMenu::FEATURE_GLOBAL_MENU));
-		} break;
-#endif
 		case DisplayServerEnums::FEATURE_CURSOR_SHAPE:
 		case DisplayServerEnums::FEATURE_IME:
 		case DisplayServerEnums::FEATURE_CUSTOM_CURSOR_SHAPE:
-			// case DisplayServerEnums::FEATURE_HIDPI:
-			// case DisplayServerEnums::FEATURE_ICON:
 		case DisplayServerEnums::FEATURE_MOUSE:
 		case DisplayServerEnums::FEATURE_HDR_OUTPUT:
 		case DisplayServerEnums::FEATURE_MOUSE_WARP:
-			// case DisplayServerEnums::FEATURE_NATIVE_DIALOG:
-			// case DisplayServerEnums::FEATURE_NATIVE_ICON:
-			// case DisplayServerEnums::FEATURE_WINDOW_TRANSPARENCY:
 		case DisplayServerEnums::FEATURE_CLIPBOARD:
-			// case DisplayServerEnums::FEATURE_KEEP_SCREEN_ON:
-			// case DisplayServerEnums::FEATURE_ORIENTATION:
-			// case DisplayServerEnums::FEATURE_VIRTUAL_KEYBOARD:
 		case DisplayServerEnums::FEATURE_TEXT_TO_SPEECH:
-			// case DisplayServerEnums::FEATURE_TOUCHSCREEN:
 		case DisplayServerEnums::FEATURE_EMBEDDED:
 			return true;
 		default:

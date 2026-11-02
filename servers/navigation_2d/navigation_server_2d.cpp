@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "navigation_server_2d.h"
-#include "navigation_server_2d.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/object/callable_mp.h"

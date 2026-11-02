@@ -79,11 +79,6 @@ void XRInterface::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_camera_projections", "tracker_name", "aspect", "near", "far"), &XRInterface::get_camera_projections);
 	ClassDB::bind_method(D_METHOD("get_camera_offsets", "tracker_name"), &XRInterface::get_camera_offsets);
 
-#ifndef DISABLE_DEPRECATED
-	ClassDB::bind_method(D_METHOD("get_transform_for_view", "view", "cam_transform"), &XRInterface::get_transform_for_view);
-	ClassDB::bind_method(D_METHOD("get_projection_for_view", "view", "aspect", "near", "far"), &XRInterface::get_projection_for_view);
-#endif
-
 	/** environment blend mode. */
 	ClassDB::bind_method(D_METHOD("get_supported_environment_blend_modes"), &XRInterface::get_supported_environment_blend_modes);
 	ClassDB::bind_method(D_METHOD("set_environment_blend_mode", "mode"), &XRInterface::set_environment_blend_mode);

@@ -82,11 +82,6 @@ void ProjectUpgradeTool::popup_dialog() {
 void ProjectUpgradeTool::prepare_upgrade() {
 	EditorSettings::get_singleton()->set_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RUN_ON_RESTART, true);
 
-#ifndef DISABLE_DEPRECATED
-	ProjectSettings::get_singleton()->set_setting("animation/compatibility/default_parent_skeleton_in_mesh_instance_3d", false);
-	ProjectSettings::get_singleton()->save();
-#endif
-
 	Vector<String> reimport_paths;
 	Vector<String> resave_scenes;
 	Vector<String> resave_resources;
@@ -112,42 +107,24 @@ void ProjectUpgradeTool::finish_upgrade() {
 	EditorFileSystem::get_singleton()->reimport_files(paths);
 	EditorSettings::get_singleton()->set_project_metadata(META_PROJECT_UPGRADE_TOOL, META_REIMPORT_PATHS, Variant());
 
-#ifndef DISABLE_DEPRECATED
-	MeshInstance3D::upgrading_skeleton_compat = true;
-#endif
+	paths = EditorSettings::get_singleton()->get_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_SCENES, Vector<String>());
+	EditorProgress ep("uid_upgrade_resave", TTR("Updating Project Scenes"), paths.size());
 
-	{
-		paths = EditorSettings::get_singleton()->get_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_SCENES, Vector<String>());
-		EditorProgress ep("uid_upgrade_resave", TTR("Updating Project Scenes"), paths.size());
+	int step = 0;
+	for (const String &file_path : paths) {
+		ep.step(TTR("Re-saving scene:") + " " + file_path, step++);
+		EditorNode::get_singleton()->open_scene(file_path);
+		EditorNode::get_singleton()->trigger_menu_option(EditorNode::SCENE_SAVE_SCENE, true);
+		EditorNode::get_singleton()->trigger_menu_option(EditorNode::SCENE_CLOSE, true);
 
-		int step = 0;
-		for (const String &file_path : paths) {
-			ep.step(TTR("Re-saving scene:") + " " + file_path, step++);
-			EditorNode::get_singleton()->open_scene(file_path);
-			EditorNode::get_singleton()->trigger_menu_option(EditorNode::SCENE_SAVE_SCENE, true);
-			EditorNode::get_singleton()->trigger_menu_option(EditorNode::SCENE_CLOSE, true);
+		ep.step(TTR("Re-saving resource:") + " " + file_path, step++);
+		Ref<Resource> res = ResourceLoader::load(file_path, "", ResourceFormatLoader::CACHE_MODE_REPLACE);
+		if (res.is_valid()) {
+			ResourceSaver::save(res);
 		}
-		EditorSettings::get_singleton()->set_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_SCENES, Variant());
 	}
-
-#ifndef DISABLE_DEPRECATED
-	MeshInstance3D::upgrading_skeleton_compat = false;
-#endif
-
-	{
-		paths = EditorSettings::get_singleton()->get_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_RESOURCES, Vector<String>());
-		EditorProgress ep("uid_upgrade_resave", TTR("Updating Project Resources"), paths.size());
-
-		int step = 0;
-		for (const String &file_path : paths) {
-			ep.step(TTR("Re-saving resource:") + " " + file_path, step++);
-			Ref<Resource> res = ResourceLoader::load(file_path, "", ResourceFormatLoader::CACHE_MODE_REPLACE);
-			if (res.is_valid()) {
-				ResourceSaver::save(res);
-			}
-		}
-		EditorSettings::get_singleton()->set_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_RESOURCES, Variant());
-	}
+	EditorSettings::get_singleton()->set_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_SCENES, Variant());
+	EditorSettings::get_singleton()->set_project_metadata(META_PROJECT_UPGRADE_TOOL, META_RESAVE_RESOURCES, Variant());
 
 	emit_signal(UPGRADE_FINISHED);
 }

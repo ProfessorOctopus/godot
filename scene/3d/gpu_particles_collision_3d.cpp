@@ -105,24 +105,6 @@ void GPUParticlesCollisionBox3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "size", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:m"), "set_size", "get_size");
 }
 
-#ifndef DISABLE_DEPRECATED
-bool GPUParticlesCollisionBox3D::_set(const StringName &p_name, const Variant &p_value) {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		set_size((Vector3)p_value * 2);
-		return true;
-	}
-	return false;
-}
-
-bool GPUParticlesCollisionBox3D::_get(const StringName &p_name, Variant &r_property) const {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		r_property = size / 2;
-		return true;
-	}
-	return false;
-}
-#endif // DISABLE_DEPRECATED
-
 void GPUParticlesCollisionBox3D::set_size(const Vector3 &p_size) {
 	size = p_size;
 	RS::get_singleton()->particles_collision_set_box_extents(_get_collision(), size / 2);
@@ -143,9 +125,6 @@ GPUParticlesCollisionBox3D::GPUParticlesCollisionBox3D() :
 
 GPUParticlesCollisionBox3D::~GPUParticlesCollisionBox3D() {
 }
-
-///////////////////////////////
-///////////////////////////
 
 void GPUParticlesCollisionSDF3D::_find_meshes(const AABB &p_aabb, Node *p_at_node, List<PlotMesh> &plot_meshes) {
 	MeshInstance3D *mi = Object::cast_to<MeshInstance3D>(p_at_node);
@@ -570,24 +549,6 @@ void GPUParticlesCollisionSDF3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(RESOLUTION_MAX);
 }
 
-#ifndef DISABLE_DEPRECATED
-bool GPUParticlesCollisionSDF3D::_set(const StringName &p_name, const Variant &p_value) {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		set_size((Vector3)p_value * 2);
-		return true;
-	}
-	return false;
-}
-
-bool GPUParticlesCollisionSDF3D::_get(const StringName &p_name, Variant &r_property) const {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		r_property = size / 2;
-		return true;
-	}
-	return false;
-}
-#endif // DISABLE_DEPRECATED
-
 void GPUParticlesCollisionSDF3D::set_thickness(float p_thickness) {
 	thickness = p_thickness;
 }
@@ -751,24 +712,6 @@ void GPUParticlesCollisionHeightField3D::_bind_methods() {
 	BIND_ENUM_CONSTANT(UPDATE_MODE_WHEN_MOVED);
 	BIND_ENUM_CONSTANT(UPDATE_MODE_ALWAYS);
 }
-
-#ifndef DISABLE_DEPRECATED
-bool GPUParticlesCollisionHeightField3D::_set(const StringName &p_name, const Variant &p_value) {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		set_size((Vector3)p_value * 2);
-		return true;
-	}
-	return false;
-}
-
-bool GPUParticlesCollisionHeightField3D::_get(const StringName &p_name, Variant &r_property) const {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		r_property = size / 2;
-		return true;
-	}
-	return false;
-}
-#endif // DISABLE_DEPRECATED
 
 void GPUParticlesCollisionHeightField3D::set_size(const Vector3 &p_size) {
 	size = p_size;
@@ -947,32 +890,12 @@ GPUParticlesAttractorSphere3D::GPUParticlesAttractorSphere3D() :
 GPUParticlesAttractorSphere3D::~GPUParticlesAttractorSphere3D() {
 }
 
-///////////////////////////
-
 void GPUParticlesAttractorBox3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_size", "size"), &GPUParticlesAttractorBox3D::set_size);
 	ClassDB::bind_method(D_METHOD("get_size"), &GPUParticlesAttractorBox3D::get_size);
 
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "size", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:m"), "set_size", "get_size");
 }
-
-#ifndef DISABLE_DEPRECATED
-bool GPUParticlesAttractorBox3D::_set(const StringName &p_name, const Variant &p_value) {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		set_size((Vector3)p_value * 2);
-		return true;
-	}
-	return false;
-}
-
-bool GPUParticlesAttractorBox3D::_get(const StringName &p_name, Variant &r_property) const {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		r_property = size / 2;
-		return true;
-	}
-	return false;
-}
-#endif // DISABLE_DEPRECATED
 
 void GPUParticlesAttractorBox3D::set_size(const Vector3 &p_size) {
 	size = p_size;
@@ -995,8 +918,6 @@ GPUParticlesAttractorBox3D::GPUParticlesAttractorBox3D() :
 GPUParticlesAttractorBox3D::~GPUParticlesAttractorBox3D() {
 }
 
-///////////////////////////
-
 void GPUParticlesAttractorVectorField3D::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_size", "size"), &GPUParticlesAttractorVectorField3D::set_size);
 	ClassDB::bind_method(D_METHOD("get_size"), &GPUParticlesAttractorVectorField3D::get_size);
@@ -1007,24 +928,6 @@ void GPUParticlesAttractorVectorField3D::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::VECTOR3, "size", PROPERTY_HINT_RANGE, "0.01,1024,0.01,or_greater,suffix:m"), "set_size", "get_size");
 	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "texture", PROPERTY_HINT_RESOURCE_TYPE, Texture3D::get_class_static()), "set_texture", "get_texture");
 }
-
-#ifndef DISABLE_DEPRECATED
-bool GPUParticlesAttractorVectorField3D::_set(const StringName &p_name, const Variant &p_value) {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		set_size((Vector3)p_value * 2);
-		return true;
-	}
-	return false;
-}
-
-bool GPUParticlesAttractorVectorField3D::_get(const StringName &p_name, Variant &r_property) const {
-	if (p_name == "extents") { // Compatibility with Godot 3.x.
-		r_property = size / 2;
-		return true;
-	}
-	return false;
-}
-#endif // DISABLE_DEPRECATED
 
 void GPUParticlesAttractorVectorField3D::set_size(const Vector3 &p_size) {
 	size = p_size;

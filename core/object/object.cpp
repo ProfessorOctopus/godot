@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "object.h"
-#include "object.compat.inc"
-
 #include "core/config/engine.h"
 #include "core/extension/gdextension_manager.h"
 #include "core/io/resource.h"
@@ -581,11 +579,6 @@ void Object::get_property_list(List<PropertyInfo> *p_list, bool p_reversed) cons
 					if (current_extension->free_property_list2) {
 						current_extension->free_property_list2(_extension_instance, pinfo, pcount);
 					}
-#ifndef DISABLE_DEPRECATED
-					else if (current_extension->free_property_list) {
-						current_extension->free_property_list(_extension_instance, pinfo);
-					}
-#endif // DISABLE_DEPRECATED
 #ifdef TOOLS_ENABLED
 				}
 #endif
@@ -963,14 +956,6 @@ void Object::_gdvirtual_init_method_ptr(uint32_t p_compat_hash, void *&r_fn_ptr,
 		fn_ptr = _extension->get_virtual_call_data2(_extension->class_userdata, &p_fn_name, p_compat_hash);
 	} else if (_extension->get_virtual2) {
 		fn_ptr = (void *)_extension->get_virtual2(_extension->class_userdata, &p_fn_name, p_compat_hash);
-#ifndef DISABLE_DEPRECATED
-	} else if (p_compat || ClassDB::get_virtual_method_compatibility_hashes(get_class_name(), p_fn_name).size() == 0) {
-		if (_extension->get_virtual_call_data && _extension->call_virtual_with_data) {
-			fn_ptr = _extension->get_virtual_call_data(_extension->class_userdata, &p_fn_name);
-		} else if (_extension->get_virtual) {
-			fn_ptr = (void *)_extension->get_virtual(_extension->class_userdata, &p_fn_name);
-		}
-#endif
 	}
 #ifdef TOOLS_ENABLED
 	if (_extension->reloadable) {
@@ -992,32 +977,28 @@ void Object::_notification_forward(int p_notification) {
 	_notification_forwardv(p_notification);
 
 	if (_extension) {
-		if (_extension->notification2) {
+		if (_extension->notification2)
+		{
 			_extension->notification2(_extension_instance, p_notification, static_cast<GDExtensionBool>(false));
-#ifndef DISABLE_DEPRECATED
-		} else if (_extension->notification) {
-			_extension->notification(_extension_instance, p_notification);
-#endif // DISABLE_DEPRECATED
 		}
 	}
 
-	if (script_instance) {
+	if (script_instance)
+	{
 		script_instance->notification(p_notification, false);
 	}
 }
 
 void Object::_notification_backward(int p_notification) {
-	if (script_instance) {
+	if (script_instance)
+	{
 		script_instance->notification(p_notification, true);
 	}
 
 	if (_extension) {
-		if (_extension->notification2) {
+		if (_extension->notification2)
+		{
 			_extension->notification2(_extension_instance, p_notification, static_cast<GDExtensionBool>(true));
-#ifndef DISABLE_DEPRECATED
-		} else if (_extension->notification) {
-			_extension->notification(_extension_instance, p_notification);
-#endif // DISABLE_DEPRECATED
 		}
 	}
 
@@ -1784,7 +1765,6 @@ void Object::initialize_class() {
 	_add_class_to_classdb(get_gdtype_static_mutable(), nullptr);
 	get_gdtype_static_mutable().initialize();
 	_bind_methods();
-	_bind_compatibility_methods();
 	initialized = true;
 }
 

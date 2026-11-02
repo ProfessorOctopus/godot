@@ -31,13 +31,6 @@
 #pragma once
 
 namespace AudioServerTypes {
-
-//struct Stuff {};
-
-#ifndef DISABLE_DEPRECATED
-// Graveyard.
-#endif
-
 } // namespace AudioServerTypes
 
 // Alias to make it easier to use.

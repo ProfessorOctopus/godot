@@ -912,12 +912,6 @@ VARIANT_ENUM_CAST(BaseMaterial3D::StencilCompare)
 
 class StandardMaterial3D : public BaseMaterial3D {
 	GDCLASS(StandardMaterial3D, BaseMaterial3D)
-protected:
-#ifndef DISABLE_DEPRECATED
-	// Kept for compatibility from 3.x to 4.0.
-	bool _set(const StringName &p_name, const Variant &p_value);
-#endif
-
 public:
 	StandardMaterial3D() :
 			BaseMaterial3D(false) {}
@@ -936,5 +930,3 @@ public:
 	virtual RID get_shader_rid() const override { return RID(); }
 	virtual Shader::Mode get_shader_mode() const override { return Shader::MODE_CANVAS_ITEM; }
 };
-
-//////////////////////

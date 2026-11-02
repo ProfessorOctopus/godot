@@ -72,14 +72,9 @@ public:
 	StringName get_message_from_translations(const String &p_locale, const StringName &p_message, const StringName &p_message_plural, int p_n, const StringName &p_context) const;
 	PackedStringArray get_loaded_locales() const;
 
-public:
 	// These two methods are public for easier TranslationServer bindings.
 	TypedArray<Translation> get_translations_bind() const;
 	TypedArray<Translation> find_translations_bind(const String &p_locale, bool p_exact) const;
-
-#ifndef DISABLE_DEPRECATED
-	Ref<Translation> get_translation_object(const String &p_locale) const;
-#endif
 
 	void add_translation(const Ref<Translation> &p_translation);
 	void remove_translation(const Ref<Translation> &p_translation);

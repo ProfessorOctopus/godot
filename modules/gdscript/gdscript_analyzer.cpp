@@ -47,11 +47,6 @@
 
 #include "modules/gdscript/gdscript_parser.h"
 
-#if defined(TOOLS_ENABLED) && !defined(DISABLE_DEPRECATED)
-#define SUGGEST_GODOT4_RENAMES
-#include "editor/project_upgrade/renames_map_3_to_4.h"
-#endif
-
 #define UNNAMED_ENUM "<anonymous enum>"
 #define ENUM_SEPARATOR "."
 
@@ -1887,10 +1882,6 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 			bool valid = p_function->is_static == method_flags.has_flag(METHOD_FLAG_STATIC);
 
 			if (p_function->return_type == nullptr) {
-				// GH-118877. We decided to make an exception to maintain compatibility, since the problem can only be detected at runtime.
-#ifdef DISABLE_DEPRECATED
-				p_function->return_type_constraint = parent_return_type;
-#else // !DISABLE_DEPRECATED
 				if (function_name == GDScriptLanguage::get_singleton()->strings._get_property_list && method_flags.has_flag(METHOD_FLAG_VIRTUAL)) {
 					GDScriptParser::DataType array_type;
 					array_type.type_source = GDScriptParser::DataType::ANNOTATED_INFERRED;
@@ -1901,7 +1892,6 @@ void GDScriptAnalyzer::resolve_function_signature(GDScriptParser::FunctionNode *
 				} else {
 					p_function->return_type_constraint = parent_return_type;
 				}
-#endif // DISABLE_DEPRECATED
 			} else {
 				// Check return type covariance.
 				GDScriptParser::DataType return_type = p_function->return_type_constraint;

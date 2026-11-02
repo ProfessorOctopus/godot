@@ -78,21 +78,10 @@ public:
 		FFT_SIZE_MAX
 	};
 
-public:
 	friend class AudioEffectSpectrumAnalyzerInstance;
 	float buffer_length;
 	FFTSize fft_size;
 
-protected:
-	static void _bind_methods();
-
-#ifndef DISABLE_DEPRECATED
-	void _set_tap_back_pos_bind_compat_114355(float p_seconds);
-	float _get_tap_back_pos_bind_compat_114355() const;
-	static void _bind_compatibility_methods();
-#endif
-
-public:
 	Ref<AudioEffectInstance> instantiate() override;
 	void set_buffer_length(float p_seconds);
 	float get_buffer_length() const;
@@ -101,6 +90,9 @@ public:
 	FFTSize get_fft_size() const;
 
 	AudioEffectSpectrumAnalyzer();
+
+protected:
+	static void _bind_methods();
 };
 
 VARIANT_ENUM_CAST(AudioEffectSpectrumAnalyzer::FFTSize);

@@ -627,43 +627,6 @@ bool ProjectSettings::_load_resource_pack(const String &p_pack, bool p_replace_f
 	return true;
 }
 
-void ProjectSettings::_convert_to_last_version(int p_from_version) {
-#ifndef DISABLE_DEPRECATED
-	if (p_from_version <= 3) {
-		// Converts the actions from array to dictionary (array of events to dictionary with deadzone + events)
-		for (KeyValue<StringName, ProjectSettings::VariantContainer> &E : props) {
-			Variant value = E.value.variant;
-			if (String(E.key).begins_with("input/") && value.get_type() == Variant::ARRAY) {
-				Array array = value;
-				Dictionary action;
-				action["deadzone"] = Variant(0.5f);
-				action["events"] = array;
-				E.value.variant = action;
-			}
-		}
-	} else if (p_from_version <= 6) {
-		// Check if we still have legacy boot splash (removed in 4.6), map it to new project setting, then remove legacy setting.
-		if (has_setting("application/boot_splash/fullsize")) {
-			// See RenderingServerEnums::SplashStretchMode.
-			set_setting("application/boot_splash/stretch_mode", get_setting("application/boot_splash/fullsize") ? 1 : 0);
-			set_setting("application/boot_splash/fullsize", Variant());
-		}
-	}
-	// Automatically adds overrides for project settings that were changed to editor settings.
-	_handle_editor_setting_compat("editor/script/search_in_file_extensions", "text_editor/behavior/general/find_in_file_extensions");
-#endif // DISABLE_DEPRECATED
-}
-
-#ifndef DISABLE_DEPRECATED
-void ProjectSettings::_handle_editor_setting_compat(const String &p_original_setting, const String &p_new_setting) {
-	ProjectSettings *ps = ProjectSettings::get_singleton();
-	if (ps->has_setting(p_original_setting)) {
-		ps->set_editor_setting_override(p_new_setting, ps->get_setting(p_original_setting));
-		ps->set_setting(p_original_setting, Variant());
-	}
-}
-#endif
-
 /*
  * This method is responsible for loading a project.godot file and/or data file
  * using the following merit order:
@@ -987,7 +950,6 @@ Error ProjectSettings::_load_settings_text(const String &p_path) {
 		if (err == ERR_FILE_EOF) {
 			// If we're loading a project.godot from source code, we can operate some
 			// ProjectSettings conversions if need be.
-			_convert_to_last_version(config_version);
 			last_save_time = FileAccess::get_modified_time(get_resource_path().path_join("project.godot"));
 			return OK;
 		}
@@ -1023,21 +985,6 @@ Error ProjectSettings::_load_settings_text_or_binary(const String &p_text_path, 
 	// Fallback to text-based project.godot file if binary was not found.
 	err = _load_settings_text(p_text_path);
 	if (err == OK) {
-#ifndef DISABLE_DEPRECATED
-		const PackedStringArray features = get_setting("application/config/features");
-		for (const String &feat : features) {
-			if (feat.contains_char('.') && feat.get_slice_count(".") == 2) {
-				int major_version = feat.get_slicec('.', 0).to_int();
-				int minor_version = feat.get_slicec('.', 1).to_int();
-				// Major version is irrelevant, but the extra check ensures that the feature is in fact a version string.
-				if (major_version == 4 && minor_version < 6) {
-					// Enable MeshInstance3D compat for projects created before 4.6.
-					set_setting("animation/compatibility/default_parent_skeleton_in_mesh_instance_3d", true);
-				}
-				break;
-			}
-		}
-#endif
 		return OK;
 	} else if (err != ERR_FILE_NOT_FOUND) {
 		ERR_PRINT(vformat("Couldn't load file '%s', error code %d.", p_text_path, err));
@@ -1764,9 +1711,6 @@ ProjectSettings::ProjectSettings() {
 	GLOBAL_DEF("animation/warnings/check_invalid_skeleton_modifier_node_paths", true);
 	GLOBAL_DEF("animation/warnings/check_invalid_track_paths", true);
 	GLOBAL_DEF("animation/warnings/check_angle_interpolation_type_conflicting", true);
-#ifndef DISABLE_DEPRECATED
-	GLOBAL_DEF_RST("animation/compatibility/default_parent_skeleton_in_mesh_instance_3d", false);
-#endif
 
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING, "audio/buses/default_bus_layout", PROPERTY_HINT_FILE, "*.tres"), "res://default_bus_layout.tres");
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::STRING_NAME, "audio/buses/gui_theme_bus", PROPERTY_HINT_AUDIO_BUS, ""), StringName("Master"));

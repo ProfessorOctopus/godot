@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "audio_stream_polyphonic.h"
-#include "audio_stream_polyphonic.compat.inc"
-
 #include "core/object/class_db.h"
 #include "servers/audio/audio_server.h"
 
@@ -63,10 +61,7 @@ void AudioStreamPolyphonic::_bind_methods() {
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "polyphony", PROPERTY_HINT_RANGE, "1,128,1"), "set_polyphony", "get_polyphony");
 }
 
-AudioStreamPolyphonic::AudioStreamPolyphonic() {
-}
-
-////////////////////////
+AudioStreamPolyphonic::AudioStreamPolyphonic() {}
 
 void AudioStreamPlaybackPolyphonic::start(double p_from_pos) {
 	if (active) {

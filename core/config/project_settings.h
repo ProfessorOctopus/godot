@@ -143,11 +143,6 @@ protected:
 	const static PackedStringArray _trim_to_supported_features(const PackedStringArray &p_project_features);
 #endif // TOOLS_ENABLED
 
-	void _convert_to_last_version(int p_from_version);
-#ifndef DISABLE_DEPRECATED
-	void _handle_editor_setting_compat(const String &p_original_setting, const String &p_new_setting);
-#endif
-
 	bool load_resource_pack(const String &p_pack, bool p_replace_files, int p_offset);
 	bool _load_resource_pack(const String &p_pack, bool p_replace_files = true, int p_offset = 0, bool p_main_pack = false);
 

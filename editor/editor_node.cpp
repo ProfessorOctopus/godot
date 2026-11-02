@@ -4504,11 +4504,6 @@ void EditorNode::replace_resources_in_scenes(const Vector<Ref<Resource>> &p_sour
 }
 
 void EditorNode::add_editor_plugin(EditorPlugin *p_editor, bool p_config_changed) {
-#ifndef DISABLE_DEPRECATED
-	if (p_editor->has_main_screen()) {
-		singleton->editor_main_screen->add_main_plugin(p_editor);
-	}
-#endif
 	singleton->editor_data.add_editor_plugin(p_editor);
 	singleton->add_child(p_editor);
 	if (p_config_changed) {
@@ -4517,11 +4512,6 @@ void EditorNode::add_editor_plugin(EditorPlugin *p_editor, bool p_config_changed
 }
 
 void EditorNode::remove_editor_plugin(EditorPlugin *p_editor, bool p_config_changed) {
-#ifndef DISABLE_DEPRECATED
-	if (p_editor->has_main_screen()) {
-		singleton->editor_main_screen->remove_main_plugin(p_editor);
-	}
-#endif
 	p_editor->make_visible(false);
 	p_editor->clear();
 	if (p_config_changed) {
@@ -5585,11 +5575,6 @@ void EditorNode::_add_to_recent_scenes(const String &p_scene) {
 	Array rc = EditorSettings::get_singleton()->get_project_metadata("recent_files", "scenes", Array());
 	const String scene_uid = ResourceUID::path_to_uid(p_scene);
 
-#ifndef DISABLE_DEPRECATED
-	if (rc.has(p_scene)) {
-		rc.erase(p_scene);
-	}
-#endif
 	if (rc.has(scene_uid)) {
 		rc.erase(scene_uid);
 	}
@@ -5597,7 +5582,6 @@ void EditorNode::_add_to_recent_scenes(const String &p_scene) {
 	if (rc.size() > 10) {
 		rc.resize(10);
 	}
-
 	EditorSettings::get_singleton()->set_project_metadata("recent_files", "scenes", rc);
 }
 

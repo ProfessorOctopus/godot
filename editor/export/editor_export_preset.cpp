@@ -29,8 +29,6 @@
 /**************************************************************************/
 
 #include "editor_export_preset.h"
-#include "editor_export_preset.compat.inc"
-
 #include "core/config/project_settings.h"
 #include "core/io/dir_access.h"
 #include "core/object/class_db.h"
