@@ -61,13 +61,6 @@ class NativeMenuMacOS;
 class EmbeddedProcessMacOS;
 #endif
 
-#ifdef GLES3_ENABLED
-class GLManagerLegacy_MacOS;
-#ifdef ANGLE_ENABLED
-class GLManagerANGLE_MacOS;
-#endif
-#endif
-
 class DisplayServerMacOS : public DisplayServerMacOSBase {
 	GDSOFTCLASS(DisplayServerMacOS, DisplayServerMacOSBase);
 
@@ -152,13 +145,6 @@ public:
 
 private:
 	id screen_observer = nil;
-
-#if defined(GLES3_ENABLED)
-	GLManagerLegacy_MacOS *gl_manager_legacy = nullptr;
-#if defined(ANGLE_ENABLED)
-	GLManagerANGLE_MacOS *gl_manager_angle = nullptr;
-#endif
-#endif
 	String rendering_driver;
 
 	struct WarpEvent {
@@ -417,9 +403,6 @@ public:
 	void _process_events(bool p_pump);
 	virtual void process_events() override;
 	virtual void force_process_and_drop_events() override;
-
-	virtual void release_rendering_thread() override;
-	virtual void swap_buffers() override;
 
 	virtual void set_native_icon(const String &p_filename) override;
 	virtual void set_icon(const Ref<Image> &p_icon) override;

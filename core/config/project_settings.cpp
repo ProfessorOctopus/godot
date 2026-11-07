@@ -112,10 +112,6 @@ const PackedStringArray ProjectSettings::_get_supported_features() {
 	features.append("Mobile");
 #endif // MOBILE_RD_ENABLED
 #endif
-
-#ifdef GLES3_ENABLED
-	features.append("GL Compatibility");
-#endif
 	return features;
 }
 

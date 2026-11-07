@@ -9,9 +9,6 @@
 #define MINIZ_HEADER_FILE_ONLY
 #define MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 #include "basisu_miniz.h"
-
-#include "3rdparty/android_astc_decomp.h"
-
 #include <array>
 
 using namespace basisu;
@@ -3317,9 +3314,6 @@ static bool decode_file(const uint8_vec& comp_data, vector2D<astc_helpers::astc_
 		fmt_error_printf("End marker not found!\n");
 		return false;
 	}
-
-	//fmt_printf("Total decode_file() time: {} secs\n", tm.get_elapsed_secs());
-
 	return true;
 }
 
@@ -3343,11 +3337,6 @@ static bool unpack_physical_astc_block(const void* pBlock, uint32_t block_width,
 	}
 
 	return true;
-}
-
-static bool unpack_physical_astc_block_google(const void* pBlock, uint32_t block_width, uint32_t block_height, vec4F* pPixels)
-{
-	return basisu_astc::astc::decompress_hdr((float *)pPixels, (uint8_t*)pBlock, block_width, block_height);
 }
 
 static bool pack_bc6h_image(const imagef &src_img, vector2D<basist::bc6h_block> &bc6h_blocks, imagef *pPacked_bc6h_img, const fast_bc6h_params &enc_params)
@@ -6827,7 +6816,6 @@ bool compress_photo(const basisu::imagef &orig_src_img, const astc_hdr_6x6_globa
 
 	// Must decode all the blocks (even padded rows/cols) to match what the transcoder does.
 	imagef unpacked_astc_img(num_blocks_x * 6, num_blocks_y * 6);
-	imagef unpacked_astc_google_img(num_blocks_x * 6, num_blocks_y * 6);
 
 	for (uint32_t y = 0; y < decoded_blocks1.get_height(); y++)
 	{
@@ -6841,27 +6829,6 @@ bool compress_photo(const basisu::imagef &orig_src_img, const astc_hdr_6x6_globa
 			{
 				fmt_error_printf("unpack_physical_astc_block() failed\n");
 				return false;
-			}
-			
-			unpacked_astc_img.set_block_clipped(pixels, x * BLOCK_W, y * BLOCK_H, BLOCK_W, BLOCK_H);
-
-			vec4F pixels_google[MAX_BLOCK_W * MAX_BLOCK_H];
-			status = unpack_physical_astc_block_google(&phys_blk, BLOCK_W, BLOCK_H, pixels_google);
-			if (!status)
-			{
-				fmt_error_printf("unpack_physical_astc_block_google() failed\n");
-				return false;
-			}
-
-			unpacked_astc_google_img.set_block_clipped(pixels_google, x * BLOCK_W, y * BLOCK_H, BLOCK_W, BLOCK_H);
-
-			for (uint32_t i = 0; i < 36; i++)
-			{
-				if (pixels[i] != pixels_google[i])
-				{
-					fmt_error_printf("pixel unpack mismatch\n");
-					return false;
-				}
 			}
 		}
 	}
@@ -6892,12 +6859,10 @@ bool compress_photo(const basisu::imagef &orig_src_img, const astc_hdr_6x6_globa
 	}
 
 	unpacked_astc_img.crop(width, height);
-	unpacked_astc_google_img.crop(width, height);
 	
 	if (global_cfg.m_output_images)
 	{
 		write_exr((global_cfg.m_output_image_prefix + "unpacked_astc.exr").c_str(), unpacked_astc_img, 3, 0);
-		write_exr((global_cfg.m_output_image_prefix + "unpacked_google_astc.exr").c_str(), unpacked_astc_google_img, 3, 0);
 	}
 
 	// ASTC metrics

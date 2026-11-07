@@ -1157,9 +1157,7 @@ ProjectDialog::ProjectDialog() {
 	rs_button->set_button_group(renderer_button_group);
 	rs_button->set_text(TTRC("Compatibility"));
 	rs_button->set_accessibility_name(TTRC("Renderer:"));
-#if !defined(GLES3_ENABLED)
 	rs_button->set_disabled(true);
-#endif
 	rs_button->set_meta(SNAME("rendering_method"), "gl_compatibility");
 	rs_button->connect(SceneStringName(pressed), callable_mp(this, &ProjectDialog::_renderer_selected));
 	rvb->add_child(rs_button);
@@ -1168,11 +1166,6 @@ ProjectDialog::ProjectDialog() {
 	ri_link->set_uri(GODOT_VERSION_DOCS_URL "/tutorials/rendering/renderers.html");
 	ri_link->set_h_size_flags(Control::SIZE_SHRINK_CENTER);
 	rvb->add_child(ri_link);
-#if defined(GLES3_ENABLED)
-	if (default_renderer_type == "gl_compatibility") {
-		rs_button->set_pressed(true);
-	}
-#endif
 	rshc->add_child(memnew(VSeparator));
 
 	// Right hand side, used for text explaining each choice.

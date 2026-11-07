@@ -15,11 +15,8 @@
 #include "basisu_gpu_texture.h"
 #include "basisu_enc.h"
 #include "basisu_pvrtc1_4.h"
-#include "3rdparty/android_astc_decomp.h"
 #include "basisu_bc7enc.h"
 #include "../transcoder/basisu_astc_hdr_core.h"
-
-#define BASISU_USE_GOOGLE_ASTC_DECODER (1)
 
 namespace basisu
 {
@@ -1431,13 +1428,6 @@ namespace basisu
 		}
 		case texture_format::cASTC_LDR_4x4:
 		{
-			const bool astc_srgb = false;
-			bool status = basisu_astc::astc::decompress_ldr(reinterpret_cast<uint8_t*>(pPixels), static_cast<const uint8_t*>(pBlock), astc_srgb, 4, 4);
-			assert(status);
-
-			if (!status)
-				return false;
-			
 			break;
 		}
 		case texture_format::cATC_RGB:

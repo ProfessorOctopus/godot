@@ -37,13 +37,6 @@
 #include "servers/rendering/rendering_server_globals.h"
 #include "servers/xr/xr_server.h"
 
-#include "platform/android/api/java_class_wrapper.h"
-
-#ifdef ANDROID_ENABLED
-#include <openxr/openxr.h>
-#include <openxr/openxr_platform.h>
-#endif
-
 ////////////////////////////////////////////////////////////////////////////
 // OpenXRCompositionLayerExtension
 
@@ -68,7 +61,6 @@
 	}
 
 OPENXR_LAYER_FUNC2_IMPL(set_viewport, RID, const Size2i &);
-OPENXR_LAYER_FUNC2_IMPL(set_use_android_surface, bool, const Size2i &);
 OPENXR_LAYER_FUNC1_IMPL(set_sort_order, int);
 OPENXR_LAYER_FUNC1_IMPL(set_alpha_blend, bool);
 OPENXR_LAYER_FUNC1_IMPL(set_transform, const Transform3D &);
@@ -123,20 +115,10 @@ HashMap<String, bool *> OpenXRCompositionLayerExtension::get_requested_extension
 	request_extensions[XR_KHR_COMPOSITION_LAYER_CYLINDER_EXTENSION_NAME] = &cylinder_ext_available;
 	request_extensions[XR_KHR_COMPOSITION_LAYER_EQUIRECT2_EXTENSION_NAME] = &equirect_ext_available;
 
-#ifdef ANDROID_ENABLED
-	request_extensions[XR_KHR_ANDROID_SURFACE_SWAPCHAIN_EXTENSION_NAME] = &android_surface_ext_available;
-#endif
-
 	return request_extensions;
 }
 
 void OpenXRCompositionLayerExtension::on_instance_created(const XrInstance p_instance) {
-#ifdef ANDROID_ENABLED
-	EXT_INIT_XR_FUNC(xrDestroySwapchain);
-	if (android_surface_ext_available) {
-		EXT_INIT_XR_FUNC(xrCreateSwapchainAndroidSurfaceKHR);
-	}
-#endif
 }
 
 void OpenXRCompositionLayerExtension::on_session_created(const XrSession p_session) {
@@ -203,13 +185,6 @@ void OpenXRCompositionLayerExtension::composition_layer_unregister(RID p_layer) 
 	RenderingServer::get_singleton()->call_on_render_thread(callable_mp(this, &OpenXRCompositionLayerExtension::_composition_layer_unregister_rt).bind(p_layer));
 }
 
-Ref<JavaObject> OpenXRCompositionLayerExtension::composition_layer_get_android_surface(RID p_layer) {
-	MutexLock lock(composition_layer_mutex);
-	CompositionLayer *layer = composition_layer_owner.get_or_null(p_layer);
-	ERR_FAIL_NULL_V(layer, Ref<JavaObject>());
-	return layer->get_android_surface();
-}
-
 void OpenXRCompositionLayerExtension::_composition_layer_free_rt(RID p_layer) {
 	_composition_layer_unregister_rt(p_layer);
 
@@ -256,31 +231,10 @@ bool OpenXRCompositionLayerExtension::is_available(XrStructureType p_which) {
 	}
 }
 
-#ifdef ANDROID_ENABLED
-bool OpenXRCompositionLayerExtension::create_android_surface_swapchain(XrSwapchainCreateInfo *p_info, XrSwapchain *r_swapchain, jobject *r_surface) {
-	if (android_surface_ext_available) {
-		OpenXRAPI *openxr_api = OpenXRAPI::get_singleton();
-		ERR_FAIL_NULL_V(openxr_api, false);
-
-		XrResult result = xrCreateSwapchainAndroidSurfaceKHR(openxr_api->get_session(), p_info, r_swapchain, r_surface);
-		if (XR_FAILED(result)) {
-			print_line("OpenXR: Failed to create Android surface swapchain [", openxr_api->get_error_string(result), "]");
-			return false;
-		}
-
-		return true;
-	}
-
-	return false;
-}
-#endif
-
 ////////////////////////////////////////////////////////////////////////////
 // OpenXRCompositionLayerExtension::CompositionLayer
 
 void OpenXRCompositionLayerExtension::CompositionLayer::set_viewport(RID p_viewport, const Size2i &p_size) {
-	ERR_FAIL_COND(use_android_surface);
-
 	if (subviewport.viewport != p_viewport) {
 		if (subviewport.viewport.is_valid()) {
 			RID rt = RenderingServer::get_singleton()->viewport_get_render_target(subviewport.viewport);
@@ -298,37 +252,6 @@ void OpenXRCompositionLayerExtension::CompositionLayer::set_viewport(RID p_viewp
 	} else if (subviewport.viewport_size != p_size) {
 		subviewport.viewport_size = p_size;
 	}
-}
-
-void OpenXRCompositionLayerExtension::CompositionLayer::set_use_android_surface(bool p_use_android_surface, const Size2i &p_size) {
-#ifdef ANDROID_ENABLED
-	if (p_use_android_surface == use_android_surface) {
-		if (use_android_surface && swapchain_size != p_size) {
-			OpenXRFBUpdateSwapchainExtension *fb_update_swapchain_ext = OpenXRFBUpdateSwapchainExtension::get_singleton();
-			if (fb_update_swapchain_ext && fb_update_swapchain_ext->is_android_ext_enabled()) {
-				swapchain_size = p_size;
-				fb_update_swapchain_ext->update_swapchain_surface_size(android_surface.swapchain, swapchain_size);
-			}
-		}
-		return;
-	}
-
-	use_android_surface = p_use_android_surface;
-
-	if (use_android_surface) {
-		if (!OpenXRCompositionLayerExtension::get_singleton()->is_android_surface_swapchain_available()) {
-			ERR_PRINT_ONCE("OpenXR: Cannot use Android surface for composition layer because the extension isn't available");
-		}
-
-		if (subviewport.viewport.is_valid()) {
-			set_viewport(RID(), Size2i());
-		}
-
-		swapchain_size = p_size;
-	} else {
-		free_swapchain();
-	}
-#endif
 }
 
 void OpenXRCompositionLayerExtension::CompositionLayer::set_alpha_blend(bool p_alpha_blend) {
@@ -529,30 +452,8 @@ void OpenXRCompositionLayerExtension::CompositionLayer::set_equirect_lower_verti
 	composition_layer_equirect.lowerVerticalAngle = p_angle;
 }
 
-Ref<JavaObject> OpenXRCompositionLayerExtension::CompositionLayer::get_android_surface() {
-#ifdef ANDROID_ENABLED
-	if (use_android_surface) {
-		MutexLock lock(OpenXRCompositionLayerExtension::get_singleton()->composition_layer_mutex);
-		if (android_surface.surface.is_null()) {
-			create_android_surface();
-		}
-		return android_surface.surface;
-	}
-#endif
-	return Ref<JavaObject>();
-}
 
 void OpenXRCompositionLayerExtension::CompositionLayer::on_pre_render() {
-#ifdef ANDROID_ENABLED
-	if (use_android_surface) {
-		MutexLock lock(OpenXRCompositionLayerExtension::get_singleton()->composition_layer_mutex);
-		if (android_surface.surface.is_null()) {
-			create_android_surface();
-		}
-		return;
-	}
-#endif
-
 	RenderingServer *rs = RenderingServer::get_singleton();
 	OpenXRAPI *openxr_api = OpenXRAPI::get_singleton();
 
@@ -655,12 +556,8 @@ XrCompositionLayerBaseHeader *OpenXRCompositionLayerExtension::CompositionLayer:
 }
 
 void OpenXRCompositionLayerExtension::CompositionLayer::free() {
-	if (use_android_surface) {
-		free_swapchain();
-	} else {
-		// This will reset the viewport and free the swapchain too.
-		set_viewport(RID(), Size2i());
-	}
+	// This will reset the viewport and free the swapchain too.
+	set_viewport(RID(), Size2i());
 }
 
 void OpenXRCompositionLayerExtension::CompositionLayer::update_swapchain_state() {
@@ -668,16 +565,6 @@ void OpenXRCompositionLayerExtension::CompositionLayer::update_swapchain_state()
 	if (!fb_update_swapchain_ext) {
 		return;
 	}
-
-#ifdef ANDROID_ENABLED
-	if (use_android_surface) {
-		if (android_surface.swapchain == XR_NULL_HANDLE) {
-			return;
-		}
-
-		fb_update_swapchain_ext->update_swapchain_state(android_surface.swapchain, &swapchain_state);
-	} else
-#endif
 	{
 		if (subviewport.swapchain_info.get_swapchain() == XR_NULL_HANDLE) {
 			return;
@@ -688,11 +575,6 @@ void OpenXRCompositionLayerExtension::CompositionLayer::update_swapchain_state()
 }
 
 void OpenXRCompositionLayerExtension::CompositionLayer::update_swapchain_sub_image(XrSwapchainSubImage &r_subimage) {
-#ifdef ANDROID_ENABLED
-	if (use_android_surface) {
-		r_subimage.swapchain = android_surface.swapchain;
-	} else
-#endif
 	{
 		XrSwapchain swapchain = subviewport.swapchain_info.get_swapchain();
 
@@ -708,8 +590,6 @@ void OpenXRCompositionLayerExtension::CompositionLayer::update_swapchain_sub_ima
 }
 
 bool OpenXRCompositionLayerExtension::CompositionLayer::update_and_acquire_swapchain(bool p_static_image) {
-	ERR_FAIL_COND_V(use_android_surface, false);
-
 	OpenXRCompositionLayerExtension *composition_layer_extension = OpenXRCompositionLayerExtension::get_singleton();
 	OpenXRAPI *openxr_api = OpenXRAPI::get_singleton();
 
@@ -765,8 +645,6 @@ bool OpenXRCompositionLayerExtension::CompositionLayer::update_and_acquire_swapc
 }
 
 RID OpenXRCompositionLayerExtension::CompositionLayer::get_current_swapchain_texture() {
-	ERR_FAIL_COND_V(use_android_surface, RID());
-
 	if (OpenXRAPI::get_singleton() == nullptr) {
 		return RID();
 	}
@@ -775,15 +653,6 @@ RID OpenXRCompositionLayerExtension::CompositionLayer::get_current_swapchain_tex
 }
 
 void OpenXRCompositionLayerExtension::CompositionLayer::free_swapchain() {
-#ifdef ANDROID_ENABLED
-	if (use_android_surface) {
-		if (android_surface.swapchain != XR_NULL_HANDLE) {
-			OpenXRCompositionLayerExtension::get_singleton()->xrDestroySwapchain(android_surface.swapchain);
-			android_surface.swapchain = XR_NULL_HANDLE;
-			android_surface.surface.unref();
-		}
-	} else
-#endif
 	{
 		if (subviewport.swapchain_info.get_swapchain() != XR_NULL_HANDLE) {
 			subviewport.swapchain_info.queue_free();
@@ -793,49 +662,3 @@ void OpenXRCompositionLayerExtension::CompositionLayer::free_swapchain() {
 
 	swapchain_size = Size2i();
 }
-
-#ifdef ANDROID_ENABLED
-void OpenXRCompositionLayerExtension::CompositionLayer::create_android_surface() {
-	ERR_FAIL_COND(android_surface.swapchain != XR_NULL_HANDLE || android_surface.surface.is_valid());
-
-	void *next_pointer = nullptr;
-	for (OpenXRExtensionWrapper *wrapper : OpenXRAPI::get_registered_extension_wrappers()) {
-		void *np = wrapper->set_android_surface_swapchain_create_info_and_get_next_pointer(extension_property_values, next_pointer);
-		if (np != nullptr) {
-			next_pointer = np;
-		}
-	}
-
-	// Check to see if content should be protected.
-	XrSwapchainCreateFlags create_flags = 0;
-
-	if (protected_content) {
-		create_flags = XR_SWAPCHAIN_CREATE_PROTECTED_CONTENT_BIT;
-	}
-
-	// The XR_FB_android_surface_swapchain_create extension mandates that format, sampleCount,
-	// faceCount, arraySize, and mipCount must be zero.
-	XrSwapchainCreateInfo info = {
-		XR_TYPE_SWAPCHAIN_CREATE_INFO, // type
-		next_pointer, // next
-		create_flags, // createFlags
-		XR_SWAPCHAIN_USAGE_SAMPLED_BIT | XR_SWAPCHAIN_USAGE_COLOR_ATTACHMENT_BIT | XR_SWAPCHAIN_USAGE_MUTABLE_FORMAT_BIT, // usageFlags
-		0, // format
-		0, // sampleCount
-		(uint32_t)swapchain_size.x, // width
-		(uint32_t)swapchain_size.y, // height
-		0, // faceCount
-		0, // arraySize
-		0, // mipCount
-	};
-
-	jobject surface;
-	OpenXRCompositionLayerExtension::get_singleton()->create_android_surface_swapchain(&info, &android_surface.swapchain, &surface);
-
-	swapchain_state_is_dirty = true;
-
-	if (surface) {
-		android_surface.surface.instantiate(JavaClassWrapper::get_singleton()->wrap("android.view.Surface"), surface);
-	}
-}
-#endif

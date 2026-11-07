@@ -81,9 +81,6 @@ private:
 	List<String> _cmdline;
 	List<String> _user_args;
 	bool _keep_screen_on = true; // set default value to true, because this had been true before godot 2.0.
-	bool low_processor_usage_mode = false;
-	int low_processor_usage_mode_sleep_usec = 10000;
-	bool _delta_smoothing_enabled = false;
 	bool _verbose_stdout = false;
 	bool _debug_stdout = false;
 	String _local_clipboard;
@@ -199,14 +196,6 @@ public:
 	virtual Error open_dynamic_library(const String &p_path, void *&p_library_handle, GDExtensionData *p_data = nullptr) { return ERR_UNAVAILABLE; }
 	virtual Error close_dynamic_library(void *p_library_handle) { return ERR_UNAVAILABLE; }
 	virtual Error get_dynamic_library_symbol_handle(void *p_library_handle, const String &p_name, void *&p_symbol_handle, bool p_optional = false) { return ERR_UNAVAILABLE; }
-
-	virtual void set_low_processor_usage_mode(bool p_enabled);
-	virtual bool is_in_low_processor_usage_mode() const;
-	virtual void set_low_processor_usage_mode_sleep_usec(int p_usec);
-	virtual int get_low_processor_usage_mode_sleep_usec() const;
-
-	void set_delta_smoothing(bool p_enabled);
-	bool is_delta_smoothing_enabled() const;
 
 	virtual Vector<String> get_system_fonts() const { return Vector<String>(); }
 	virtual String get_system_font_path(const String &p_font_name, int p_weight = 400, int p_stretch = 100, bool p_italic = false) const { return String(); }
@@ -411,8 +400,7 @@ public:
 	}
 
 #ifdef TOOLS_ENABLED
-	// Tests OpenGL context and Rendering Device simultaneous creation. This function is expected to crash on some NVIDIA drivers.
-	virtual bool _test_create_rendering_device_and_gl(const String &p_display_driver) const { return true; }
+	// Tests Rendering Device simultaneous creation. This function is expected to crash on some NVIDIA drivers.
 	virtual bool _test_create_rendering_device(const String &p_display_driver) const { return true; }
 #endif
 

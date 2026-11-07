@@ -250,17 +250,6 @@ bool MainTimerSync::DeltaSmoother::fps_allows_smoothing(int64_t p_delta) {
 }
 
 int64_t MainTimerSync::DeltaSmoother::smooth_delta(int64_t p_delta) {
-	// Conditions to disable smoothing.
-	// Note that vsync is a request, it cannot be relied on, the OS may override this.
-	// If the OS turns vsync on without vsync in the app, smoothing will not be enabled.
-	// If the OS turns vsync off with sync enabled in the app, the smoothing must detect this
-	// via the error metric and switch off.
-	// Also only try smoothing if vsync is enabled (classical vsync, not new types) ..
-	// This condition is currently checked before calling smooth_delta().
-	if (!OS::get_singleton()->is_delta_smoothing_enabled() || Engine::get_singleton()->is_editor_hint()) {
-		return p_delta;
-	}
-
 	// only attempt smoothing if vsync is selected
 	DisplayServerEnums::VSyncMode vsync_mode = DisplayServer::get_singleton()->window_get_vsync_mode(DisplayServerEnums::MAIN_WINDOW_ID);
 	if (vsync_mode != DisplayServerEnums::VSYNC_ENABLED) {

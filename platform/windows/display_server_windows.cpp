@@ -68,9 +68,6 @@
 
 #include <dxgi1_6.h>
 #endif
-#if defined(GLES3_ENABLED)
-#include "drivers/gles3/rasterizer_gles3.h"
-#endif
 
 #include <avrt.h>
 #include <dwmapi.h>
@@ -1910,9 +1907,6 @@ DisplayServerEnums::WindowID DisplayServerWindows::create_sub_window(DisplayServ
 		_create_rendering_context_window(window_id, rendering_driver);
 	}
 #endif
-#ifdef GLES3_ENABLED
-	_create_gl_window(window_id);
-#endif
 
 	window_set_vsync_mode(p_vsync_mode, window_id);
 
@@ -2067,16 +2061,6 @@ void DisplayServerWindows::delete_sub_window(DisplayServerEnums::WindowID p_wind
 		rendering_context->window_destroy(p_window);
 	}
 #endif
-#ifdef GLES3_ENABLED
-#ifdef ANGLE_ENABLED
-	if (gl_manager_angle) {
-		gl_manager_angle->window_destroy(p_window);
-	}
-#endif
-	if (gl_manager_native) {
-		gl_manager_native->window_destroy(p_window);
-	}
-#endif
 
 	_destroy_window(p_window);
 
@@ -2086,16 +2070,6 @@ void DisplayServerWindows::delete_sub_window(DisplayServerEnums::WindowID p_wind
 }
 
 void DisplayServerWindows::gl_window_make_current(DisplayServerEnums::WindowID p_window_id) {
-#if defined(GLES3_ENABLED)
-#if defined(ANGLE_ENABLED)
-	if (gl_manager_angle) {
-		gl_manager_angle->window_make_current(p_window_id);
-	}
-#endif
-	if (gl_manager_native) {
-		gl_manager_native->window_make_current(p_window_id);
-	}
-#endif
 }
 
 int64_t DisplayServerWindows::window_get_native_handle(DisplayServerEnums::HandleType p_handle_type, DisplayServerEnums::WindowID p_window) const {
@@ -2107,42 +2081,6 @@ int64_t DisplayServerWindows::window_get_native_handle(DisplayServerEnums::Handl
 		case DisplayServerEnums::WINDOW_HANDLE: {
 			return (int64_t)windows[p_window].hWnd;
 		}
-#if defined(GLES3_ENABLED)
-		case DisplayServerEnums::WINDOW_VIEW: {
-			if (gl_manager_native) {
-				return (int64_t)gl_manager_native->get_hdc(p_window);
-			} else {
-				return (int64_t)GetDC(windows[p_window].hWnd);
-			}
-		}
-		case DisplayServerEnums::OPENGL_CONTEXT: {
-			if (gl_manager_native) {
-				return (int64_t)gl_manager_native->get_hglrc(p_window);
-			}
-#if defined(ANGLE_ENABLED)
-			if (gl_manager_angle) {
-				return (int64_t)gl_manager_angle->get_context(p_window);
-			}
-#endif
-			return 0;
-		}
-		case DisplayServerEnums::EGL_DISPLAY: {
-#if defined(ANGLE_ENABLED)
-			if (gl_manager_angle) {
-				return (int64_t)gl_manager_angle->get_display(p_window);
-			}
-#endif
-			return 0;
-		}
-		case DisplayServerEnums::EGL_CONFIG: {
-#if defined(ANGLE_ENABLED)
-			if (gl_manager_angle) {
-				return (int64_t)gl_manager_angle->get_config(p_window);
-			}
-#endif
-			return 0;
-		}
-#endif
 		default: {
 			return 0;
 		}
@@ -4627,32 +4565,6 @@ void DisplayServerWindows::force_process_and_drop_events() {
 	drop_events = false;
 }
 
-void DisplayServerWindows::release_rendering_thread() {
-#if defined(GLES3_ENABLED)
-#if defined(ANGLE_ENABLED)
-	if (gl_manager_angle) {
-		gl_manager_angle->release_current();
-	}
-#endif
-	if (gl_manager_native) {
-		gl_manager_native->release_current();
-	}
-#endif
-}
-
-void DisplayServerWindows::swap_buffers() {
-#if defined(GLES3_ENABLED)
-#if defined(ANGLE_ENABLED)
-	if (gl_manager_angle) {
-		gl_manager_angle->swap_buffers();
-	}
-#endif
-	if (gl_manager_native) {
-		gl_manager_native->swap_buffers();
-	}
-#endif
-}
-
 void DisplayServerWindows::set_native_icon(const String &p_filename) {
 	for (const KeyValue<DisplayServerEnums::WindowID, WindowData> &E : windows) {
 		if (E.value.icon_set && E.key != DisplayServerEnums::MAIN_WINDOW_ID) {
@@ -5082,17 +4994,6 @@ void DisplayServerWindows::window_set_vsync_mode(DisplayServerEnums::VSyncMode p
 		rendering_context->window_set_vsync_mode(p_window, p_vsync_mode);
 	}
 #endif
-
-#if defined(GLES3_ENABLED)
-	if (gl_manager_native) {
-		gl_manager_native->set_use_vsync(p_window, p_vsync_mode != DisplayServerEnums::VSYNC_DISABLED);
-	}
-#if defined(ANGLE_ENABLED)
-	if (gl_manager_angle) {
-		gl_manager_angle->set_use_vsync(p_vsync_mode != DisplayServerEnums::VSYNC_DISABLED);
-	}
-#endif
-#endif
 }
 
 DisplayServerEnums::VSyncMode DisplayServerWindows::window_get_vsync_mode(DisplayServerEnums::WindowID p_window) const {
@@ -5101,17 +5002,6 @@ DisplayServerEnums::VSyncMode DisplayServerWindows::window_get_vsync_mode(Displa
 	if (rendering_context) {
 		return rendering_context->window_get_vsync_mode(p_window);
 	}
-#endif
-
-#if defined(GLES3_ENABLED)
-	if (gl_manager_native) {
-		return gl_manager_native->is_using_vsync(p_window) ? DisplayServerEnums::VSYNC_ENABLED : DisplayServerEnums::VSYNC_DISABLED;
-	}
-#ifdef ANGLE_ENABLED
-	if (gl_manager_angle) {
-		return gl_manager_angle->is_using_vsync() ? DisplayServerEnums::VSYNC_ENABLED : DisplayServerEnums::VSYNC_DISABLED;
-	}
-#endif
 #endif
 	return DisplayServerEnums::VSYNC_ENABLED;
 }
@@ -6773,16 +6663,6 @@ LRESULT DisplayServerWindows::WndProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARA
 					rendering_context->window_set_size(window_id, window.width + off.x, window.height + off.y);
 				}
 #endif
-#if defined(GLES3_ENABLED)
-				if (window.create_completed && gl_manager_native && window.gl_native_window_created) {
-					gl_manager_native->window_resize(window_id, window.width + off.x, window.height + off.y);
-				}
-#if defined(ANGLE_ENABLED)
-				if (window.create_completed && gl_manager_angle && window.gl_angle_window_created) {
-					gl_manager_angle->window_resize(window_id, window.width + off.x, window.height + off.y);
-				}
-#endif
-#endif
 			}
 
 			if (!window.minimized && (!(window_pos_params->flags & SWP_NOMOVE) || window_pos_params->flags & SWP_FRAMECHANGED)) {
@@ -7602,31 +7482,6 @@ void DisplayServerWindows::_destroy_rendering_context_window(DisplayServerEnums:
 }
 #endif
 
-#ifdef GLES3_ENABLED
-Error DisplayServerWindows::_create_gl_window(DisplayServerEnums::WindowID p_window_id) {
-	if (gl_manager_native) {
-		WindowData &wd = windows[p_window_id];
-
-		Error err = gl_manager_native->window_create(p_window_id, wd.hWnd, hInstance, wd.width, wd.height);
-		ERR_FAIL_COND_V_MSG(err != OK, err, "Failed to create native OpenGL window.");
-
-		wd.gl_native_window_created = true;
-	}
-#ifdef ANGLE_ENABLED
-	if (gl_manager_angle) {
-		WindowData &wd = windows[p_window_id];
-
-		Error err = gl_manager_angle->window_create(p_window_id, nullptr, wd.hWnd, wd.width, wd.height);
-		ERR_FAIL_COND_V_MSG(err != OK, err, "Failed to create ANGLE OpenGL window.");
-
-		wd.gl_angle_window_created = true;
-	}
-#endif
-
-	return OK;
-}
-#endif
-
 BitField<DisplayServerWindows::DriverID> DisplayServerWindows::tested_drivers = 0;
 
 // WinTab API.
@@ -8211,140 +8066,9 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Dis
 
 	bool rendering_driver_failed = rendering_driver_count != 0 && rendering_context == nullptr;
 
-#ifdef GLES3_ENABLED
-	if (rendering_driver_failed) {
-		bool fallback_to_opengl3 = GLOBAL_GET("rendering/rendering_device/fallback_to_opengl3");
-		if (fallback_to_opengl3) {
-			tested_drivers.set_flag(DRIVER_ID_COMPAT_OPENGL3);
-			WARN_PRINT("Your video card drivers seem not to support Direct3D 12 or Vulkan, switching to OpenGL 3.");
-			rendering_driver = "opengl3";
-			OS::get_singleton()->set_current_rendering_method("gl_compatibility", OS::RENDERING_SOURCE_FALLBACK);
-			OS::get_singleton()->set_current_rendering_driver_name(rendering_driver, OS::RENDERING_SOURCE_FALLBACK);
-			rendering_driver_failed = false;
-		}
-	}
-#endif
-
 	if (rendering_driver_failed) {
 		r_error = ERR_UNAVAILABLE;
 		return;
-	}
-#endif
-
-#if defined(GLES3_ENABLED)
-#if defined(ANGLE_ENABLED)
-	bool fallback = GLOBAL_GET("rendering/gl_compatibility/fallback_to_angle");
-	bool show_warning = true;
-#endif
-
-	if (rendering_driver == "opengl3") {
-		// There's no native OpenGL drivers on Windows for ARM, always enable fallback.
-#if defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64)
-#if defined(ANGLE_ENABLED)
-		fallback = true;
-		show_warning = false;
-#else
-		r_error = ERR_UNAVAILABLE;
-		ERR_FAIL_MSG("Could not initialize OpenGL.");
-#endif
-#else
-		typedef BOOL(WINAPI * IsWow64Process2Ptr)(HANDLE, USHORT *, USHORT *);
-
-		IsWow64Process2Ptr IsWow64Process2 = (IsWow64Process2Ptr)(void *)GetProcAddress(GetModuleHandle(TEXT("kernel32")), "IsWow64Process2");
-		if (IsWow64Process2) {
-			USHORT process_arch = 0;
-			USHORT machine_arch = 0;
-			if (!IsWow64Process2(GetCurrentProcess(), &process_arch, &machine_arch)) {
-				machine_arch = 0;
-			}
-			if (machine_arch == 0xAA64) {
-#if defined(ANGLE_ENABLED)
-				fallback = true;
-				show_warning = false;
-#else
-				r_error = ERR_UNAVAILABLE;
-				ERR_FAIL_MSG("Could not initialize OpenGL.");
-#endif
-			}
-		}
-#endif
-	}
-
-#if defined(ANGLE_ENABLED)
-	bool gl_supported = true;
-	if (fallback && !is_wine && (rendering_driver == "opengl3")) {
-		Dictionary gl_info = detect_wgl();
-
-		bool force_angle = false;
-		gl_supported = gl_info["version"].operator int() >= 30003;
-
-		Vector2i device_id = Vector2i(-1, -1);
-		Array device_list = GLOBAL_GET("rendering/gl_compatibility/force_angle_on_devices");
-		for (int i = 0; i < device_list.size(); i++) {
-			const Dictionary &device = device_list[i];
-			if (device.has("vendor") && device.has("name")) {
-				const String &vendor = device["vendor"];
-				const String &name = device["name"];
-				if (gl_info["vendor"].operator String().containsn(vendor) && (name == "*" || gl_info["name"].operator String().containsn(name))) {
-					// Check vendor/device names.
-					force_angle = true;
-					break;
-				} else if (vendor.begins_with("0x") && name.begins_with("0x")) {
-					if (device_id == Vector2i(-1, -1)) {
-						// Load device IDs.
-						device_id = _get_device_ids(gl_info["name"]);
-					}
-					if (device_id.x == vendor.lstrip("0x").hex_to_int() && device_id.y == name.lstrip("0x").hex_to_int()) {
-						// Check vendor/device IDs.
-						force_angle = true;
-						break;
-					}
-				}
-			}
-		}
-
-		if (force_angle || (gl_info["version"].operator int() < 30003)) {
-			tested_drivers.set_flag(DRIVER_ID_COMPAT_OPENGL3);
-			if (show_warning) {
-				if (gl_info["version"].operator int() < 30003) {
-					WARN_PRINT("Your video card drivers seem not to support the required OpenGL 3.3 version, switching to ANGLE.");
-				} else {
-					WARN_PRINT("Your video card drivers are known to have low quality OpenGL 3.3 support, switching to ANGLE.");
-				}
-			}
-			rendering_driver = "opengl3_angle";
-			OS::get_singleton()->set_current_rendering_driver_name(rendering_driver, OS::RENDERING_SOURCE_FALLBACK);
-		}
-	}
-
-	if (rendering_driver == "opengl3_angle") {
-		gl_manager_angle = memnew(GLManagerANGLE_Windows);
-		tested_drivers.set_flag(DRIVER_ID_COMPAT_ANGLE_D3D11);
-
-		if (gl_manager_angle->initialize() != OK) {
-			memdelete(gl_manager_angle);
-			gl_manager_angle = nullptr;
-			bool fallback_to_native = GLOBAL_GET("rendering/gl_compatibility/fallback_to_native");
-			if (fallback_to_native && gl_supported) {
-				WARN_PRINT("Your video card drivers seem not to support GLES3 / ANGLE, switching to native OpenGL.");
-				rendering_driver = "opengl3";
-			} else {
-				r_error = ERR_UNAVAILABLE;
-				ERR_FAIL_MSG("Could not initialize ANGLE OpenGL.");
-			}
-		}
-	}
-#endif // ANGLE_ENABLED
-	if (rendering_driver == "opengl3") {
-		gl_manager_native = memnew(GLManagerNative_Windows);
-		tested_drivers.set_flag(DRIVER_ID_COMPAT_OPENGL3);
-
-		if (gl_manager_native->initialize() != OK) {
-			memdelete(gl_manager_native);
-			gl_manager_native = nullptr;
-			r_error = ERR_UNAVAILABLE;
-			ERR_FAIL_MSG("Could not initialize native OpenGL.");
-		}
 	}
 #endif
 
@@ -8374,31 +8098,6 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Dis
 		}
 	}
 	++window_id_counter;
-
-#ifdef GLES3_ENABLED
-	if (rendering_driver == "opengl3") {
-		if (_create_gl_window(DisplayServerEnums::MAIN_WINDOW_ID) != OK) {
-			memdelete(gl_manager_native);
-			gl_manager_native = nullptr;
-			windows.erase(DisplayServerEnums::MAIN_WINDOW_ID);
-			r_error = ERR_UNAVAILABLE;
-			return;
-		}
-		RasterizerGLES3::make_current(true);
-	}
-#ifdef ANGLE_ENABLED
-	if (rendering_driver == "opengl3_angle") {
-		if (_create_gl_window(DisplayServerEnums::MAIN_WINDOW_ID) != OK) {
-			memdelete(gl_manager_angle);
-			gl_manager_angle = nullptr;
-			windows.erase(DisplayServerEnums::MAIN_WINDOW_ID);
-			r_error = ERR_UNAVAILABLE;
-			return;
-		}
-		RasterizerGLES3::make_current(false);
-	}
-#endif
-#endif
 
 	window_set_vsync_mode(p_vsync_mode, DisplayServerEnums::MAIN_WINDOW_ID);
 
@@ -8449,22 +8148,20 @@ DisplayServerWindows::DisplayServerWindows(const String &p_rendering_driver, Dis
 	}
 #endif
 
-	if (!Engine::get_singleton()->is_editor_hint() && !OS::get_singleton()->is_in_low_processor_usage_mode()) {
-		// Increase priority for projects that are not in low-processor mode (typically games)
-		// to reduce the risk of frame stuttering.
-		// This is not done for the editor to prevent importers or resource bakers
-		// from making the system unresponsive.
-		SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
-		DWORD index = 0;
-		HANDLE handle = AvSetMmThreadCharacteristicsW(L"Games", &index);
-		if (handle) {
-			AvSetMmThreadPriority(handle, AVRT_PRIORITY_CRITICAL);
-		}
-
-		// This is needed to make sure that background work does not starve the main thread.
-		// This is only setting the priority of this thread, not the whole process.
-		SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
+	// Increase priority for projects that are not in low-processor mode (typically games)
+	// to reduce the risk of frame stuttering.
+	// This is not done for the editor to prevent importers or resource bakers
+	// from making the system unresponsive.
+	SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+	DWORD index = 0;
+	HANDLE handle = AvSetMmThreadCharacteristicsW(L"Games", &index);
+	if (handle) {
+		AvSetMmThreadPriority(handle, AVRT_PRIORITY_CRITICAL);
 	}
+
+	// This is needed to make sure that background work does not starve the main thread.
+	// This is only setting the priority of this thread, not the whole process.
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_TIME_CRITICAL);
 
 	cursor_shape = DisplayServerEnums::CURSOR_ARROW;
 
@@ -8484,12 +8181,6 @@ Vector<String> DisplayServerWindows::get_rendering_drivers_func() {
 #endif
 #ifdef D3D12_ENABLED
 	drivers.push_back("d3d12");
-#endif
-#ifdef GLES3_ENABLED
-	drivers.push_back("opengl3");
-#ifdef ANGLE_ENABLED
-	drivers.push_back("opengl3_angle");
-#endif
 #endif
 	drivers.push_back("dummy");
 
@@ -8603,11 +8294,6 @@ DisplayServerWindows::~DisplayServerWindows() {
 		native_menu = nullptr;
 	}
 
-#ifdef GLES3_ENABLED
-	// destroy windows .. NYI?
-	// FIXME wglDeleteContext is never called
-#endif
-
 	if (windows.has(DisplayServerEnums::MAIN_WINDOW_ID)) {
 #ifdef RD_ENABLED
 		if (rendering_device) {
@@ -8636,19 +8322,6 @@ DisplayServerWindows::~DisplayServerWindows() {
 	if (restore_mouse_trails > 1) {
 		SystemParametersInfoA(SPI_SETMOUSETRAILS, restore_mouse_trails, nullptr, 0);
 	}
-#ifdef GLES3_ENABLED
-#ifdef ANGLE_ENABLED
-	if (gl_manager_angle) {
-		memdelete(gl_manager_angle);
-		gl_manager_angle = nullptr;
-	}
-#endif
-	if (gl_manager_native) {
-		memdelete(gl_manager_native);
-		gl_manager_native = nullptr;
-	}
-#endif
 	memdelete(tts);
-
 	OleUninitialize();
 }

@@ -37,10 +37,6 @@
 class InputEvent;
 class NativeMenu;
 
-#ifdef GLES3_ENABLED
-class GLManagerEmbedded;
-#endif
-
 struct DisplayServerMacOSEmbeddedState {
 	/*! Default to a scale of 2.0, which is the most common. */
 	float screen_max_scale = 2.0f;
@@ -85,9 +81,6 @@ class DisplayServerMacOSEmbedded : public DisplayServerMacOSBase {
 	CAContext *ca_context = nullptr;
 	// Either be a CAMetalLayer or a CALayer depending on the rendering driver.
 	CALayer *layer = nullptr;
-#ifdef GLES3_ENABLED
-	GLManagerEmbedded *gl_manager = nullptr;
-#endif
 
 	String rendering_driver;
 
@@ -214,7 +207,6 @@ public:
 	void update_screen_parameters();
 
 	void set_state(const DisplayServerMacOSEmbeddedState &p_state);
-	virtual void swap_buffers() override;
 
 	DisplayServerMacOSEmbedded(const String &p_rendering_driver, DisplayServerEnums::WindowMode p_mode, DisplayServerEnums::VSyncMode p_vsync_mode, uint32_t p_flags, const Vector2i *p_position, const Vector2i &p_resolution, int p_screen, DisplayServerEnums::Context p_context, Error &r_error);
 	~DisplayServerMacOSEmbedded();

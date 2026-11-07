@@ -152,30 +152,6 @@ void OS::alert(const String &p_alert, const String &p_title) {
 	fprintf(stderr, "%s: %s\n", p_title.utf8().get_data(), p_alert.utf8().get_data());
 }
 
-void OS::set_low_processor_usage_mode(bool p_enabled) {
-	low_processor_usage_mode = p_enabled;
-}
-
-bool OS::is_in_low_processor_usage_mode() const {
-	return low_processor_usage_mode;
-}
-
-void OS::set_low_processor_usage_mode_sleep_usec(int p_usec) {
-	low_processor_usage_mode_sleep_usec = p_usec;
-}
-
-int OS::get_low_processor_usage_mode_sleep_usec() const {
-	return low_processor_usage_mode_sleep_usec;
-}
-
-void OS::set_delta_smoothing(bool p_enabled) {
-	_delta_smoothing_enabled = p_enabled;
-}
-
-bool OS::is_delta_smoothing_enabled() const {
-	return _delta_smoothing_enabled;
-}
-
 String OS::get_executable_path() const {
 	return _execpath;
 }
@@ -686,39 +662,21 @@ void OS::close_midi_inputs() {
 }
 
 uint64_t OS::get_frame_delay(bool p_can_draw) const {
-	const uint32_t frame_delay = Engine::get_singleton()->get_frame_delay();
-
 	// Add a dynamic frame delay to decrease CPU/GPU usage. This takes the
 	// previous frame time into account for a smoother result.
 	uint64_t dynamic_delay = 0;
-	if (is_in_low_processor_usage_mode() || !p_can_draw) {
-		dynamic_delay = get_low_processor_usage_mode_sleep_usec();
-	}
 	const int max_fps = Engine::get_singleton()->get_max_fps();
 	if (max_fps > 0 && !Engine::get_singleton()->is_editor_hint()) {
 		// Override the low processor usage mode sleep delay if the target FPS is lower.
 		dynamic_delay = MAX(dynamic_delay, (uint64_t)(1000000 / max_fps));
 	}
-
-	return frame_delay + dynamic_delay;
+	return dynamic_delay;
 }
 
 void OS::add_frame_delay(bool p_can_draw, bool p_wake_for_events) {
-	const uint32_t frame_delay = Engine::get_singleton()->get_frame_delay();
-	if (frame_delay) {
-		// Add fixed frame delay to decrease CPU/GPU usage. This doesn't take
-		// the actual frame time into account.
-		// Due to the high fluctuation of the actual sleep duration, it's not recommended
-		// to use this as a FPS limiter.
-		delay_usec(frame_delay * 1000);
-	}
-
 	// Add a dynamic frame delay to decrease CPU/GPU usage. This takes the
 	// previous frame time into account for a smoother result.
 	uint64_t dynamic_delay = 0;
-	if (is_in_low_processor_usage_mode() || !p_can_draw) {
-		dynamic_delay = get_low_processor_usage_mode_sleep_usec();
-	}
 	const int max_fps = Engine::get_singleton()->get_max_fps();
 	if (max_fps > 0 && !Engine::get_singleton()->is_editor_hint()) {
 		// Override the low processor usage mode sleep delay if the target FPS is lower.
@@ -732,7 +690,6 @@ void OS::add_frame_delay(bool p_can_draw, bool p_wake_for_events) {
 		if (current_ticks < target_ticks) {
 			delay_usec(target_ticks - current_ticks);
 		}
-
 		current_ticks = get_ticks_usec();
 		target_ticks = MIN(MAX(target_ticks, current_ticks - dynamic_delay), current_ticks + dynamic_delay);
 	}

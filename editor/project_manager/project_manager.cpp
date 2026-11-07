@@ -1474,8 +1474,6 @@ ProjectManager::ProjectManager() {
 			// Swap on means OK first.
 			AcceptDialog::set_swap_cancel_ok(swap_cancel_ok == 2);
 		}
-
-		OS::get_singleton()->set_low_processor_usage_mode(true);
 	}
 
 #if defined(MODULE_GDSCRIPT_ENABLED) || defined(MODULE_MONO_ENABLED)

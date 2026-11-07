@@ -61,35 +61,6 @@
 #include <os/log.h>
 #include <sys/sysctl.h>
 
-void OS_MacOS::add_frame_delay(bool p_can_draw, bool p_wake_for_events) {
-	bool wake_for_events = p_wake_for_events;
-	if (!wake_for_events) {
-		NSArray<NSRunningApplication *> *proc_array = [NSRunningApplication runningApplicationsWithBundleIdentifier:@"com.crowdcafe.windowmagnet"];
-		if (proc_array && proc_array.count > 0) {
-			wake_for_events = true;
-		}
-	}
-	if (wake_for_events) {
-		uint64_t delay = get_frame_delay(p_can_draw);
-		if (delay == 0) {
-			return;
-		}
-		if (wait_timer) {
-			CFRunLoopTimerInvalidate(wait_timer);
-			CFRelease(wait_timer);
-		}
-		wait_timer = CFRunLoopTimerCreateWithHandler(kCFAllocatorDefault, CFAbsoluteTimeGetCurrent() + (double(delay) / 1000000.0), 0, 0, 0,
-				^(CFRunLoopTimerRef timer) {
-					CFRunLoopTimerInvalidate(wait_timer);
-					CFRelease(wait_timer);
-					wait_timer = nil;
-				});
-		CFRunLoopAddTimer(CFRunLoopGetCurrent(), wait_timer, kCFRunLoopCommonModes);
-		return;
-	}
-	OS_Unix::add_frame_delay(p_can_draw, wake_for_events);
-}
-
 void OS_MacOS::initialize() {
 	crash_handler.initialize();
 

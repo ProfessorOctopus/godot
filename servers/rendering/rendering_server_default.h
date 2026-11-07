@@ -1255,5 +1255,4 @@ public:
 	virtual Size2i get_maximum_viewport_size() const override;
 
 	RenderingServerDefault(bool p_create_thread = false);
-	~RenderingServerDefault();
 };

@@ -115,9 +115,6 @@ public:
 	virtual void process_events() = 0;
 	virtual void force_process_and_drop_events();
 
-	virtual void release_rendering_thread();
-	virtual void swap_buffers();
-
 	virtual void beep() const;
 
 	/* RENDERING DEVICE */

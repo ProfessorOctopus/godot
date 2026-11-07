@@ -67,9 +67,6 @@
 #include "wayland/rendering_context_driver_vulkan_wayland.h"
 #endif
 #endif
-#if defined(GLES3_ENABLED)
-#include "drivers/gles3/rasterizer_gles3.h"
-#endif
 
 #include <dlfcn.h>
 #include <sys/stat.h>
@@ -1312,35 +1309,6 @@ bool OS_LinuxBSD::_test_create_rendering_device(const String &p_display_driver) 
 	}
 #endif
 	return ok;
-}
-
-bool OS_LinuxBSD::_test_create_rendering_device_and_gl(const String &p_display_driver) const {
-	// Tests OpenGL context and Rendering Device simultaneous creation. This function is expected to crash on some drivers.
-
-#ifdef GLES3_ENABLED
-#ifdef X11_ENABLED
-	if (p_display_driver == "x11" || p_display_driver.is_empty()) {
-#ifdef SOWRAP_ENABLED
-		if (initialize_xlib(0) != 0) {
-			return false;
-		}
-#endif
-		DetectPrimeX11::create_context();
-	}
-#endif
-#ifdef WAYLAND_ENABLED
-	if (p_display_driver == "wayland") {
-#ifdef SOWRAP_ENABLED
-		if (initialize_wayland_egl(0) != 0) {
-			return false;
-		}
-#endif
-		DetectPrimeEGL::create_context(EGL_PLATFORM_WAYLAND_KHR);
-	}
-#endif
-	RasterizerGLES3::make_current(true);
-#endif
-	return _test_create_rendering_device(p_display_driver);
 }
 #endif
 

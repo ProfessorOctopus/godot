@@ -45,8 +45,6 @@
 #include "core/os/os.h"
 
 #include "modules/modules_enabled.gen.h"
-
-#include "extensions/openxr_android_thread_settings_extension.h"
 #include "extensions/openxr_composition_layer_depth_extension.h"
 #include "extensions/openxr_composition_layer_extension.h"
 #include "extensions/openxr_debug_utils_extension.h"
@@ -100,14 +98,9 @@
 #include "editor/openxr_editor_plugin.h"
 #endif
 
-#ifdef ANDROID_ENABLED
-#include "extensions/platform/openxr_android_extension.h"
-#endif
-
 #ifdef TOOLS_ENABLED
 #include "editor/openxr_binding_modifier_editor.h"
 #include "editor/openxr_interaction_profile_editor.h"
-//
 #include "editor/editor_node.h"
 #endif
 
@@ -160,8 +153,6 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 #ifdef MODULE_GLTF_ENABLED
 		GDREGISTER_CLASS(OpenXRRenderModelExtension);
 #endif
-		GDREGISTER_CLASS(OpenXRAndroidThreadSettingsExtension);
-
 		// Note, we're not registering all wrapper classes here, there is no point in exposing them
 		// if there isn't specific logic to expose.
 	}
@@ -170,10 +161,6 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 		if (OpenXRAPI::openxr_is_enabled(false)) {
 			// Always register our extension wrappers even if we don't initialize OpenXR.
 			// Some of these wrappers will add functionality to our editor.
-#ifdef ANDROID_ENABLED
-			_register_extension(memnew(OpenXRAndroidExtension));
-#endif
-
 			// register our other extensions
 			_register_extension(memnew(OpenXRPalmPoseExtension));
 			_register_extension(memnew(OpenXRLocalFloorExtension));
@@ -212,9 +199,6 @@ void initialize_openxr_module(ModuleInitializationLevel p_level) {
 
 			// Register frame synthesis extension as a singleton.
 			_register_extension(memnew(OpenXRFrameSynthesisExtension), true, true);
-
-			// Register android thread settings extension as a singleton.
-			_register_extension(memnew(OpenXRAndroidThreadSettingsExtension), true, true);
 
 			// Register user presence extension as a singleton
 			_register_extension(memnew(OpenXRUserPresenceExtension), true, true);

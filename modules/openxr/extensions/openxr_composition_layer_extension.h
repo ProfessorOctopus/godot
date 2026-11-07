@@ -33,14 +33,6 @@
 #include "../openxr_api.h"
 #include "openxr_extension_wrapper.h"
 
-#ifdef ANDROID_ENABLED
-#include <jni.h>
-
-// Copied here from openxr_platform.h, in order to avoid including that whole header,
-// which can cause compilation issues on some platforms.
-typedef XrResult(XRAPI_PTR *PFN_xrCreateSwapchainAndroidSurfaceKHR)(XrSession session, const XrSwapchainCreateInfo *info, XrSwapchain *swapchain, jobject *surface);
-#endif
-
 class JavaObject;
 
 // OpenXRCompositionLayerExtension enables the extensions related to this functionality
@@ -144,7 +136,6 @@ public:
 	void composition_layer_##m_name(RID p_layer, m_arg1 p1, m_arg2 p2);
 
 	OPENXR_LAYER_FUNC2_DECL(set_viewport, RID, const Size2i &);
-	OPENXR_LAYER_FUNC2_DECL(set_use_android_surface, bool, const Size2i &);
 	OPENXR_LAYER_FUNC1_DECL(set_sort_order, int);
 	OPENXR_LAYER_FUNC1_DECL(set_alpha_blend, bool);
 	OPENXR_LAYER_FUNC1_DECL(set_transform, const Transform3D &);
@@ -179,28 +170,17 @@ public:
 #undef OPENXR_LAYER_FUNC1_DECL
 #undef OPENXR_LAYER_FUNC2_DECL
 
-	Ref<JavaObject> composition_layer_get_android_surface(RID p_layer);
-
 	bool is_available(XrStructureType p_which);
-	bool is_android_surface_swapchain_available() { return android_surface_ext_available; }
 
 private:
 	static OpenXRCompositionLayerExtension *singleton;
 
 	bool cylinder_ext_available = false;
 	bool equirect_ext_available = false;
-	bool android_surface_ext_available = false;
 
 	void _composition_layer_free_rt(RID p_layer);
 	void _composition_layer_register_rt(RID p_layer);
 	void _composition_layer_unregister_rt(RID p_layer);
-
-#ifdef ANDROID_ENABLED
-	bool create_android_surface_swapchain(XrSwapchainCreateInfo *p_info, XrSwapchain *r_swapchain, jobject *r_surface);
-
-	EXT_PROTO_XRRESULT_FUNC1(xrDestroySwapchain, (XrSwapchain), swapchain)
-	EXT_PROTO_XRRESULT_FUNC4(xrCreateSwapchainAndroidSurfaceKHR, (XrSession), session, (const XrSwapchainCreateInfo *), info, (XrSwapchain *), swapchain, (jobject *), surface)
-#endif
 
 	struct CompositionLayer {
 		union {
@@ -223,17 +203,9 @@ private:
 			bool swapchain_protected_content = false;
 		} subviewport;
 
-#ifdef ANDROID_ENABLED
-		struct {
-			XrSwapchain swapchain = XR_NULL_HANDLE;
-			Ref<JavaObject> surface;
-		} android_surface;
-#endif
-
 		PoseSpace pose_space = POSE_WORLD_LOCKED;
 		XrSpace layer_reference_space = XR_NULL_HANDLE;
 
-		bool use_android_surface = false;
 		bool protected_content = false;
 		Size2i swapchain_size;
 
@@ -241,8 +213,6 @@ private:
 		bool swapchain_state_is_dirty = false;
 
 		void set_viewport(RID p_viewport, const Size2i &p_size);
-		void set_use_android_surface(bool p_use_android_surface, const Size2i &p_size);
-
 		void set_sort_order(int p_sort_order) { sort_order = p_sort_order; }
 		void set_alpha_blend(bool p_alpha_blend);
 		void set_protected_content(bool p_protected_content) { protected_content = p_protected_content; }
@@ -274,7 +244,6 @@ private:
 		void set_equirect_upper_vertical_angle(float p_angle);
 		void set_equirect_lower_vertical_angle(float p_angle);
 
-		Ref<JavaObject> get_android_surface();
 		void on_pre_render();
 		XrCompositionLayerBaseHeader *get_composition_layer();
 		void free();
@@ -285,10 +254,6 @@ private:
 		bool update_and_acquire_swapchain(bool p_static_image);
 		RID get_current_swapchain_texture();
 		void free_swapchain();
-
-#ifdef ANDROID_ENABLED
-		void create_android_surface();
-#endif
 	};
 
 	Mutex composition_layer_mutex;

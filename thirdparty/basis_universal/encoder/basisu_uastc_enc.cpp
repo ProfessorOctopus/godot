@@ -13,14 +13,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 #include "basisu_uastc_enc.h"
-#include "3rdparty/android_astc_decomp.h"
 #include "basisu_gpu_texture.h"
 #include "basisu_bc7enc.h"
-
-#ifdef _DEBUG
-// When BASISU_VALIDATE_UASTC_ENC is 1, we pack and unpack to/from UASTC and ASTC, then validate that each codec returns the exact same results. This is slower.
-#define BASISU_VALIDATE_UASTC_ENC 1
-#endif
 
 #define BASISU_SUPPORT_FORCE_MODE 0
 
@@ -30,19 +24,7 @@ namespace basisu
 {
 	const uint32_t MAX_ENCODE_RESULTS = 512;
 
-#if BASISU_VALIDATE_UASTC_ENC
-	static void validate_func(bool condition, int line)
-	{
-		if (!condition)
-		{
-			fprintf(stderr, "basisu_uastc_enc: Internal validation failed on line %u!\n", line);
-		}
-	}
-
-	#define VALIDATE(c) validate_func(c, __LINE__);
-#else
 	#define VALIDATE(c)
-#endif
 
 	enum dxt_constants
 	{
@@ -3549,53 +3531,6 @@ namespace basisu
 		bool success = unpack_uastc(best_mode, best_results.m_common_pattern, best_results.m_solid_color.get_color32(), best_astc_results, (basist::color32 *)&decoded_uastc_block[0][0], false);
 		(void)success;
 		VALIDATE(success);
-
-#if BASISU_VALIDATE_UASTC_ENC
-		// Make sure that the UASTC block unpacks to the same exact pixels as the ASTC block does, using two different decoders.
-		{
-			// Round trip to packed UASTC and back, then decode to pixels.
-			etc_block etc1_blk;
-			memset(&etc1_blk, 0, sizeof(etc1_blk));
-			eac_a8_block etc_eac_a8_blk;
-			memset(&etc_eac_a8_blk, 0, sizeof(etc_eac_a8_blk));
-			etc_eac_a8_blk.m_multiplier = 1;
-
-			basist::uastc_block temp_block;
-			pack_uastc(temp_block, best_results, etc1_blk, 0, etc_eac_a8_blk, false, false);
-			
-			basist::color32 temp_block_unpacked[4][4];
-			success = basist::unpack_uastc(temp_block, (basist::color32 *)temp_block_unpacked, false);
-			VALIDATE(success);
-
-			// Now round trip to packed ASTC and back, then decode to pixels.
-			uint32_t astc_data[4];
-			
-			if (best_results.m_uastc_mode == UASTC_MODE_INDEX_SOLID_COLOR)
-				pack_astc_solid_block(astc_data, (color32 &)best_results.m_solid_color);
-			else
-			{
-				success = pack_astc_block(astc_data, &best_astc_results, best_results.m_uastc_mode);
-				VALIDATE(success);
-			}
-
-			color_rgba decoded_astc_block[4][4];
-			success = basisu_astc::astc::decompress_ldr((uint8_t*)decoded_astc_block, (uint8_t*)&astc_data, false, 4, 4);
-			VALIDATE(success);
-
-			for (uint32_t y = 0; y < 4; y++)
-			{
-				for (uint32_t x = 0; x < 4; x++)
-				{
-					VALIDATE(decoded_astc_block[y][x] == decoded_uastc_block[y][x]);
-					
-					VALIDATE(temp_block_unpacked[y][x].c[0] == decoded_uastc_block[y][x].r);
-					VALIDATE(temp_block_unpacked[y][x].c[1] == decoded_uastc_block[y][x].g);
-					VALIDATE(temp_block_unpacked[y][x].c[2] == decoded_uastc_block[y][x].b);
-					VALIDATE(temp_block_unpacked[y][x].c[3] == decoded_uastc_block[y][x].a);
-				}
-			}
-		}
-#endif
 
 		// Compute BC1 hints
 		bool bc1_hint0 = false, bc1_hint1 = false;

@@ -181,15 +181,6 @@ public:
 	virtual void open_midi_inputs();
 	virtual void close_midi_inputs();
 
-	void set_low_processor_usage_mode(bool p_enabled);
-	bool is_in_low_processor_usage_mode() const;
-
-	void set_low_processor_usage_mode_sleep_usec(int p_usec);
-	int get_low_processor_usage_mode_sleep_usec() const;
-
-	void set_delta_smoothing(bool p_enabled);
-	bool is_delta_smoothing_enabled() const;
-
 	void alert(const String &p_alert, const String &p_title = "ALERT!");
 	void crash(const String &p_message);
 

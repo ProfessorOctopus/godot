@@ -320,30 +320,6 @@ void OS::set_use_file_access_save_and_swap(bool p_enable) {
 	FileAccess::set_backup_save(p_enable);
 }
 
-void OS::set_low_processor_usage_mode(bool p_enabled) {
-	::OS::get_singleton()->set_low_processor_usage_mode(p_enabled);
-}
-
-bool OS::is_in_low_processor_usage_mode() const {
-	return ::OS::get_singleton()->is_in_low_processor_usage_mode();
-}
-
-void OS::set_low_processor_usage_mode_sleep_usec(int p_usec) {
-	::OS::get_singleton()->set_low_processor_usage_mode_sleep_usec(p_usec);
-}
-
-int OS::get_low_processor_usage_mode_sleep_usec() const {
-	return ::OS::get_singleton()->get_low_processor_usage_mode_sleep_usec();
-}
-
-void OS::set_delta_smoothing(bool p_enabled) {
-	::OS::get_singleton()->set_delta_smoothing(p_enabled);
-}
-
-bool OS::is_delta_smoothing_enabled() const {
-	return ::OS::get_singleton()->is_delta_smoothing_enabled();
-}
-
 void OS::alert(const String &p_alert, const String &p_title) {
 	::OS::get_singleton()->alert(p_alert, p_title);
 }
@@ -768,15 +744,6 @@ void OS::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("alert", "text", "title"), &OS::alert, DEFVAL("Alert!"));
 	ClassDB::bind_method(D_METHOD("crash", "message"), &OS::crash);
-
-	ClassDB::bind_method(D_METHOD("set_low_processor_usage_mode", "enable"), &OS::set_low_processor_usage_mode);
-	ClassDB::bind_method(D_METHOD("is_in_low_processor_usage_mode"), &OS::is_in_low_processor_usage_mode);
-
-	ClassDB::bind_method(D_METHOD("set_low_processor_usage_mode_sleep_usec", "usec"), &OS::set_low_processor_usage_mode_sleep_usec);
-	ClassDB::bind_method(D_METHOD("get_low_processor_usage_mode_sleep_usec"), &OS::get_low_processor_usage_mode_sleep_usec);
-
-	ClassDB::bind_method(D_METHOD("set_delta_smoothing", "delta_smoothing_enabled"), &OS::set_delta_smoothing);
-	ClassDB::bind_method(D_METHOD("is_delta_smoothing_enabled"), &OS::is_delta_smoothing_enabled);
 
 	ClassDB::bind_method(D_METHOD("get_processor_count"), &OS::get_processor_count);
 	ClassDB::bind_method(D_METHOD("get_processor_name"), &OS::get_processor_name);

@@ -3255,9 +3255,7 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 	// Each EditorProgress::step can trigger a redraw, and when there are many files to import,
 	// this could lead to a slow import process, especially when the editor is unfocused.
 	// Temporarily disabling VSync and low_processor_usage_mode while reimporting fixes this.
-	const bool old_low_processor_usage_mode = OS::get_singleton()->is_in_low_processor_usage_mode();
 	const DisplayServerEnums::VSyncMode old_vsync_mode = DisplayServer::get_singleton()->window_get_vsync_mode(DisplayServerEnums::MAIN_WINDOW_ID);
-	OS::get_singleton()->set_low_processor_usage_mode(false);
 	DisplayServer::get_singleton()->window_set_vsync_mode(DisplayServerEnums::VSyncMode::VSYNC_DISABLED);
 
 	Vector<ImportFile> reimport_files;
@@ -3414,7 +3412,6 @@ void EditorFileSystem::reimport_files(const Vector<String> &p_files) {
 	_process_update_pending();
 
 	// Revert to previous values to restore editor settings for VSync and Update Continuously.
-	OS::get_singleton()->set_low_processor_usage_mode(old_low_processor_usage_mode);
 	DisplayServer::get_singleton()->window_set_vsync_mode(old_vsync_mode);
 
 	importing = false;

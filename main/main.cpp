@@ -1312,31 +1312,7 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 				OS::get_singleton()->print("Missing tablet driver argument, aborting.\n");
 				goto error;
 			}
-		} else if (arg == "--delta-smoothing") {
-			if (N) {
-				String string = N->get();
-				bool recognized = false;
-				if (string == "enable") {
-					OS::get_singleton()->set_delta_smoothing(true);
-					delta_smoothing_override = true;
-					recognized = true;
-				}
-				if (string == "disable") {
-					OS::get_singleton()->set_delta_smoothing(false);
-					delta_smoothing_override = false;
-					recognized = true;
-				}
-				if (!recognized) {
-					OS::get_singleton()->print("Delta-smoothing argument not recognized, aborting.\n");
-					goto error;
-				}
-				N = N->next();
-			} else {
-				OS::get_singleton()->print("Missing delta-smoothing argument, aborting.\n");
-				goto error;
-			}
 		} else if (arg == "--single-window") { // force single window
-
 			single_window = true;
 		} else if (arg == "--accessibility") {
 			if (N) {
@@ -2127,16 +2103,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			exit_err = ERR_UNAVAILABLE;
 		}
 		goto error;
-	} else if (test_rd_creation) {
-		// Test OpenGL context and Rendering Device simultaneous creation and exit.
-
-		OS::get_singleton()->set_crash_handler_silent();
-		if (OS::get_singleton()->_test_create_rendering_device_and_gl(display_driver)) {
-			exit_err = ERR_HELP;
-		} else {
-			exit_err = ERR_UNAVAILABLE;
-		}
-		goto error;
 	}
 #endif
 
@@ -2181,15 +2147,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	// Initialize user data dir.
 	OS::get_singleton()->ensure_user_data_dir();
-
-	OS::get_singleton()->set_low_processor_usage_mode(GLOBAL_DEF("application/run/low_processor_mode", false));
-	OS::get_singleton()->set_low_processor_usage_mode_sleep_usec(
-			GLOBAL_DEF(PropertyInfo(Variant::INT, "application/run/low_processor_mode_sleep_usec", PROPERTY_HINT_RANGE, "0,33200,1,or_greater"), 6900)); // Roughly 144 FPS
-
-	GLOBAL_DEF("application/run/delta_smoothing", true);
-	if (!delta_smoothing_override) {
-		OS::get_singleton()->set_delta_smoothing(GLOBAL_GET("application/run/delta_smoothing"));
-	}
 
 	GLOBAL_DEF("debug/settings/stdout/print_fps", false);
 	GLOBAL_DEF("debug/settings/stdout/print_gpu_profile", false);
@@ -2433,23 +2390,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif // MOBILE_RD_ENABLED
 #endif
 
-	// And Compatibility next, or first if Vulkan is disabled.
-#ifdef GLES3_ENABLED
-	if (!renderer_hints.is_empty()) {
-		renderer_hints += ",";
-	}
-	renderer_hints += "gl_compatibility";
-	if (default_renderer_mobile.is_empty()) {
-		default_renderer_mobile = "gl_compatibility";
-	}
-	// Default to Compatibility when using the project manager.
-	if (rendering_driver.is_empty() && rendering_method.is_empty() && project_manager) {
-		rendering_driver = "opengl3";
-		rendering_method = "gl_compatibility";
-		default_renderer_mobile = "gl_compatibility";
-	}
-#endif
-
 	if (!rendering_method.is_empty()) {
 		if (rendering_method != "forward_plus" &&
 				rendering_method != "mobile" &&
@@ -2552,13 +2492,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 #endif // RD_ENABLED
 
-#ifdef GLES3_ENABLED
-		if (rendering_method == "gl_compatibility") {
-			available_drivers.push_back("opengl3");
-			available_drivers.push_back("opengl3_angle");
-			available_drivers.push_back("opengl3_es");
-		}
-#endif
 		if (rendering_method == "dummy") {
 			available_drivers.push_back("dummy");
 		}
@@ -2872,8 +2805,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "xr/visionos/upper_limb_visibility", PROPERTY_HINT_ENUM, "Automatic,Visible,Hidden"), 0);
 	GLOBAL_DEF_BASIC(PropertyInfo(Variant::INT, "xr/visionos/persistent_system_overlays", PROPERTY_HINT_ENUM, "Automatic,Visible,Hidden"), 0);
 #endif // _3D_DISABLED
-
-	Engine::get_singleton()->set_frame_delay(frame_delay);
 
 	message_queue = memnew(MessageQueue);
 
@@ -5009,18 +4940,12 @@ bool Main::iteration() {
 								 DisplayServer::get_singleton()->has_additional_outputs()) &&
 			RenderingServer::get_singleton()->is_render_loop_enabled();
 
-	if (wants_present || has_pending_resources_for_processing) {
+	if (wants_present || has_pending_resources_for_processing)
+	{
 		wants_present |= force_redraw_requested;
-		if ((!force_redraw_requested) && OS::get_singleton()->is_in_low_processor_usage_mode()) {
-			if (RenderingServer::get_singleton()->has_changed()) {
-				RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
-				Engine::get_singleton()->increment_frames_drawn();
-			}
-		} else {
-			RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
-			Engine::get_singleton()->increment_frames_drawn();
-			force_redraw_requested = false;
-		}
+		RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
+		Engine::get_singleton()->increment_frames_drawn();
+		force_redraw_requested = false;
 	}
 
 	process_ticks = OS::get_singleton()->get_ticks_usec() - process_begin;

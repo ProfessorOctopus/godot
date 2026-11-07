@@ -29,12 +29,6 @@
 /**************************************************************************/
 
 #include "rendering_device_binds.h"
-
-#include "modules/modules_enabled.gen.h" // For glslang.
-#ifdef MODULE_GLSLANG_ENABLED
-#include "modules/glslang/shader_compile.h"
-#endif
-
 #include "servers/rendering/shader_include_db.h"
 
 Error RDShaderFile::parse_versions_from_text(const String &p_text, const String p_defines, OpenIncludeFunction p_include_func, void *p_include_func_userdata) {
@@ -197,16 +191,7 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 				}
 				code = code.replace("VERSION_DEFINES", E.value);
 				String error;
-#ifdef MODULE_GLSLANG_ENABLED
-				RD::ShaderSpirvVersion spirv_version = RD::SHADER_SPIRV_VERSION_1_3;
-				if (i >= RD::SHADER_STAGE_RAYGEN && i <= RD::SHADER_STAGE_INTERSECTION) {
-					spirv_version = RD::SHADER_SPIRV_VERSION_1_4;
-				}
-				Vector<uint8_t> spirv = compile_glslang_shader(RD::ShaderStage(i), ShaderIncludeDB::parse_include_files(code), RD::SHADER_LANGUAGE_VULKAN_VERSION_1_1, spirv_version, &error);
-				bytecode->set_stage_bytecode(RD::ShaderStage(i), spirv);
-#else
 				error = "Shader compilation is not supported because glslang was not enabled.";
-#endif
 				if (!error.is_empty()) {
 					error += String() + "\n\nStage '" + stage_str[i] + "' source code: \n\n";
 					Vector<String> sclines = code.split("\n");
@@ -217,10 +202,8 @@ Error RDShaderFile::parse_versions_from_text(const String &p_text, const String 
 				}
 				bytecode->set_stage_compile_error(RD::ShaderStage(i), error);
 			}
-
 			set_bytecode(bytecode, E.key);
 		}
-
 		return errors_found ? ERR_PARSE_ERROR : OK;
 	} else {
 		return ERR_PARSE_ERROR;

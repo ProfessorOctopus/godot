@@ -19,7 +19,6 @@ basisu_encoder = env.editor_build
 # Sync list with upstream CMakeLists.txt
 if basisu_encoder:
     encoder_sources = [
-        "3rdparty/android_astc_decomp.cpp",
         "basisu_astc_hdr_6x6_enc.cpp",
         "basisu_astc_hdr_common.cpp",
         "basisu_backend.cpp",

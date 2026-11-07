@@ -125,14 +125,6 @@ uint64_t Engine::get_frames_drawn() {
 	return frames_drawn;
 }
 
-void Engine::set_frame_delay(uint32_t p_msec) {
-	_frame_delay = p_msec;
-}
-
-uint32_t Engine::get_frame_delay() const {
-	return _frame_delay;
-}
-
 void Engine::set_time_scale(double p_scale) {
 	_game_time_scale = p_scale;
 	_update_time_scale();

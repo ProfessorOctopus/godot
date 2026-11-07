@@ -91,8 +91,6 @@ protected:
 
 private:
 	SubViewport *layer_viewport = nullptr;
-	bool use_android_surface = false;
-	Size2i android_surface_size = Size2i(1024, 1024);
 	bool enable_hole_punch = false;
 	bool alpha_blend = false;
 	int sort_order = 1;
@@ -160,12 +158,6 @@ public:
 	void set_layer_viewport(SubViewport *p_viewport);
 	SubViewport *get_layer_viewport() const;
 
-	void set_use_android_surface(bool p_use_android_surface);
-	bool get_use_android_surface() const;
-
-	void set_android_surface_size(Size2i p_size);
-	Size2i get_android_surface_size() const;
-
 	void set_enable_hole_punch(bool p_enable);
 	bool get_enable_hole_punch() const;
 
@@ -175,7 +167,6 @@ public:
 	void set_alpha_blend(bool p_alpha_blend);
 	bool get_alpha_blend() const;
 
-	Ref<JavaObject> get_android_surface();
 	bool is_natively_supported() const;
 
 	void set_protected_content(bool p_protected_content);

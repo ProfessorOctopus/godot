@@ -42,15 +42,10 @@ class OpenXRExportPlugin : public EditorExportPlugin {
 
 public:
 	virtual String get_name() const override { return "OpenXRExportPlugin"; }
-	virtual bool supports_platform(const Ref<EditorExportPlatform> &p_export_platform) const override;
-	virtual PackedStringArray get_android_dependencies(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const override;
 
 protected:
 	virtual String _get_export_option_warning(const Ref<EditorExportPlatform> &p_export_platform, const String &p_option_name) const override;
-
 	virtual PackedStringArray _get_export_features(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const override;
-	virtual String get_android_manifest_element_contents(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const override;
-	virtual String get_android_manifest_activity_element_contents(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const override;
 
 private:
 	bool is_openxr_mode() const;
@@ -62,9 +57,6 @@ class OpenXREditorPlugin : public EditorPlugin {
 
 	OpenXRActionMapEditor *action_map_editor = nullptr;
 	Ref<EditorInspectorPluginBindingModifier> binding_modifier_inspector_plugin = nullptr;
-#ifndef ANDROID_ENABLED
-	OpenXRSelectRuntime *select_runtime = nullptr;
-#endif
 
 public:
 	virtual String get_plugin_name() const override { return "OpenXRPlugin"; }

@@ -425,14 +425,6 @@ bool DisplayServer::color_picker(const Callable &p_callback) {
 void DisplayServer::force_process_and_drop_events() {
 }
 
-void DisplayServer::release_rendering_thread() {
-	WARN_PRINT("Rendering thread not supported by this display server.");
-}
-
-void DisplayServer::swap_buffers() {
-	WARN_PRINT("Swap buffers not supported by this display server.");
-}
-
 void DisplayServer::set_native_icon(const String &p_filename) {
 	WARN_PRINT("Native icon not supported by this display server.");
 }

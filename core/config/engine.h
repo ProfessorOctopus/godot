@@ -156,9 +156,6 @@ public:
 	void print_header(const String &p_string) const;
 	void print_header_rich(const String &p_string) const;
 
-	void set_frame_delay(uint32_t p_msec);
-	uint32_t get_frame_delay() const;
-
 	void add_singleton(const Singleton &p_singleton);
 	void get_singletons(List<Singleton> *p_singletons);
 	bool has_singleton(const StringName &p_name) const;

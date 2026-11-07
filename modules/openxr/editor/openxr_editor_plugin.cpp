@@ -36,17 +36,10 @@
 
 #include "editor/docks/editor_dock_manager.h"
 #include "editor/editor_node.h"
-
-#include "platform/android/export/export_plugin.h"
-
 #include <openxr/openxr.h>
 
 ////////////////////////////////////////////////////////////////////////////
 // OpenXRExportPlugin
-
-bool OpenXRExportPlugin::supports_platform(const Ref<EditorExportPlatform> &p_export_platform) const {
-	return p_export_platform->is_class(EditorExportPlatformAndroid::get_class_static());
-}
 
 bool OpenXRExportPlugin::is_openxr_mode() const {
 	// Check if OpenXR is enabled using `EditorExportPlatform::get_project_settings()` because that'll
@@ -54,7 +47,7 @@ bool OpenXRExportPlugin::is_openxr_mode() const {
 	bool openxr_enabled = (bool)get_export_platform()->get_project_setting(get_export_preset(), "xr/openxr/enabled");
 	int xr_mode_index = get_option("xr_features/xr_mode");
 
-	return openxr_enabled && xr_mode_index == XR_MODE_OPENXR;
+	return openxr_enabled;
 }
 
 bool OpenXRExportPlugin::is_spatial_container_enabled() const {
@@ -74,26 +67,6 @@ String OpenXRExportPlugin::_get_export_option_warning(const Ref<EditorExportPlat
 	return String();
 }
 
-PackedStringArray OpenXRExportPlugin::get_android_dependencies(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const {
-	PackedStringArray ret;
-
-	if (!supports_platform(p_export_platform)) {
-		return ret;
-	}
-
-	if (is_openxr_mode()) {
-		// Loader is always identified by the full API version even if we're initializing for OpenXR 1.0.
-		int major = XR_VERSION_MAJOR(XR_CURRENT_API_VERSION);
-		int minor = XR_VERSION_MINOR(XR_CURRENT_API_VERSION);
-		int patch = XR_VERSION_PATCH(XR_CURRENT_API_VERSION);
-		String openxr_loader = "org.khronos.openxr:openxr_loader_for_android:" + String::num_int64(major) + "." + String::num_int64(minor) + "." + String::num_int64(patch);
-
-		ret.push_back(openxr_loader);
-	}
-
-	return ret;
-}
-
 PackedStringArray OpenXRExportPlugin::_get_export_features(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const {
 	PackedStringArray features;
 
@@ -104,72 +77,6 @@ PackedStringArray OpenXRExportPlugin::_get_export_features(const Ref<EditorExpor
 	// Placeholder for now
 
 	return features;
-}
-
-String OpenXRExportPlugin::get_android_manifest_element_contents(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const {
-	String contents;
-
-	if (!supports_platform(p_export_platform) || !is_openxr_mode()) {
-		return contents;
-	}
-
-	contents += R"n(
-    <uses-permission android:name="org.khronos.openxr.permission.OPENXR" />
-	<uses-permission android:name="org.khronos.openxr.permission.OPENXR_SYSTEM" />
-
-    <queries>
-        <provider android:authorities="org.khronos.openxr.runtime_broker;org.khronos.openxr.system_runtime_broker" />
-
-        <intent>
-            <action android:name="org.khronos.openxr.OpenXRRuntimeService" />
-        </intent>
-        <intent>
-            <action android:name="org.khronos.openxr.OpenXRApiLayerService" />
-        </intent>
-
-    </queries>
-)n";
-		contents += "    <uses-feature android:name=\"android.hardware.vr.headtracking\" android:required=\"false\" android:version=\"1\" />\n";
-	return contents;
-}
-
-String OpenXRExportPlugin::get_android_manifest_activity_element_contents(const Ref<EditorExportPlatform> &p_export_platform, bool p_debug) const {
-	String contents;
-
-	if (!supports_platform(p_export_platform) || !is_openxr_mode()) {
-		return contents;
-	}
-
-	if (!is_spatial_container_enabled()) {
-		contents += R"n(
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-				<category android:name="android.intent.category.DEFAULT" />
-                <category android:name="org.khronos.openxr.intent.category.IMMERSIVE_HMD" />
-            </intent-filter>
-)n";
-	} else {
-		contents += R"n(
-                <property android:name="org.khronos.openxr.PROPERTY_ACTIVITY_HINT_XR_SPATIAL_CONTAINER_USED_BOUNDS_MODES" android:value="" />
-)n";
-
-		// Get the initial bounds mode.
-		OpenXRSpatialContainerState::BoundsMode initial_bounds_mode = (OpenXRSpatialContainerState::BoundsMode)get_export_platform()->get_project_setting(get_export_preset(), "xr/openxr/extensions/spatial_container/bounds_mode");
-		String manifest_initial_bounds_mode_value = "XR_SPATIAL_CONTAINER_INITIAL_BOUNDS_MODE_UNDEFINED";
-		switch (initial_bounds_mode) {
-			case OpenXRSpatialContainerState::BOUNDS_MODE_BOUNDED:
-				manifest_initial_bounds_mode_value = "XR_SPATIAL_CONTAINER_INITIAL_BOUNDS_MODE_BOUNDED";
-				break;
-			case OpenXRSpatialContainerState::BOUNDS_MODE_IMMERSIVE:
-				manifest_initial_bounds_mode_value = "XR_SPATIAL_CONTAINER_INITIAL_BOUNDS_MODE_IMMERSIVE";
-				break;
-		}
-		contents += vformat(
-				"                <property android:name=\"org.khronos.openxr.PROPERTY_ACTIVITY_HINT_XR_SPATIAL_CONTAINER_INITIAL_BOUNDS_MODE\" android:value=\"%s\" />\n",
-				manifest_initial_bounds_mode_value);
-	}
-
-	return contents;
 }
 
 ////////////////////////////////////////////////////////////////////////////
@@ -202,11 +109,6 @@ OpenXREditorPlugin::OpenXREditorPlugin() {
 
 		binding_modifier_inspector_plugin = Ref<EditorInspectorPluginBindingModifier>(memnew(EditorInspectorPluginBindingModifier));
 		EditorInspector::add_inspector_plugin(binding_modifier_inspector_plugin);
-
-#ifndef ANDROID_ENABLED
-		select_runtime = memnew(OpenXRSelectRuntime);
-		add_control_to_container(CONTAINER_TOOLBAR, select_runtime);
-#endif
 	}
 }
 

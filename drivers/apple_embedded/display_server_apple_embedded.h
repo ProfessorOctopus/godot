@@ -48,10 +48,6 @@
 #endif // METAL_ENABLED
 #endif // RD_ENABLED
 
-#if defined(GLES3_ENABLED)
-#include "drivers/gles3/rasterizer_gles3.h"
-#endif // GLES3_ENABLED
-
 #import <Foundation/Foundation.h>
 #import <QuartzCore/CAMetalLayer.h>
 
@@ -262,7 +258,6 @@ public:
 	virtual float window_get_output_max_linear_value(DisplayServerEnums::WindowID p_window = DisplayServerEnums::MAIN_WINDOW_ID) const override;
 
 	void resize_window(CGSize size);
-	virtual void swap_buffers() override {}
 
 	virtual void set_native_icon(const String &p_filename) override;
 	virtual void set_icon(const Ref<Image> &p_icon) override;
