@@ -2103,6 +2103,16 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			exit_err = ERR_UNAVAILABLE;
 		}
 		goto error;
+	} else if (test_rd_creation) {
+		// Test OpenGL context and Rendering Device simultaneous creation and exit.
+
+		OS::get_singleton()->set_crash_handler_silent();
+		if (OS::get_singleton()->_test_create_rendering_device_and_gl(display_driver)) {
+			exit_err = ERR_HELP;
+		} else {
+			exit_err = ERR_UNAVAILABLE;
+		}
+		goto error;
 	}
 #endif
 
@@ -2390,6 +2400,23 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 #endif // MOBILE_RD_ENABLED
 #endif
 
+	// And Compatibility next, or first if Vulkan is disabled.
+#ifdef GLES3_ENABLED
+	if (!renderer_hints.is_empty()) {
+		renderer_hints += ",";
+	}
+	renderer_hints += "gl_compatibility";
+	if (default_renderer_mobile.is_empty()) {
+		default_renderer_mobile = "gl_compatibility";
+	}
+	// Default to Compatibility when using the project manager.
+	if (rendering_driver.is_empty() && rendering_method.is_empty() && project_manager) {
+		rendering_driver = "opengl3";
+		rendering_method = "gl_compatibility";
+		default_renderer_mobile = "gl_compatibility";
+	}
+#endif
+
 	if (!rendering_method.is_empty()) {
 		if (rendering_method != "forward_plus" &&
 				rendering_method != "mobile" &&
@@ -2492,6 +2519,13 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		}
 #endif // RD_ENABLED
 
+#ifdef GLES3_ENABLED
+		if (rendering_method == "gl_compatibility") {
+			available_drivers.push_back("opengl3");
+			available_drivers.push_back("opengl3_angle");
+			available_drivers.push_back("opengl3_es");
+		}
+#endif
 		if (rendering_method == "dummy") {
 			available_drivers.push_back("dummy");
 		}
@@ -4940,9 +4974,9 @@ bool Main::iteration() {
 								 DisplayServer::get_singleton()->has_additional_outputs()) &&
 			RenderingServer::get_singleton()->is_render_loop_enabled();
 
-	if (wants_present || has_pending_resources_for_processing)
-	{
+	if (wants_present || has_pending_resources_for_processing) {
 		wants_present |= force_redraw_requested;
+		
 		RenderingServer::get_singleton()->draw(wants_present, scaled_step); // flush visual commands
 		Engine::get_singleton()->increment_frames_drawn();
 		force_redraw_requested = false;

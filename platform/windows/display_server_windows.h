@@ -48,6 +48,13 @@
 #include "servers/rendering/rendering_device.h"
 #endif
 
+#if defined(GLES3_ENABLED)
+#if defined(ANGLE_ENABLED)
+#include "gl_manager_windows_angle.h"
+#endif // ANGLE_ENABLED
+#include "gl_manager_windows_native.h"
+#endif // GLES3_ENABLED
+
 #include <windows.h>
 
 #include <io.h>
@@ -252,6 +259,13 @@ class DisplayServerWindows : public DisplayServer {
 	int old_x, old_y;
 	Point2i center;
 
+#if defined(GLES3_ENABLED)
+#if defined(ANGLE_ENABLED)
+	GLManagerANGLE_Windows *gl_manager_angle = nullptr;
+#endif
+	GLManagerNative_Windows *gl_manager_native = nullptr;
+#endif
+
 #if defined(RD_ENABLED)
 	RenderingContextDriver *rendering_context = nullptr;
 	RenderingDevice *rendering_device = nullptr;
@@ -401,6 +415,10 @@ class DisplayServerWindows : public DisplayServer {
 #ifdef RD_ENABLED
 	Error _create_rendering_context_window(DisplayServerEnums::WindowID p_window_id, const String &p_rendering_driver);
 	void _destroy_rendering_context_window(DisplayServerEnums::WindowID p_window_id);
+#endif
+
+#ifdef GLES3_ENABLED
+	Error _create_gl_window(DisplayServerEnums::WindowID p_window_id);
 #endif
 
 	DisplayServerEnums::WindowID window_id_counter = DisplayServerEnums::MAIN_WINDOW_ID;
@@ -764,6 +782,9 @@ public:
 	virtual void process_events() override;
 
 	virtual void force_process_and_drop_events() override;
+
+	virtual void release_rendering_thread() override;
+	virtual void swap_buffers() override;
 
 	virtual void set_native_icon(const String &p_filename) override;
 	virtual void set_icon(const Ref<Image> &p_icon) override;

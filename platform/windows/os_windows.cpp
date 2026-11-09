@@ -77,11 +77,18 @@ extern "C" {
 #include "servers/rendering/rendering_device.h"
 #endif
 
+#if defined(GLES3_ENABLED)
+#include "gl_manager_windows_native.h"
+#endif
+
 #if defined(VULKAN_ENABLED)
 #include "drivers/vulkan/rendering_context_driver_vulkan.h"
 #endif
 #if defined(D3D12_ENABLED)
 #include "drivers/d3d12/rendering_context_driver_d3d12.h"
+#endif
+#if defined(GLES3_ENABLED)
+#include "drivers/gles3/rasterizer_gles3.h"
 #endif
 
 #ifdef DEBUG_ENABLED
@@ -2664,18 +2671,20 @@ void OS_Windows::add_frame_delay(bool p_can_draw, bool p_wake_for_events) {
 	if (dynamic_delay > 0) {
 		target_ticks += dynamic_delay;
 		uint64_t current_ticks = get_ticks_usec();
-		if (target_ticks > current_ticks + delay_resolution) {
-			uint64_t delay_time = target_ticks - current_ticks - delay_resolution;
-			// Make sure we always sleep for a multiple of delay_resolution to avoid overshooting.
-			// Refer to: https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-sleep#remarks
-			delay_time = (delay_time / delay_resolution) * delay_resolution;
-			if (delay_time > 0) {
-				delay_usec(delay_time);
+		{
+			if (target_ticks > current_ticks + delay_resolution) {
+				uint64_t delay_time = target_ticks - current_ticks - delay_resolution;
+				// Make sure we always sleep for a multiple of delay_resolution to avoid overshooting.
+				// Refer to: https://learn.microsoft.com/en-us/windows/win32/api/synchapi/nf-synchapi-sleep#remarks
+				delay_time = (delay_time / delay_resolution) * delay_resolution;
+				if (delay_time > 0) {
+					delay_usec(delay_time);
+				}
 			}
-		}
-		// Busy wait for the remainder of time.
-		while (get_ticks_usec() < target_ticks) {
-			YieldProcessor();
+			// Busy wait for the remainder of time.
+			while (get_ticks_usec() < target_ticks) {
+				YieldProcessor();
+			}
 		}
 		current_ticks = get_ticks_usec();
 		target_ticks = MIN(MAX(target_ticks, current_ticks - dynamic_delay), current_ticks + dynamic_delay);
@@ -2715,6 +2724,62 @@ bool OS_Windows::_test_create_rendering_device(const String &p_display_driver) c
 	}
 #endif
 
+	return ok;
+}
+
+bool OS_Windows::_test_create_rendering_device_and_gl(const String &p_display_driver) const {
+	// Tests OpenGL context and Rendering Device simultaneous creation. This function is expected to crash on some NVIDIA drivers.
+
+	WNDCLASSEXW wc_probe;
+	memset(&wc_probe, 0, sizeof(WNDCLASSEXW));
+	wc_probe.cbSize = sizeof(WNDCLASSEXW);
+	wc_probe.style = CS_OWNDC | CS_DBLCLKS;
+	wc_probe.lpfnWndProc = (WNDPROC)::DefWindowProcW;
+	wc_probe.cbClsExtra = 0;
+	wc_probe.cbWndExtra = 0;
+	wc_probe.hInstance = GetModuleHandle(nullptr);
+	wc_probe.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
+	wc_probe.hCursor = nullptr;
+	wc_probe.hbrBackground = nullptr;
+	wc_probe.lpszMenuName = nullptr;
+	wc_probe.lpszClassName = L"Engine probe window";
+
+	if (!RegisterClassExW(&wc_probe)) {
+		return false;
+	}
+
+	HWND hWnd = CreateWindowExW(WS_EX_WINDOWEDGE, L"Engine probe window", L"", WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
+	if (!hWnd) {
+		UnregisterClassW(L"Engine probe window", GetModuleHandle(nullptr));
+		return false;
+	}
+
+	bool ok = true;
+#ifdef GLES3_ENABLED
+	GLManagerNative_Windows *test_gl_manager_native = memnew(GLManagerNative_Windows);
+	if (test_gl_manager_native->window_create(DisplayServerEnums::MAIN_WINDOW_ID, hWnd, GetModuleHandle(nullptr), 800, 600) == OK) {
+		RasterizerGLES3::make_current(true);
+	} else {
+		ok = false;
+	}
+#endif
+
+	MSG msg = {};
+	while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
+		TranslateMessage(&msg);
+		DispatchMessageW(&msg);
+	}
+
+	if (ok) {
+		ok = _test_create_rendering_device(p_display_driver);
+	}
+
+#ifdef GLES3_ENABLED
+	memdelete(test_gl_manager_native);
+#endif
+
+	DestroyWindow(hWnd);
+	UnregisterClassW(L"Engine probe window", GetModuleHandle(nullptr));
 	return ok;
 }
 #endif

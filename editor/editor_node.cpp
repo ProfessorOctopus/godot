@@ -122,6 +122,7 @@
 #include "editor/plugins/editor_plugin_list.h"
 #include "editor/plugins/editor_resource_conversion_plugin.h"
 #include "editor/plugins/plugin_config_dialog.h"
+#include "editor/project_upgrade/project_upgrade_tool.h"
 #include "editor/run/editor_run.h"
 #include "editor/run/editor_run_bar.h"
 #include "editor/run/game_view_plugin.h"
@@ -213,9 +214,21 @@
 #include "servers/physics_3d/physics_server_3d.h"
 #endif // PHYSICS_3D_DISABLED
 
+#ifdef ANDROID_ENABLED
+#include "editor/gui/touch_actions_panel.h"
+#else
+#include "editor/export/android_sdk_manager.h"
+#endif // ANDROID_ENABLED
+
 #include "modules/modules_enabled.gen.h" // For gdscript, mono.
 
 #include <cstdlib>
+
+#ifdef WEB_ENABLED
+extern "C" {
+extern void godot_js_os_download_buffer(const uint8_t *p_buf, int p_buf_size, const char *p_name, const char *p_mime);
+}
+#endif // WEB_ENABLED
 
 EditorNode *EditorNode::singleton = nullptr;
 
@@ -810,6 +823,10 @@ void EditorNode::_update_theme(bool p_skip_creation) {
 	editor_dock_manager->update_tab_styles();
 	editor_dock_manager->update_docks_menu();
 	editor_dock_manager->set_tab_icon_max_width(theme->get_constant(SNAME("class_icon_size"), EditorStringName(Editor)));
+
+#ifdef ANDROID_ENABLED
+	DisplayServer::get_singleton()->window_set_color(theme->get_color(SNAME("background"), EditorStringName(Editor)));
+#endif
 }
 
 Ref<Texture2D> EditorNode::get_editor_theme_native_menu_icon(const StringName &p_name, bool p_global_menu, bool p_dark_mode) const {
@@ -961,6 +978,8 @@ void EditorNode::_notification(int p_what) {
 				requested_first_scan = false;
 
 				OS::get_singleton()->benchmark_begin_measure("Editor", "First Scan");
+
+				EditorFileSystem::get_singleton()->connect("filesystem_changed", callable_mp(this, &EditorNode::_execute_upgrades), CONNECT_ONE_SHOT);
 				EditorFileSystem::get_singleton()->scan();
 			}
 
@@ -969,6 +988,16 @@ void EditorNode::_notification(int p_what) {
 				EditorSettings::get_singleton()->emit_signal(SNAME("settings_changed"));
 				settings_overrides_changed = false;
 			}
+
+#ifdef ANDROID_ENABLED
+			if (portrait_mode) {
+				const int vk_height = DisplayServer::get_singleton()->virtual_keyboard_get_height();
+				if (vk_height != last_vk_height) {
+					last_vk_height = vk_height;
+					vk_spacer->set_custom_minimum_size(Size2(0, vk_height));
+				}
+			}
+#endif
 		} break;
 
 		case NOTIFICATION_ENTER_TREE: {
@@ -990,6 +1019,14 @@ void EditorNode::_notification(int p_what) {
 			get_tree()->get_root()->set_snap_2d_transforms_to_pixel(false);
 			get_tree()->get_root()->set_snap_2d_vertices_to_pixel(false);
 			get_tree()->set_auto_accept_quit(false);
+#ifdef ANDROID_ENABLED
+			get_tree()->set_quit_on_go_back(false);
+			bool is_fullscreen = EDITOR_DEF("_is_editor_fullscreen", false);
+			if (is_fullscreen) {
+				DisplayServer::get_singleton()->window_set_mode(DisplayServerEnums::WINDOW_MODE_FULLSCREEN);
+			}
+			DisplayServer::get_singleton()->connect("orientation_changed", callable_mp(this, &EditorNode::_screen_orientation_changed));
+#endif
 			get_tree()->get_root()->connect("files_dropped", callable_mp(this, &EditorNode::_dropped_files));
 
 			command_palette->register_shortcuts_as_command();
@@ -1193,6 +1230,12 @@ void EditorNode::_notification(int p_what) {
 				_update_vsync_mode();
 				DisplayServer::get_singleton()->screen_set_keep_on(EDITOR_GET("interface/editor/display/keep_screen_on"));
 			}
+
+#ifdef ANDROID_ENABLED
+			if (EditorSettings::get_singleton()->check_changed_settings_in_group("interface/touchscreen/touch_actions_panel")) {
+				_touch_actions_panel_mode_changed();
+			}
+#endif
 		} break;
 	}
 }
@@ -1232,6 +1275,15 @@ void EditorNode::_update_update_spinner() {
 	} else {
 		update_spinner->set_tooltip_text(TTRC("Spins when the editor window redraws."));
 		update_spinner->set_self_modulate(Color(1, 1, 1));
+	}
+}
+
+void EditorNode::_execute_upgrades() {
+	if (run_project_upgrade_tool) {
+		run_project_upgrade_tool = false;
+		// Execute another scan to reimport the modified files.
+		project_upgrade_tool->connect(project_upgrade_tool->UPGRADE_FINISHED, callable_mp(EditorFileSystem::get_singleton(), &EditorFileSystem::scan), CONNECT_ONE_SHOT);
+		project_upgrade_tool->finish_upgrade();
 	}
 }
 
@@ -1512,6 +1564,13 @@ void EditorNode::_sources_changed(bool p_exist) {
 		waiting_for_first_scan = false;
 
 		OS::get_singleton()->benchmark_end_measure("Editor", "First Scan");
+
+		for (const String &arg : OS::get_singleton()->get_cmdline_args()) {
+			if (arg == "--run-upgrade-tool") {
+				project_upgrade_tool->prepare_upgrade();
+				return;
+			}
+		}
 
 		// Reload the global shader variables, but this time
 		// loading textures, as they are now properly imported.
@@ -3350,7 +3409,7 @@ Error EditorNode::setup_android_build_template(const Ref<EditorExportPreset> &p_
 			return OK;
 		}
 
-		// If we get here, then the installed android build directory is no longer valid
+		// If we get here, then the installed android build directory is no longer valid (e.g. editor upgrade).
 		// Let's check whether we can automatically delete the build directory. If not, we return an error and let the
 		// user handle the deletion.
 		bool can_delete_automatically = EDITOR_GET("export/android/build/automatically_delete_build_directory");
@@ -3724,7 +3783,16 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 		} break;
 
 		case PROJECT_SETUP_ANDROID_BUILD: {
+#ifndef ANDROID_ENABLED
+			if (!(AndroidSDKManager::is_android_sdk_setup() && AndroidSDKManager::is_java_sdk_setup())) {
+				Callable setup_android_build_callable = callable_mp(this, &EditorNode::_setup_android_build).bind(p_confirmed);
+				android_sdk_manager->run_setup(setup_android_build_callable, setup_android_build_callable);
+			} else {
+#endif
 				_setup_android_build(p_confirmed);
+#ifndef ANDROID_ENABLED
+			}
+#endif
 		} break;
 		case PROJECT_OPEN_USER_DATA_FOLDER: {
 			// Ensure_user_data_dir() to prevent the edge case: "Open User Data Folder" won't work after the project was renamed in ProjectSettingsEditor unless the project is saved.
@@ -3732,6 +3800,23 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			OS::get_singleton()->shell_show_in_file_manager(OS::get_singleton()->get_user_data_dir(), true);
 		} break;
 		case PROJECT_DOWNLOAD_SOURCE: {
+#ifdef WEB_ENABLED
+			const String output_name = ProjectZIPPacker::get_project_zip_safe_name();
+			const String output_path = String("/tmp").path_join(output_name);
+			ProjectZIPPacker::pack_project_zip(output_path);
+
+			{
+				Ref<FileAccess> f = FileAccess::open(output_path, FileAccess::READ);
+				ERR_FAIL_COND_MSG(f.is_null(), "Unable to create ZIP file.");
+				LocalVector<uint8_t> buf;
+				buf.resize(f->get_length());
+				f->get_buffer(buf.ptr(), buf.size());
+				godot_js_os_download_buffer(buf.ptr(), buf.size(), output_name.utf8().get_data(), "application/zip");
+			}
+
+			// Remove the temporary file since it was sent to the user's native filesystem as a download.
+			DirAccess::remove_file_or_error(output_path);
+#endif
 		} break;
 		case SCENE_QUIT:
 		case PROJECT_QUIT_TO_PROJECT_MANAGER:
@@ -3882,7 +3967,9 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			export_template_manager->popup_manager();
 		} break;
 		case EDITOR_CONFIGURE_FBX_IMPORTER: {
+#if !defined(ANDROID_ENABLED) && !defined(WEB_ENABLED)
 			fbx_importer_manager->show_dialog();
+#endif
 		} break;
 		case EDITOR_MANAGE_FEATURE_PROFILES: {
 			feature_profile_manager->popup_centered_clamped(Size2(900, 800) * EDSCALE, 0.8);
@@ -3891,9 +3978,17 @@ void EditorNode::_menu_option_confirm(int p_option, bool p_confirmed) {
 			DisplayServerEnums::WindowMode mode = DisplayServer::get_singleton()->window_get_mode();
 			if (mode == DisplayServerEnums::WINDOW_MODE_FULLSCREEN || mode == DisplayServerEnums::WINDOW_MODE_EXCLUSIVE_FULLSCREEN) {
 				DisplayServer::get_singleton()->window_set_mode(prev_mode);
+#ifdef ANDROID_ENABLED
+				EditorSettings::get_singleton()->set("_is_editor_fullscreen", false);
+				EditorSettings::get_singleton()->save();
+#endif
 			} else {
 				prev_mode = mode;
 				DisplayServer::get_singleton()->window_set_mode(DisplayServerEnums::WINDOW_MODE_FULLSCREEN);
+#ifdef ANDROID_ENABLED
+				EditorSettings::get_singleton()->set("_is_editor_fullscreen", true);
+				EditorSettings::get_singleton()->save();
+#endif
 			}
 		} break;
 		case EDITOR_TAKE_SCREENSHOT: {
@@ -4116,6 +4211,9 @@ void EditorNode::_tool_menu_option(int p_idx) {
 		} break;
 		case TOOLS_BUILD_PROFILE_MANAGER: {
 			build_profile_manager->popup_centered_clamped(Size2(700, 800) * EDSCALE, 0.8);
+		} break;
+		case TOOLS_PROJECT_UPGRADE: {
+			project_upgrade_tool->popup_dialog();
 		} break;
 		case TOOLS_CLEAR_PROJECT_CACHE: {
 			clear_cache_dialog->popup_centered();
@@ -8023,6 +8121,10 @@ int EditorNode::execute_and_show_output(const String &p_title, const String &p_p
 	return eta.exitcode;
 }
 
+void EditorNode::set_unfocused_low_processor_usage_mode_enabled(bool p_enabled) {
+	unfocused_low_processor_usage_mode_enabled = p_enabled;
+}
+
 void EditorNode::_build_file_menu(bool p_dark_mode) {
 	if (!file_menu) {
 		return;
@@ -8101,7 +8203,14 @@ void EditorNode::_build_project_menu(bool p_dark_mode) {
 
 	project_menu->add_separator();
 	project_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("ResourcePreloader"), menu_type == MENU_TYPE_GLOBAL, p_dark_mode), ED_GET_SHORTCUT("editor/export"), PROJECT_EXPORT);
+#ifndef WEB_ENABLED
+	// In Web editor "Download Project Source" option is used instead
+	project_menu->add_item(TTRC("Pack Project as ZIP..."), PROJECT_PACK_AS_ZIP);
+#endif
 	project_menu->add_item(TTRC("Setup Android Build..."), PROJECT_SETUP_ANDROID_BUILD);
+#ifndef ANDROID_ENABLED
+	project_menu->add_item(TTRC("Open User Data Folder"), PROJECT_OPEN_USER_DATA_FOLDER);
+#endif
 	project_menu->add_separator();
 
 	if (!tool_menu) {
@@ -8109,11 +8218,15 @@ void EditorNode::_build_project_menu(bool p_dark_mode) {
 		tool_menu->connect("index_pressed", callable_mp(this, &EditorNode::_tool_menu_option));
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/orphan_resource_explorer"), TOOLS_ORPHAN_RESOURCES);
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/engine_compilation_configuration_editor"), TOOLS_BUILD_PROFILE_MANAGER);
+		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/upgrade_project"), TOOLS_PROJECT_UPGRADE);
 		tool_menu->add_shortcut(ED_GET_SHORTCUT("editor/clear_project_cache"), TOOLS_CLEAR_PROJECT_CACHE);
 	}
 	project_menu->add_submenu_node_item(TTRC("Tools"), tool_menu);
 
 	project_menu->add_separator();
+#ifdef WEB_ENABLED
+	project_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("Download"), menu_type == MENU_TYPE_GLOBAL, p_dark_mode), ED_GET_SHORTCUT("editor/download_project_source"), PROJECT_DOWNLOAD_SOURCE);
+#endif
 	project_menu->add_shortcut(ED_GET_SHORTCUT("editor/reload_current_project"), PROJECT_RELOAD_CURRENT_PROJECT);
 	project_menu->add_icon_shortcut(get_editor_theme_native_menu_icon(SNAME("Close"), menu_type == MENU_TYPE_GLOBAL, p_dark_mode), ED_GET_SHORTCUT("editor/quit_to_project_list"), PROJECT_QUIT_TO_PROJECT_MANAGER, true);
 }
@@ -8150,9 +8263,23 @@ void EditorNode::_build_settings_menu(bool p_dark_mode) {
 	settings_menu->add_shortcut(ED_GET_SHORTCUT("editor/fullscreen_mode"), EDITOR_TOGGLE_FULLSCREEN);
 	settings_menu->add_separator();
 
+#ifndef ANDROID_ENABLED
+	if (EditorPaths::get_singleton()->get_data_dir() == EditorPaths::get_singleton()->get_config_dir()) {
+		// Configuration and data folders are located in the same place.
+		settings_menu->add_item(TTRC("Open Editor Data/Settings Folder"), EDITOR_OPEN_DATA_FOLDER);
+	} else {
+		// Separate configuration and data folders.
+		settings_menu->add_item(TTRC("Open Editor Data Folder"), EDITOR_OPEN_DATA_FOLDER);
+		settings_menu->add_item(TTRC("Open Editor Settings Folder"), EDITOR_OPEN_CONFIG_FOLDER);
+	}
+	settings_menu->add_separator();
+#endif
+
 	settings_menu->add_item(TTRC("Manage Editor Features..."), EDITOR_MANAGE_FEATURE_PROFILES);
 	settings_menu->add_item(TTRC("Manage Export Templates..."), EDITOR_MANAGE_EXPORT_TEMPLATES);
+#if !defined(ANDROID_ENABLED) && !defined(WEB_ENABLED)
 	settings_menu->add_item(TTRC("Configure FBX Importer..."), EDITOR_CONFIGURE_FBX_IMPORTER);
+#endif
 }
 
 void EditorNode::_build_help_menu(bool p_dark_mode) {
@@ -8261,6 +8388,13 @@ void EditorNode::_update_main_menu_type() {
 			}
 		}
 
+#ifdef ANDROID_ENABLED
+		// Align main menu icon visually with TouchActionsPanel buttons.
+		menu_btn_spacer = memnew(Control);
+		menu_btn_spacer->set_custom_minimum_size(Vector2(8, 0) * EDSCALE);
+		title_bar->add_child(menu_btn_spacer);
+		title_bar->move_child(menu_btn_spacer, left_menu_spacer ? left_menu_spacer->get_index() + 1 : 0);
+#endif
 		title_bar->add_child(main_menu_button);
 		if (menu_btn_spacer == nullptr) {
 			title_bar->move_child(main_menu_button, left_menu_spacer ? left_menu_spacer->get_index() + 1 : 0);
@@ -8295,6 +8429,39 @@ void EditorNode::_update_main_menu_type() {
 void EditorNode::_bottom_panel_resized() {
 	bottom_panel->set_bottom_panel_offset(center_split->get_split_offset());
 }
+
+#ifdef ANDROID_ENABLED
+void EditorNode::_touch_actions_panel_mode_changed() {
+	int panel_mode = EDITOR_GET("interface/touchscreen/touch_actions_panel");
+	switch (panel_mode) {
+		case 1: // Embedded
+			if (touch_actions_panel != nullptr) {
+				touch_actions_panel->queue_free();
+			}
+			touch_actions_panel = memnew(TouchActionsPanel(false));
+			main_box->call_deferred("add_child", touch_actions_panel);
+			break;
+		case 2: // Floating
+			if (touch_actions_panel != nullptr) {
+				touch_actions_panel->queue_free();
+			}
+			touch_actions_panel = memnew(TouchActionsPanel(true));
+			call_deferred("add_child", touch_actions_panel);
+			break;
+		case 0: // Disabled
+			if (touch_actions_panel != nullptr) {
+				touch_actions_panel->queue_free();
+				touch_actions_panel = nullptr;
+			}
+			break;
+	}
+}
+
+void EditorNode::_screen_orientation_changed(int p_new_orientation) {
+	portrait_mode = p_new_orientation == DisplayServerEnums::SENSOR_ORIENTATION_PORTRAIT;
+	vk_spacer->set_custom_minimum_size(Size2()); // Reset size.
+}
+#endif
 
 #ifdef MACOS_ENABLED
 extern "C" GameViewPluginBase *get_game_view_plugin();
@@ -8405,6 +8572,13 @@ EditorNode::EditorNode() {
 	FileAccess::set_backup_save(EDITOR_GET("filesystem/on_save/safe_save_on_backup_then_rename"));
 
 	_update_vsync_mode();
+
+	// Warm up the project upgrade tool as early as possible.
+	project_upgrade_tool = memnew(ProjectUpgradeTool);
+	run_project_upgrade_tool = EditorSettings::get_singleton()->get_project_metadata(project_upgrade_tool->META_PROJECT_UPGRADE_TOOL, project_upgrade_tool->META_RUN_ON_RESTART, false);
+	if (run_project_upgrade_tool) {
+		project_upgrade_tool->begin_upgrade();
+	}
 
 	{
 		bool agile_input_event_flushing = EDITOR_GET("input/buffering/agile_event_flushing");
@@ -8658,10 +8832,33 @@ EditorNode::EditorNode() {
 
 	main_vbox = memnew(VBoxContainer);
 
+#ifdef ANDROID_ENABLED
+	base_vbox = memnew(VBoxContainer);
+	base_vbox->set_anchors_and_offsets_preset(Control::PRESET_FULL_RECT, Control::PRESET_MODE_MINSIZE, theme->get_constant(SNAME("window_border_margin"), EditorStringName(Editor)));
+
+	title_bar = memnew(EditorTitleBar);
+	base_vbox->add_child(title_bar);
+
+	main_box = memnew(BoxContainer);
+	main_box->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	main_box->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	main_vbox->set_h_size_flags(Control::SIZE_EXPAND_FILL);
+	main_vbox->set_v_size_flags(Control::SIZE_EXPAND_FILL);
+	main_box->add_child(main_vbox);
+	base_vbox->add_child(main_box);
+
+	_touch_actions_panel_mode_changed();
+
+	vk_spacer = memnew(Control);
+	base_vbox->add_child(vk_spacer);
+
+	gui_base->add_child(base_vbox);
+#else
 	gui_base->add_child(main_vbox);
 
 	title_bar = memnew(EditorTitleBar);
 	main_vbox->add_child(title_bar);
+#endif
 
 	DockSplitContainer *main_vsplit = memnew(DockSplitContainer);
 	main_vsplit->set_name("DockVSplitMain");
@@ -8901,8 +9098,15 @@ EditorNode::EditorNode() {
 
 	feature_profile_manager->connect("current_feature_profile_changed", callable_mp(this, &EditorNode::_feature_profile_changed));
 
+#if !defined(ANDROID_ENABLED) && !defined(WEB_ENABLED)
 	fbx_importer_manager = memnew(FBXImporterManager);
 	gui_base->add_child(fbx_importer_manager);
+#endif
+
+#ifndef ANDROID_ENABLED
+	android_sdk_manager = memnew(AndroidSDKManager);
+	gui_base->add_child(android_sdk_manager);
+#endif
 
 	warning = memnew(AcceptDialog);
 	warning->set_unparent_when_invisible(true);
@@ -8959,7 +9163,12 @@ EditorNode::EditorNode() {
 
 	ED_SHORTCUT_AND_COMMAND("editor/orphan_resource_explorer", TTRC("Orphan Resource Explorer..."));
 	ED_SHORTCUT_AND_COMMAND("editor/engine_compilation_configuration_editor", TTRC("Engine Compilation Configuration Editor..."));
+	ED_SHORTCUT_AND_COMMAND("editor/upgrade_project", TTRC("Upgrade Project Files..."));
 	ED_SHORTCUT_AND_COMMAND("editor/clear_project_cache", TTRC("Clear Project Cache..."));
+
+#ifdef WEB_ENABLED
+	ED_SHORTCUT_AND_COMMAND("editor/download_project_source", TTRC("Download Project"));
+#endif
 
 	ED_SHORTCUT_AND_COMMAND("editor/reload_current_project", TTRC("Reload Current Project"));
 	ED_SHORTCUT_AND_COMMAND("editor/quit_to_project_list", TTRC("Quit to Project List"), KeyModifierMask::CTRL + KeyModifierMask::SHIFT + Key::Q);
@@ -9657,6 +9866,7 @@ EditorNode::~EditorNode() {
 	memdelete(editor_plugins_force_over);
 	memdelete(editor_plugins_force_input_forwarding);
 	memdelete(progress_hb);
+	memdelete(project_upgrade_tool);
 	memdelete(editor_dock_manager);
 
 	EditorSettings::destroy();

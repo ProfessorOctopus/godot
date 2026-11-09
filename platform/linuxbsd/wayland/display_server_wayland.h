@@ -45,6 +45,10 @@ class RenderingDevice;
 class RenderingContextDriver;
 #endif
 
+#ifdef GLES3_ENABLED
+class EGLManager;
+#endif
+
 #ifdef DBUS_ENABLED
 class FreeDesktopPortalDesktop;
 class FreeDesktopAtSPIMonitor;
@@ -78,6 +82,10 @@ class DisplayServerWayland : public DisplayServer {
 		bool emulate_vsync = false;
 
 		Vector<Vector2> mpass_region;
+
+#ifdef GLES3_ENABLED
+		struct wl_egl_window *wl_egl_window = nullptr;
+#endif
 
 		// Whether a `WaylandThread` equivalent exists or not.
 		bool created = false;
@@ -154,6 +162,10 @@ class DisplayServerWayland : public DisplayServer {
 #ifdef RD_ENABLED
 	RenderingContextDriver *rendering_context = nullptr;
 	RenderingDevice *rendering_device = nullptr;
+#endif
+
+#ifdef GLES3_ENABLED
+	EGLManager *egl_manager = nullptr;
 #endif
 
 #ifdef SPEECHD_ENABLED
@@ -365,6 +377,9 @@ public:
 	virtual bool color_picker(const Callable &p_callback) override;
 
 	virtual void process_events() override;
+
+	virtual void release_rendering_thread() override;
+	virtual void swap_buffers() override;
 
 	virtual void set_icon(const Ref<Image> &p_icon) override;
 

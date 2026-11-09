@@ -835,15 +835,6 @@ void OS::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("add_logger", "logger"), &OS::add_logger);
 	ClassDB::bind_method(D_METHOD("remove_logger", "logger"), &OS::remove_logger);
 
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "low_processor_usage_mode"), "set_low_processor_usage_mode", "is_in_low_processor_usage_mode");
-	ADD_PROPERTY(PropertyInfo(Variant::INT, "low_processor_usage_mode_sleep_usec"), "set_low_processor_usage_mode_sleep_usec", "get_low_processor_usage_mode_sleep_usec");
-	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "delta_smoothing"), "set_delta_smoothing", "is_delta_smoothing_enabled");
-
-	// Those default values need to be specified for the docs generator,
-	// to avoid using values from the documentation writer's own OS instance.
-	ADD_PROPERTY_DEFAULT("low_processor_usage_mode", false);
-	ADD_PROPERTY_DEFAULT("low_processor_usage_mode_sleep_usec", 6900);
-
 	BIND_ENUM_CONSTANT(SYSTEM_DIR_DESKTOP);
 	BIND_ENUM_CONSTANT(SYSTEM_DIR_DCIM);
 	BIND_ENUM_CONSTANT(SYSTEM_DIR_DOCUMENTS);

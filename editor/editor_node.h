@@ -42,6 +42,9 @@ typedef void (*EditorNodeInitCallback)();
 typedef void (*EditorPluginInitializeCallback)();
 typedef bool (*EditorBuildCallback)();
 
+#ifndef ANDROID_ENABLED
+class AndroidSDKManager;
+#endif
 class AcceptDialog;
 class BoxContainer;
 class ColorPicker;
@@ -64,6 +67,7 @@ class Tree;
 class VBoxContainer;
 class VSplitContainer;
 class Window;
+
 class AudioStreamImportSettingsDialog;
 class AudioStreamPreviewGenerator;
 class BackgroundProgress;
@@ -103,6 +107,11 @@ class ProgressDialog;
 class ProjectExportDialog;
 class ProjectSettingsEditor;
 class SceneImportSettingsDialog;
+class ProjectUpgradeTool;
+
+#ifdef ANDROID_ENABLED
+class TouchActionsPanel;
+#endif
 
 struct EditorProgress {
 	String task;
@@ -175,6 +184,7 @@ public:
 
 		TOOLS_ORPHAN_RESOURCES,
 		TOOLS_BUILD_PROFILE_MANAGER,
+		TOOLS_PROJECT_UPGRADE,
 		TOOLS_CLEAR_PROJECT_CACHE,
 		TOOLS_CUSTOM,
 
@@ -287,6 +297,17 @@ private:
 	Control *gui_base = nullptr;
 	VBoxContainer *main_vbox = nullptr;
 	OptionButton *renderer = nullptr;
+
+#ifdef ANDROID_ENABLED
+	VBoxContainer *base_vbox = nullptr; // It only contains the title_bar, main_box, and vk_spacer.
+	BoxContainer *main_box = nullptr; // It only contains the touch_actions_panel and main_vbox.
+	TouchActionsPanel *touch_actions_panel = nullptr;
+	void _touch_actions_panel_mode_changed();
+
+	Control *vk_spacer = nullptr;
+	int last_vk_height = -1;
+	void _screen_orientation_changed(int p_new_orientation);
+#endif
 
 	bool portrait_mode = false;
 
@@ -478,10 +499,20 @@ private:
 
 	HashMap<String, Ref<Texture2D>> icon_type_cache;
 	HashMap<Pair<String, String>, Ref<Texture2D>> class_icon_cache;
+
+	ProjectUpgradeTool *project_upgrade_tool = nullptr;
+	bool run_project_upgrade_tool = false;
 	ConfirmationDialog *clear_cache_dialog = nullptr;
+
 	LocalVector<String> files_to_delete_on_exit;
 
 	bool was_window_windowed_last = false;
+
+	bool unfocused_low_processor_usage_mode_enabled = true;
+
+#ifndef ANDROID_ENABLED
+	AndroidSDKManager *android_sdk_manager = nullptr;
+#endif
 
 	static EditorBuildCallback build_callbacks[MAX_BUILD_CALLBACKS];
 	static EditorPluginInitializeCallback plugin_init_callbacks[MAX_INIT_CALLBACKS];
@@ -698,6 +729,8 @@ private:
 	void _progress_dialog_visibility_changed();
 	void _load_error_dialog_visibility_changed();
 
+	void _execute_upgrades();
+
 	bool _is_project_data_missing();
 
 	enum MenuType {
@@ -868,6 +901,8 @@ public:
 
 	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);
+
+	void set_unfocused_low_processor_usage_mode_enabled(bool p_enabled);
 
 	struct AdditiveNodeEntry {
 		Node *node = nullptr;

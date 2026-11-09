@@ -8460,11 +8460,6 @@ TextServerAdvanced::TextServerAdvanced() {
 	_bmp_create_font_funcs();
 	_update_settings();
 	ProjectSettings::get_singleton()->connect("settings_changed", callable_mp(this, &TextServerAdvanced::_update_settings));
-#if defined(MODULE_MSDFGEN_ENABLED) && !defined(DISABLE_DEPRECATED)
-	if (GLOBAL_GET("gui/fonts/compatibility/msdf_legacy_scaling")) {
-		ft_units_per_pixel = 60.0;
-	}
-#endif
 }
 
 void TextServerAdvanced::_font_clear_system_fallback_cache() {

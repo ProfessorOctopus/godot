@@ -81,6 +81,9 @@ private:
 	List<String> _cmdline;
 	List<String> _user_args;
 	bool _keep_screen_on = true; // set default value to true, because this had been true before godot 2.0.
+	bool low_processor_usage_mode = false;
+	int low_processor_usage_mode_sleep_usec = 10000;
+	bool _delta_smoothing_enabled = false;
 	bool _verbose_stdout = false;
 	bool _debug_stdout = false;
 	String _local_clipboard;
@@ -400,7 +403,8 @@ public:
 	}
 
 #ifdef TOOLS_ENABLED
-	// Tests Rendering Device simultaneous creation. This function is expected to crash on some NVIDIA drivers.
+	// Tests OpenGL context and Rendering Device simultaneous creation. This function is expected to crash on some NVIDIA drivers.
+	virtual bool _test_create_rendering_device_and_gl(const String &p_display_driver) const { return true; }
 	virtual bool _test_create_rendering_device(const String &p_display_driver) const { return true; }
 #endif
 
