@@ -42,9 +42,6 @@ typedef void (*EditorNodeInitCallback)();
 typedef void (*EditorPluginInitializeCallback)();
 typedef bool (*EditorBuildCallback)();
 
-#ifndef ANDROID_ENABLED
-class AndroidSDKManager;
-#endif
 class AcceptDialog;
 class BoxContainer;
 class ColorPicker;
@@ -109,10 +106,6 @@ class ProjectSettingsEditor;
 class SceneImportSettingsDialog;
 class ProjectUpgradeTool;
 
-#ifdef ANDROID_ENABLED
-class TouchActionsPanel;
-#endif
-
 struct EditorProgress {
 	String task;
 	bool force_background = false;
@@ -176,15 +169,12 @@ public:
 		PROJECT_VERSION_CONTROL,
 		PROJECT_EXPORT,
 		PROJECT_PACK_AS_ZIP,
-		PROJECT_SETUP_ANDROID_BUILD,
 		PROJECT_OPEN_USER_DATA_FOLDER,
-		PROJECT_DOWNLOAD_SOURCE, // Web editor only
 		PROJECT_RELOAD_CURRENT_PROJECT,
 		PROJECT_QUIT_TO_PROJECT_MANAGER,
 
 		TOOLS_ORPHAN_RESOURCES,
 		TOOLS_BUILD_PROFILE_MANAGER,
-		TOOLS_PROJECT_UPGRADE,
 		TOOLS_CLEAR_PROJECT_CACHE,
 		TOOLS_CUSTOM,
 
@@ -258,7 +248,6 @@ private:
 		String path;
 		bool debug = false;
 		bool pack_only = false;
-		bool android_build_template = false;
 		bool patch = false;
 		Vector<String> patches;
 	} export_defer;
@@ -297,17 +286,6 @@ private:
 	Control *gui_base = nullptr;
 	VBoxContainer *main_vbox = nullptr;
 	OptionButton *renderer = nullptr;
-
-#ifdef ANDROID_ENABLED
-	VBoxContainer *base_vbox = nullptr; // It only contains the title_bar, main_box, and vk_spacer.
-	BoxContainer *main_box = nullptr; // It only contains the touch_actions_panel and main_vbox.
-	TouchActionsPanel *touch_actions_panel = nullptr;
-	void _touch_actions_panel_mode_changed();
-
-	Control *vk_spacer = nullptr;
-	int last_vk_height = -1;
-	void _screen_orientation_changed(int p_new_orientation);
-#endif
 
 	bool portrait_mode = false;
 
@@ -406,11 +384,6 @@ private:
 	EditorLayoutsDialog *layout_dialog = nullptr;
 
 	ConfirmationDialog *gradle_build_manage_templates = nullptr;
-	ConfirmationDialog *install_android_build_template = nullptr;
-	ConfirmationDialog *remove_android_build_template = nullptr;
-	Label *install_android_build_template_message = nullptr;
-	OptionButton *choose_android_export_profile = nullptr;
-	Ref<EditorExportPreset> android_export_preset;
 
 	PopupMenu *vcs_actions_menu = nullptr;
 	EditorFileDialog *file = nullptr;
@@ -419,7 +392,6 @@ private:
 	EditorBuildProfileManager *build_profile_manager = nullptr;
 	EditorFileDialog *file_templates = nullptr;
 	EditorFileDialog *file_export_lib = nullptr;
-	EditorFileDialog *file_android_build_source = nullptr;
 	EditorFileDialog *file_pack_zip = nullptr;
 	MenuButton *update_spinner = nullptr;
 
@@ -500,19 +472,11 @@ private:
 	HashMap<String, Ref<Texture2D>> icon_type_cache;
 	HashMap<Pair<String, String>, Ref<Texture2D>> class_icon_cache;
 
-	ProjectUpgradeTool *project_upgrade_tool = nullptr;
-	bool run_project_upgrade_tool = false;
 	ConfirmationDialog *clear_cache_dialog = nullptr;
 
 	LocalVector<String> files_to_delete_on_exit;
 
 	bool was_window_windowed_last = false;
-
-	bool unfocused_low_processor_usage_mode_enabled = true;
-
-#ifndef ANDROID_ENABLED
-	AndroidSDKManager *android_sdk_manager = nullptr;
-#endif
 
 	static EditorBuildCallback build_callbacks[MAX_BUILD_CALLBACKS];
 	static EditorPluginInitializeCallback plugin_init_callbacks[MAX_INIT_CALLBACKS];
@@ -561,13 +525,6 @@ private:
 	void _menu_option(int p_option);
 	void _menu_confirm_current();
 	void _menu_option_confirm(int p_option, bool p_confirmed);
-
-	void _android_build_source_selected(const String &p_file);
-	void _android_export_preset_selected(int p_index);
-	void _android_install_build_template();
-	void _android_explore_build_templates();
-	void _android_remove_build_templates(bool p_prompt_for_removal);
-	void _setup_android_build(bool p_confirmed);
 
 	void _request_screenshot();
 	void _screenshot(bool p_use_utc = false);
@@ -728,8 +685,6 @@ private:
 
 	void _progress_dialog_visibility_changed();
 	void _load_error_dialog_visibility_changed();
-
-	void _execute_upgrades();
 
 	bool _is_project_data_missing();
 
@@ -902,8 +857,6 @@ public:
 	HashMap<StringName, Variant> get_modified_properties_for_node(Node *p_node, bool p_node_references_only);
 	HashMap<StringName, Variant> get_modified_properties_reference_to_nodes(Node *p_node, List<Node *> &p_nodes_referenced_by);
 
-	void set_unfocused_low_processor_usage_mode_enabled(bool p_enabled);
-
 	struct AdditiveNodeEntry {
 		Node *node = nullptr;
 		NodePath parent;
@@ -1000,7 +953,7 @@ public:
 
 	void _copy_warning(const String &p_str);
 
-	Error export_preset(const String &p_preset, const String &p_path, bool p_debug, bool p_pack_only, bool p_android_build_template, bool p_patch, const Vector<String> &p_patches);
+	Error export_preset(const String &p_preset, const String &p_path, bool p_debug, bool p_pack_only, bool p_patch, const Vector<String> &p_patches);
 	bool is_project_exporting() const;
 
 	Control *get_gui_base() { return gui_base; }
@@ -1063,8 +1016,6 @@ public:
 	void redo();
 
 	int execute_and_show_output(const String &p_title, const String &p_path, const List<String> &p_arguments, bool p_close_on_ok = true, bool p_close_on_errors = false, String *r_output = nullptr);
-
-	Error setup_android_build_template(const Ref<EditorExportPreset> &p_preset, bool p_confirmed);
 
 	EditorNode();
 	~EditorNode();

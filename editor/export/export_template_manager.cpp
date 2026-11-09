@@ -482,14 +482,6 @@ void ExportTemplateManager::_initialize_template_data() {
 
 	{
 		TemplateInfo info;
-		info.name = "Android";
-		info.description = TTRC("Android APK template and source for Gradle builds.");
-		info.file_list = { "android_debug.apk", "android_release.apk", "android_source.zip" };
-		template_data[TemplateID::ANDROID] = info;
-	}
-
-	{
-		TemplateInfo info;
 		info.name = "iOS";
 		info.description = TTRC("Build for Apple's iOS.");
 		info.file_list = { "ios.zip" };
@@ -536,14 +528,6 @@ void ExportTemplateManager::_initialize_template_data() {
 		info.templates = { TemplateID::MACOS };
 		info.group = TTR("Desktop", "Platform Group");
 		platform_map[PlatformID::MACOS] = info;
-	}
-	{
-		PlatformInfo info;
-		info.name = "Android";
-		info.icon = _get_platform_icon("Android");
-		info.templates = { TemplateID::ANDROID };
-		info.group = TTR("Mobile", "Platform Group");
-		platform_map[PlatformID::ANDROID] = info;
 	}
 	{
 		PlatformInfo info;
@@ -1351,7 +1335,6 @@ void ExportTemplateManager::_notification(int p_what) {
 			platform_map[PlatformID::LINUX].group = TTR("Desktop", "Platform Group");
 			platform_map[PlatformID::MACOS].group = TTR("Desktop", "Platform Group");
 			platform_map[PlatformID::WEB].group = TTR("Web", "Platform Group");
-			platform_map[PlatformID::ANDROID].group = TTR("Mobile", "Platform Group");
 			platform_map[PlatformID::IOS].group = TTR("Mobile", "Platform Group");
 			platform_map[PlatformID::VISIONOS].group = TTR("Mobile", "Platform Group");
 			platform_map[PlatformID::COMMON].name = TTR("Common");
@@ -1402,189 +1385,6 @@ void ExportTemplateManager::_notification(int p_what) {
 			EditorNode::get_bottom_panel()->get_progress_indicator()->set_value(progress / download_count);
 		} break;
 	}
-}
-
-String ExportTemplateManager::get_android_build_directory(const Ref<EditorExportPreset> &p_preset) {
-	if (p_preset.is_valid()) {
-		String gradle_build_dir = p_preset->get("gradle_build/gradle_build_directory");
-		if (!gradle_build_dir.is_empty()) {
-			return gradle_build_dir.path_join("build");
-		}
-	}
-	return "res://android/build";
-}
-
-String ExportTemplateManager::get_android_source_zip(const Ref<EditorExportPreset> &p_preset) {
-	if (p_preset.is_valid()) {
-		String android_source_zip = p_preset->get("gradle_build/android_source_template");
-		if (!android_source_zip.is_empty()) {
-			return android_source_zip;
-		}
-	}
-
-	const String templates_dir = EditorPaths::get_singleton()->get_export_templates_dir().path_join(GODOT_VERSION_FULL_CONFIG);
-	return templates_dir.path_join("android_source.zip");
-}
-
-String ExportTemplateManager::get_android_template_identifier(const Ref<EditorExportPreset> &p_preset) {
-	// The template identifier is the Godot version for the default template, and the full path plus md5 hash for custom templates.
-	if (p_preset.is_valid()) {
-		String android_source_zip = p_preset->get("gradle_build/android_source_template");
-		if (!android_source_zip.is_empty()) {
-			return android_source_zip + String(" [") + FileAccess::get_md5(android_source_zip) + String("]");
-		}
-	}
-	return GODOT_VERSION_FULL_CONFIG;
-}
-
-bool ExportTemplateManager::is_android_template_installed(const Ref<EditorExportPreset> &p_preset) {
-	return DirAccess::exists(get_android_build_directory(p_preset));
-}
-
-bool ExportTemplateManager::is_android_build_version_valid(const Ref<EditorExportPreset> &p_preset) {
-	String build_version_path = get_android_build_directory(p_preset).get_base_dir().path_join(".build_version");
-	Ref<FileAccess> f = FileAccess::open(build_version_path, FileAccess::READ);
-	if (f.is_valid()) {
-		String current_version = get_android_template_identifier(p_preset);
-		String installed_version = f->get_line().strip_edges();
-		if (current_version == installed_version) {
-			return true;
-		}
-	}
-	return false;
-}
-
-bool ExportTemplateManager::can_install_android_template(const Ref<EditorExportPreset> &p_preset) {
-	return FileAccess::exists(get_android_source_zip(p_preset));
-}
-
-Error ExportTemplateManager::delete_android_build_directory(const Ref<EditorExportPreset> &p_preset) {
-	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-	ERR_FAIL_COND_V(da.is_null(), ERR_CANT_CREATE);
-
-	String build_dir = get_android_build_directory(p_preset);
-	String parent_dir = build_dir.get_base_dir();
-	print_verbose("Deleting android build directory " + build_dir);
-
-	ProgressDialog::get_singleton()->add_task("deleting_android_build_dir", TTR("Deleting Android Build Directory"), 1);
-
-	Error err = da->change_dir(parent_dir);
-	ERR_FAIL_COND_V(err != OK, err);
-
-	err = da->erase_contents_recursive();
-	ERR_FAIL_COND_V(err != OK, err);
-
-	ProgressDialog::get_singleton()->end_task("deleting_android_build_dir");
-	EditorFileSystem::get_singleton()->scan_changes();
-	return OK;
-}
-
-Error ExportTemplateManager::install_android_template(const Ref<EditorExportPreset> &p_preset) {
-	const String source_zip = get_android_source_zip(p_preset);
-	ERR_FAIL_COND_V(!FileAccess::exists(source_zip), ERR_CANT_OPEN);
-	return install_android_template_from_file(source_zip, p_preset);
-}
-
-Error ExportTemplateManager::install_android_template_from_file(const String &p_file, const Ref<EditorExportPreset> &p_preset) {
-	// To support custom Android builds, we install the Java source code and buildsystem
-	// from android_source.zip to the project's res://android folder.
-
-	Ref<DirAccess> da = DirAccess::create(DirAccess::ACCESS_RESOURCES);
-	ERR_FAIL_COND_V(da.is_null(), ERR_CANT_CREATE);
-
-	String build_dir = get_android_build_directory(p_preset);
-	String parent_dir = build_dir.get_base_dir();
-	print_verbose("Installing android build directory " + build_dir);
-
-	// Make parent of the build dir (if it does not exist).
-	da->make_dir_recursive(parent_dir);
-	{
-		// Add identifier, to ensure building won't work if the current template doesn't match.
-		Ref<FileAccess> f = FileAccess::open(parent_dir.path_join(".build_version"), FileAccess::WRITE);
-		ERR_FAIL_COND_V(f.is_null(), ERR_CANT_CREATE);
-		f->store_line(get_android_template_identifier(p_preset));
-	}
-
-	// Create the android build directory.
-	Error err = da->make_dir_recursive(build_dir);
-	ERR_FAIL_COND_V(err != OK, err);
-	{
-		// Add an empty .gdignore file to avoid scan.
-		Ref<FileAccess> f = FileAccess::open(build_dir.path_join(".gdignore"), FileAccess::WRITE);
-		ERR_FAIL_COND_V(f.is_null(), ERR_CANT_CREATE);
-		f->store_line("");
-	}
-
-	// Uncompress source template.
-
-	Ref<FileAccess> io_fa;
-	zlib_filefunc_def io = zipio_create_io(&io_fa);
-
-	unzFile pkg = unzOpen2(p_file.utf8().get_data(), &io);
-	ERR_FAIL_NULL_V_MSG(pkg, ERR_CANT_OPEN, "Android sources not in ZIP format.");
-
-	int ret = unzGoToFirstFile(pkg);
-	int total_files = 0;
-	// Count files to unzip.
-	while (ret == UNZ_OK) {
-		total_files++;
-		ret = unzGoToNextFile(pkg);
-	}
-	ret = unzGoToFirstFile(pkg);
-
-	ProgressDialog::get_singleton()->add_task("uncompress_src", TTR("Uncompressing Android Build Sources"), total_files);
-
-	HashSet<String> dirs_tested;
-	int idx = 0;
-	while (ret == UNZ_OK) {
-		// Get file path.
-		unz_file_info info;
-		char fpath[16384];
-		ret = unzGetCurrentFileInfo(pkg, &info, fpath, 16384, nullptr, 0, nullptr, 0);
-		if (ret != UNZ_OK) {
-			break;
-		}
-
-		String path = String::utf8(fpath);
-		String base_dir = path.get_base_dir();
-
-		if (!path.ends_with("/")) {
-			Vector<uint8_t> uncomp_data;
-			uncomp_data.resize(info.uncompressed_size);
-
-			// Read.
-			unzOpenCurrentFile(pkg);
-			unzReadCurrentFile(pkg, uncomp_data.ptrw(), uncomp_data.size());
-			unzCloseCurrentFile(pkg);
-
-			if (!dirs_tested.has(base_dir)) {
-				da->make_dir_recursive(build_dir.path_join(base_dir));
-				dirs_tested.insert(base_dir);
-			}
-
-			String to_write = build_dir.path_join(path);
-			Ref<FileAccess> f = FileAccess::open(to_write, FileAccess::WRITE);
-			if (f.is_valid()) {
-				f->store_buffer(uncomp_data.ptr(), uncomp_data.size());
-				f.unref(); // close file.
-#ifndef WINDOWS_ENABLED
-				FileAccess::set_unix_permissions(to_write, (info.external_fa >> 16) & 0x01FF);
-#endif
-			} else {
-				ERR_PRINT("Can't uncompress file: " + to_write);
-			}
-		}
-
-		ProgressDialog::get_singleton()->task_step("uncompress_src", path, idx);
-
-		idx++;
-		ret = unzGoToNextFile(pkg);
-	}
-
-	ProgressDialog::get_singleton()->end_task("uncompress_src");
-	unzClose(pkg);
-	EditorFileSystem::get_singleton()->scan_changes();
-	return OK;
 }
 
 void ExportTemplateManager::popup_manager() {

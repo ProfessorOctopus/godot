@@ -508,10 +508,6 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--path <directory>", "Path to a project (<directory> must contain a \"project.godot\" file).\n", CLI_OPTION_AVAILABILITY_TEMPLATE_UNSAFE);
 	print_help_option("--scene <path>", "Path or UID of a scene in the project that should be started.\n", CLI_OPTION_AVAILABILITY_TEMPLATE_UNSAFE);
 #endif // defined(OVERRIDE_PATH_ENABLED)
-#if defined(OVERRIDE_PATH_ENABLED) || defined(ANDROID_ENABLED) || defined(WEB_ENABLED)
-	print_help_option("--main-pack <file>", "Path to a pack (.pck) file to load.\n", CLI_OPTION_AVAILABILITY_TEMPLATE_UNSAFE);
-#endif // defined(OVERRIDE_PATH_ENABLED) || defined(ANDROID_ENABLED) || defined(WEB_ENABLED)
-
 	print_help_option("--render-thread <mode>", "Render thread mode (\"unsafe\" [deprecated], \"safe\", \"separate\").\n");
 #if defined(DEBUG_ENABLED) || defined(TOOLS_ENABLED)
 	print_help_option("--remote-fs <address>", "Remote filesystem (<host/IP>[:<port>] address).\n", CLI_OPTION_AVAILABILITY_TEMPLATE_DEBUG);
@@ -636,7 +632,6 @@ void Main::print_help(const char *p_binary) {
 	print_help_option("--export-pack <preset> <path>", "Export the project data only using the given preset and output path. The <path> extension determines whether it will be in PCK or ZIP format.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--export-patch <preset> <path>", "Export pack with changed files only. See --export-pack description for other considerations.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--patches <paths>", "List of patches to use with --export-patch. The list is comma-separated.\n", CLI_OPTION_AVAILABILITY_EDITOR);
-	print_help_option("--install-android-build-template", "Install the Android build template. Used in conjunction with --export-release or --export-debug.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--doctool [path]", "Dump the engine API reference to the given <path> (defaults to current directory) in XML format, merging if existing files are found.\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--no-docbase", "Disallow dumping the base types (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
 	print_help_option("--gdextension-docs", "Rather than dumping the engine API, generate API reference from all the GDExtensions loaded in the current project (used with --doctool).\n", CLI_OPTION_AVAILABILITY_EDITOR);
@@ -946,7 +941,7 @@ int Main::test_entrypoint(int argc, char *argv[], bool &tests_need_run) {
  *   responsible for the initialization of all low level singletons and core types, and parsing
  *   command line arguments to configure things accordingly.
  *   If p_second_phase is true, it will chain into setup2() (default behavior). This is
- *   disabled on some platforms (Android, iOS) which trigger the second step in their own time.
+ *   disabled on some platforms (iOS) which trigger the second step in their own time.
  *
  * - setup2(p_main_tid_override) registers high level servers and singletons, displays the
  *   boot splash, then registers higher level types (scene, editor, etc.).
@@ -1736,38 +1731,10 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			}
 		} else if (arg == "--main-pack") {
 // Note: main-pack is always used on web and can't be disabled.
-// Note: main-pack can be used on Android so long as it's located within the 'assets' directory which is in the executable.
-#if defined(OVERRIDE_PATH_ENABLED) || defined(WEB_ENABLED) || defined(ANDROID_ENABLED)
-			if (N) {
-				main_pack = N->get();
-				N = N->next();
-
-#if defined(ANDROID_ENABLED) && !defined(OVERRIDE_PATH_ENABLED)
-				// Validate that `main_pack` is located within the 'assets' directory.
-				Ref<FileAccess> main_pack_fa = FileAccess::create_for_path(main_pack);
-				if (main_pack_fa.is_valid()) {
-					if (main_pack_fa->get_access_type() != FileAccess::ACCESS_RESOURCES) {
-						ERR_PRINT(
-								"--main-pack is attempting to load from outside of the executable, but this Godot binary was compiled without support for path overrides. Aborting.\n"
-								"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
-						goto error;
-					}
-				} else {
-					ERR_PRINT("Invalid path to main pack file, aborting.\n");
-					goto error;
-				}
-#endif // defined(ANDROID_ENABLED) && !defined(OVERRIDE_PATH_ENABLED)
-			} else {
-				OS::get_singleton()->print("Missing path to main pack file, aborting.\n");
-				goto error;
-			}
-#else
 			ERR_PRINT(
 					"`--main-pack` was specified on the command line, but this Godot binary was compiled without support for path overrides. Aborting.\n"
 					"To be able to use it, use the `disable_path_overrides=no` SCons option when compiling Godot.\n");
 			goto error;
-#endif // defined(OVERRIDE_PATH_ENABLED) || defined(WEB_ENABLED) || defined(ANDROID_ENABLED)
-
 		} else if (arg == "-d" || arg == "--debug") {
 #if defined(DEBUG_ENABLED) || defined(TOOLS_ENABLED)
 			debug_uri = "local://";
@@ -2103,16 +2070,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 			exit_err = ERR_UNAVAILABLE;
 		}
 		goto error;
-	} else if (test_rd_creation) {
-		// Test OpenGL context and Rendering Device simultaneous creation and exit.
-
-		OS::get_singleton()->set_crash_handler_silent();
-		if (OS::get_singleton()->_test_create_rendering_device_and_gl(display_driver)) {
-			exit_err = ERR_HELP;
-		} else {
-			exit_err = ERR_UNAVAILABLE;
-		}
-		goto error;
 	}
 #endif
 
@@ -2287,7 +2244,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		GLOBAL_DEF_RST("rendering/rendering_device/driver", "vulkan");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.windows", PROPERTY_HINT_ENUM, "vulkan,d3d12"), "vulkan");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.linuxbsd", PROPERTY_HINT_ENUM, "vulkan"), "vulkan");
-		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.android", PROPERTY_HINT_ENUM, "vulkan"), "vulkan");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.ios", PROPERTY_HINT_ENUM, "metal,vulkan"), "metal");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.visionos", PROPERTY_HINT_ENUM, "metal"), "metal");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/rendering_device/driver.macos", PROPERTY_HINT_ENUM, "metal,vulkan"), "metal");
@@ -2303,7 +2259,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.windows", PROPERTY_HINT_ENUM, "opengl3,opengl3_angle"), "opengl3");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.linuxbsd", PROPERTY_HINT_ENUM, "opengl3,opengl3_es"), "opengl3");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.web", PROPERTY_HINT_ENUM, "opengl3"), "opengl3");
-		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.android", PROPERTY_HINT_ENUM, "opengl3"), "opengl3");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.ios", PROPERTY_HINT_ENUM, "opengl3"), "opengl3");
 		GLOBAL_DEF_RST(PropertyInfo(Variant::STRING, "rendering/gl_compatibility/driver.macos", PROPERTY_HINT_ENUM, "opengl3,opengl3_angle"), "opengl3");
 
@@ -2705,7 +2660,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 	GLOBAL_DEF_NOVAL("display/display_server/driver", "default");
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.windows", PROPERTY_HINT_ENUM, "default,windows,headless"), "default");
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.linuxbsd", PROPERTY_HINT_ENUM, "default,x11,wayland,headless"), "default");
-	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.android", PROPERTY_HINT_ENUM, "default,android,headless"), "default");
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.ios", PROPERTY_HINT_ENUM, "default,iOS,headless"), "default");
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.visionos", PROPERTY_HINT_ENUM, "default,visionOS,headless"), "default");
 	GLOBAL_DEF_NOVAL(PropertyInfo(Variant::STRING, "display/display_server/driver.macos", PROPERTY_HINT_ENUM, "default,macos,headless"), "default");
@@ -3938,7 +3892,6 @@ int Main::start() {
 	Vector<String> patches;
 	bool export_debug = false;
 	bool export_pack_only = false;
-	bool install_android_build_template = false;
 	bool export_patch = false;
 #ifdef MODULE_GDSCRIPT_ENABLED
 	String gdscript_docs_path;
@@ -3967,8 +3920,6 @@ int Main::start() {
 			project_manager = true;
 		} else if (E->get() == "--recovery-mode") {
 			recovery_mode = true;
-		} else if (E->get() == "--install-android-build-template") {
-			install_android_build_template = true;
 #endif // TOOLS_ENABLED
 		} else if (E->get() == "--scene") {
 #if defined(OVERRIDE_PATH_ENABLED)
@@ -4499,7 +4450,7 @@ int Main::start() {
 			sml->get_root()->add_child(editor_node);
 
 			if (!_export_preset.is_empty()) {
-				editor_node->export_preset(_export_preset, positional_arg, export_debug, export_pack_only, install_android_build_template, export_patch, patches);
+				editor_node->export_preset(_export_preset, positional_arg, export_debug, export_pack_only, export_patch, patches);
 				game_path = ""; // Do not load anything.
 			}
 

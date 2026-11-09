@@ -2726,62 +2726,6 @@ bool OS_Windows::_test_create_rendering_device(const String &p_display_driver) c
 
 	return ok;
 }
-
-bool OS_Windows::_test_create_rendering_device_and_gl(const String &p_display_driver) const {
-	// Tests OpenGL context and Rendering Device simultaneous creation. This function is expected to crash on some NVIDIA drivers.
-
-	WNDCLASSEXW wc_probe;
-	memset(&wc_probe, 0, sizeof(WNDCLASSEXW));
-	wc_probe.cbSize = sizeof(WNDCLASSEXW);
-	wc_probe.style = CS_OWNDC | CS_DBLCLKS;
-	wc_probe.lpfnWndProc = (WNDPROC)::DefWindowProcW;
-	wc_probe.cbClsExtra = 0;
-	wc_probe.cbWndExtra = 0;
-	wc_probe.hInstance = GetModuleHandle(nullptr);
-	wc_probe.hIcon = LoadIcon(nullptr, IDI_WINLOGO);
-	wc_probe.hCursor = nullptr;
-	wc_probe.hbrBackground = nullptr;
-	wc_probe.lpszMenuName = nullptr;
-	wc_probe.lpszClassName = L"Engine probe window";
-
-	if (!RegisterClassExW(&wc_probe)) {
-		return false;
-	}
-
-	HWND hWnd = CreateWindowExW(WS_EX_WINDOWEDGE, L"Engine probe window", L"", WS_OVERLAPPEDWINDOW, 0, 0, 800, 600, nullptr, nullptr, GetModuleHandle(nullptr), nullptr);
-	if (!hWnd) {
-		UnregisterClassW(L"Engine probe window", GetModuleHandle(nullptr));
-		return false;
-	}
-
-	bool ok = true;
-#ifdef GLES3_ENABLED
-	GLManagerNative_Windows *test_gl_manager_native = memnew(GLManagerNative_Windows);
-	if (test_gl_manager_native->window_create(DisplayServerEnums::MAIN_WINDOW_ID, hWnd, GetModuleHandle(nullptr), 800, 600) == OK) {
-		RasterizerGLES3::make_current(true);
-	} else {
-		ok = false;
-	}
-#endif
-
-	MSG msg = {};
-	while (PeekMessageW(&msg, nullptr, 0, 0, PM_REMOVE)) {
-		TranslateMessage(&msg);
-		DispatchMessageW(&msg);
-	}
-
-	if (ok) {
-		ok = _test_create_rendering_device(p_display_driver);
-	}
-
-#ifdef GLES3_ENABLED
-	memdelete(test_gl_manager_native);
-#endif
-
-	DestroyWindow(hWnd);
-	UnregisterClassW(L"Engine probe window", GetModuleHandle(nullptr));
-	return ok;
-}
 #endif
 
 #ifdef _MSC_VER

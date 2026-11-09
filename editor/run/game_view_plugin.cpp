@@ -624,7 +624,6 @@ void GameView::_play_pressed() {
 		// It's important to disable the low power mode when unfocused because otherwise
 		// the button in the editor are not responsive and if the user moves the mouse quickly,
 		// the mouse clicks are not registered.
-		EditorNode::get_singleton()->set_unfocused_low_processor_usage_mode_enabled(false);
 		_update_embed_window_size();
 		if (!window_wrapper->get_window_enabled()) {
 			EditorDockManager::get_singleton()->force_focus_dock(game_dock);
@@ -650,7 +649,6 @@ void GameView::_stop_pressed() {
 	_detach_script_debugger();
 	paused = false;
 
-	EditorNode::get_singleton()->set_unfocused_low_processor_usage_mode_enabled(true);
 	embedded_process->reset();
 	_update_ui();
 

@@ -60,11 +60,6 @@
 #include "scene/gui/texture_rect.h"
 #include "scene/gui/tree.h"
 #include "servers/display/display_server.h"
-
-#ifndef ANDROID_ENABLED
-#include "editor/export/android_sdk_manager.h"
-#endif
-
 #include <zstd.h>
 
 void ProjectExportTextureFormatError::_on_fix_texture_format_pressed() {
@@ -388,22 +383,6 @@ void ProjectExportDialog::_edit_preset(int p_index) {
 		} else {
 			export_templates_error->hide();
 		}
-
-#ifndef ANDROID_ENABLED
-		if (current->get_platform()->is_class("EditorExportPlatformAndroid") && !(AndroidSDKManager::is_android_sdk_setup() && AndroidSDKManager::is_java_sdk_setup())) {
-			if (!AndroidSDKManager::is_java_sdk_setup() && !AndroidSDKManager::is_android_sdk_setup()) {
-				setup_android_java_sdk->set_text(TTRC("Setup Android Build"));
-			} else if (!AndroidSDKManager::is_java_sdk_setup()) {
-				setup_android_java_sdk->set_text(TTRC("Setup Java SDK"));
-			} else if (!AndroidSDKManager::is_android_sdk_setup()) {
-				setup_android_java_sdk->set_text(TTRC("Setup Android SDK"));
-			}
-			android_sdk_error_container->show();
-		} else {
-			android_sdk_error_container->hide();
-		}
-#endif
-
 		export_warning->hide();
 		export_button->set_disabled(true);
 	} else {
@@ -421,12 +400,8 @@ void ProjectExportDialog::_edit_preset(int p_index) {
 		} else {
 			export_warning->hide();
 		}
-
 		export_error->hide();
 		export_templates_error->hide();
-#ifndef ANDROID_ENABLED
-		android_sdk_error_container->hide();
-#endif
 		export_button->set_disabled(false);
 	}
 
@@ -568,14 +543,6 @@ void ProjectExportDialog::_advanced_options_pressed() {
 	}
 	_update_presets();
 }
-
-#ifndef ANDROID_ENABLED
-void ProjectExportDialog::_update_android_sdk_error_container() {
-	if (android_sdk_error_container->is_visible() && (AndroidSDKManager::is_android_sdk_setup() || AndroidSDKManager::is_java_sdk_setup())) {
-		_update_current_preset();
-	}
-}
-#endif
 
 void ProjectExportDialog::_options_filter_changed(const String &p_filter) {
 	const bool search_active = !p_filter.is_empty();
@@ -1900,8 +1867,6 @@ ProjectExportDialog::ProjectExportDialog() {
 
 	patch_dialog = memnew(EditorFileDialog);
 	patch_dialog->add_filter("*.pck", TTRC("Godot Project Pack"));
-	patch_dialog->add_filter("*.aab", TTRC("Android App Bundle"));
-	patch_dialog->add_filter("*.apk", TTRC("Android Package"));
 	patch_dialog->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
 	patch_dialog->set_file_mode(EditorFileDialog::FILE_MODE_OPEN_FILE);
 	patch_dialog->connect("file_selected", callable_mp(this, &ProjectExportDialog::_patch_file_selected));
@@ -2120,25 +2085,7 @@ ProjectExportDialog::ProjectExportDialog() {
 	export_templates_error->add_child(download_templates);
 	download_templates->connect(SceneStringName(pressed), callable_mp(this, &ProjectExportDialog::_open_export_template_manager));
 
-#ifndef ANDROID_ENABLED
-	// Android SDK errors bottom section.
-	android_sdk_error_container = memnew(HBoxContainer);
-	main_vb->add_child(android_sdk_error_container);
-	android_sdk_error_container->hide();
-
-	AndroidSDKManager *android_sdk_manager = memnew(AndroidSDKManager);
-	add_child(android_sdk_manager);
-	android_sdk_manager->connect("java_sdk_installed", callable_mp(this, &ProjectExportDialog::_update_android_sdk_error_container));
-	android_sdk_manager->connect("android_sdk_installed", callable_mp(this, &ProjectExportDialog::_update_android_sdk_error_container));
-
-	setup_android_java_sdk = memnew(LinkButton);
-	setup_android_java_sdk->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
-	android_sdk_error_container->add_child(setup_android_java_sdk);
-	setup_android_java_sdk->connect(SceneStringName(pressed), callable_mp(android_sdk_manager, &AndroidSDKManager::run_setup).bind(Callable(), Callable()));
-#endif
-
 	// Export project file dialog.
-
 	export_project = memnew(EditorFileDialog);
 	export_project->set_access(EditorFileDialog::ACCESS_FILESYSTEM);
 	add_child(export_project);

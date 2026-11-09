@@ -36,7 +36,6 @@
 #include "core/io/file_access.h"
 #include "core/object/class_db.h"
 #include "core/os/os.h"
-#include "editor/export/android_sdk_manager.h"
 #include "main/main.h"
 
 EditorPaths *EditorPaths::singleton = nullptr;
@@ -77,23 +76,6 @@ String EditorPaths::get_export_templates_dir() const {
 	return get_data_dir().path_join(export_templates_folder);
 }
 
-String EditorPaths::get_debug_keystore_path() const {
-#ifdef ANDROID_ENABLED
-	return "assets://keystores/debug.keystore";
-#else
-	return get_data_dir().path_join("keystores/debug.keystore");
-#endif
-}
-
-String EditorPaths::get_default_android_sdk_path() const {
-	return get_data_dir().path_join("android-sdk");
-}
-
-String EditorPaths::get_default_java_sdk_path() const {
-	String java_sdk_dir = "java-sdk-" + String::num_uint64(AndroidSDKManager::DEFAULT_JAVA_VERSION);
-	return get_data_dir().path_join(java_sdk_dir);
-}
-
 // This returns paths like "res://.godot/editor".
 String EditorPaths::get_project_settings_dir() const {
 	return get_project_data_dir().path_join("editor");
@@ -131,7 +113,6 @@ void EditorPaths::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("get_cache_dir"), &EditorPaths::get_cache_dir);
 	ClassDB::bind_method(D_METHOD("is_self_contained"), &EditorPaths::is_self_contained);
 	ClassDB::bind_method(D_METHOD("get_self_contained_file"), &EditorPaths::get_self_contained_file);
-
 	ClassDB::bind_method(D_METHOD("get_project_settings_dir"), &EditorPaths::get_project_settings_dir);
 }
 
