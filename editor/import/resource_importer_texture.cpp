@@ -351,7 +351,7 @@ void ResourceImporterTexture::save_to_ctex_format(Ref<FileAccess> f, const Ref<I
 		} break;
 		case COMPRESS_VRAM_COMPRESSED: {
 			Ref<Image> image = p_image->duplicate();
-			image->_compress_from_channels(p_compress_format, p_channels, p_compress_profile, p_bptc_format);
+			image->optimize_from_channels(p_channels);
 
 			f->store_32(CompressedTexture2D::DATA_FORMAT_IMAGE);
 			f->store_16(image->get_width());
@@ -448,17 +448,15 @@ void ResourceImporterTexture::_save_ctex(const Ref<Image> &p_image, const String
 	// Optimization: Only check for color channels when compressing as BasisU or VRAM.
 	Image::UsedChannels used_channels = Image::USED_CHANNELS_RGBA;
 
-	if (p_compress_mode == COMPRESS_BASIS_UNIVERSAL || p_compress_mode == COMPRESS_VRAM_COMPRESSED) {
+	if (p_compress_mode == COMPRESS_BASIS_UNIVERSAL || p_compress_mode == COMPRESS_VRAM_COMPRESSED || p_compress_mode == COMPRESS_VRAM_UNCOMPRESSED) {
 		Image::CompressSource comp_source = Image::COMPRESS_SOURCE_GENERIC;
 		if (p_force_normal) {
 			comp_source = Image::COMPRESS_SOURCE_NORMAL;
 		} else if (p_srgb_friendly) {
 			comp_source = Image::COMPRESS_SOURCE_SRGB;
 		}
-
 		used_channels = image->detect_used_channels(comp_source);
 	}
-
 	save_to_ctex_format(f, image, p_compress_mode, used_channels, p_vram_compression, p_vram_compression_profile, p_lossy_quality, p_basisu_params, Image::BPTC_DETECT);
 }
 

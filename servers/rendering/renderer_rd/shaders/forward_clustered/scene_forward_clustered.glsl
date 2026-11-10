@@ -188,19 +188,15 @@ invariant gl_Position;
 // invariant prevents the driver from optimizing gl_Position using FMA due to float rounding issues
 // Since FMA produces consistent results we can use to following macros to explicitly use it for matrix multiplications.
 
-// mat3(m_mat) * m_vec
 #define MAT3_MUL_VEC3(m_mat, m_vec) \
 	fma((m_mat)[0].xyz, (m_vec).xxx, fma((m_mat)[1].xyz, (m_vec).yyy, ((m_mat)[2].xyz) * (m_vec).zzz))
 
-// (m_mat * vec4(m_position, 1.0)).xyz
 #define AFFINE_MUL_POSITION(m_mat, m_position) \
 	fma((m_mat)[0].xyz, (m_position).xxx, fma((m_mat)[1].xyz, (m_position).yyy, fma((m_mat)[2].xyz, (m_position).zzz, (m_mat)[3].xyz)))
 
-// m_mat * m_vec
 #define MAT4_MUL_VEC4(m_mat, m_vec) \
 	fma((m_mat)[0], (m_vec).xxxx, fma((m_mat)[1], (m_vec).yyyy, fma((m_mat)[2], (m_vec).zzzz, (m_mat)[3] * (m_vec).wwww)))
 
-// m_a * m_b
 #define MAT4_MUL(m_a, m_b) \
 	mat4(MAT4_MUL_VEC4(m_a, (m_b)[0]), \
 			MAT4_MUL_VEC4(m_a, (m_b)[1]), \
@@ -214,7 +210,6 @@ invariant gl_Position;
 			vec4(MAT3_MUL_VEC3(m_a, (m_b)[2].xyz), 0.0), \
 			vec4(AFFINE_MUL_POSITION(m_a, (m_b)[3].xyz), 1.0))
 
-#ifdef USE_DOUBLE_PRECISION
 // Helper functions for emulating double precision when adding floats.
 vec3 quick_two_sum(vec3 a, vec3 b, out vec3 out_p) {
 	vec3 s = a + b;
@@ -239,7 +234,6 @@ vec3 double_add_vec3(vec3 base_a, vec3 prec_a, vec3 base_b, vec3 prec_b, out vec
 	s = quick_two_sum(s, se, out_precision);
 	return s;
 }
-#endif
 
 uint multimesh_stride() {
 	uint stride = sc_multimesh_format_2d() ? 2 : 3;
@@ -257,9 +251,7 @@ void vertex_shader(vec3 vertex_input,
 		in vec3 binormal_input,
 #endif
 		in InstanceData instance_data, in uint multimesh_offset, in SceneData scene_data, in mat3x4 in_model_matrix,
-#ifdef USE_DOUBLE_PRECISION
 		in vec3 model_precision,
-#endif
 		out vec4 screen_pos) {
 	vec4 instance_custom = vec4(0.0);
 #if defined(COLOR_USED)
@@ -276,10 +268,7 @@ void vertex_shader(vec3 vertex_input,
 			in_model_matrix[2],
 			vec4(0.0, 0.0, 0.0, 1.0)));
 
-#ifdef USE_DOUBLE_PRECISION
 	vec3 view_precision = scene_data.inv_view_precision.xyz;
-#endif
-
 	mat3 model_normal_matrix;
 	if (bool(instance_data.flags & INSTANCE_FLAGS_NON_UNIFORM_SCALE)) {
 		model_normal_matrix = transpose(inverse(mat3(model_matrix)));
@@ -363,14 +352,6 @@ void vertex_shader(vec3 vertex_input,
 #endif
 		//transpose
 		matrix = transpose(matrix);
-#if !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED) || defined(MODEL_MATRIX_USED)
-		// Normally we can bake the multimesh transform into the model matrix, but when using double precision
-		// we avoid baking it in so we can emulate high precision.
-		read_model_matrix = MAT4_MUL(model_matrix, matrix);
-#if !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED)
-		model_matrix = read_model_matrix;
-#endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED)
-#endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED) || defined(MODEL_MATRIX_USED)
 		model_normal_matrix = model_normal_matrix * mat3(matrix);
 	}
 
@@ -446,7 +427,6 @@ void vertex_shader(vec3 vertex_input,
 			scene_data.view_matrix[2],
 			vec4(0.0, 0.0, 0.0, 1.0)));
 
-#ifdef USE_DOUBLE_PRECISION
 	mat4 modelview = AFFINE_MAT_MUL(read_view_matrix, model_matrix);
 
 	// We separate the basis from the origin because the basis is fine with single point precision.
@@ -464,9 +444,6 @@ void vertex_shader(vec3 vertex_input,
 	vec3 temp_precision; // Will be ignored.
 	modelview[3].xyz = double_add_vec3(model_origin, model_precision, inv_view_matrix[3].xyz, view_precision, temp_precision);
 	modelview[3].xyz = MAT3_MUL_VEC3(read_view_matrix, modelview[3].xyz);
-#else
-	mat4 modelview = AFFINE_MAT_MUL(read_view_matrix, model_matrix);
-#endif
 	mat3 modelview_normal = mat3(read_view_matrix) * model_normal_matrix;
 	vec2 read_viewport_size = scene_data.viewport_size;
 
@@ -849,9 +826,7 @@ void main() {
 			prev_binormal,
 #endif
 			instance_data, draw_call.multimesh_motion_vectors_previous_offset, scene_data_block.prev_data, instance_data.prev_transform,
-#ifdef USE_DOUBLE_PRECISION
 			instance_data.prev_model_precision.xyz,
-#endif
 			prev_screen_position);
 #else
 	// Unused output.
@@ -892,10 +867,7 @@ void main() {
 			binormal,
 #endif
 			instance_data, draw_call.multimesh_motion_vectors_current_offset, scene_data_block.data, instance_data.transform,
-#ifdef USE_DOUBLE_PRECISION
 			instance_data.model_precision.xyz,
-#endif
-
 			screen_position);
 }
 
@@ -1741,13 +1713,12 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 		vec3 anisotropic_normal = cross(anisotropic_tangent, anisotropic_direction);
 		vec3 bent_normal = normalize(mix(normal, anisotropic_normal, abs(anisotropy) * clamp(5.0 * roughness, 0.0, 1.0)));
 		vec3 ref_vec = reflect(-view, bent_normal);
-		ref_vec = mix(ref_vec, bent_normal, roughness * roughness);
 #else
 		vec3 ref_vec = reflect(-view, normal);
-		ref_vec = mix(ref_vec, normal, roughness * roughness);
 #endif
 
-		float horizon = min(1.0 + dot(ref_vec, normal), 1.0);
+		ref_vec = mix(ref_vec, indirect_normal, roughness * roughness);
+		float horizon = min(1.0 + dot(ref_vec, geo_normal), 1.0);
 		ref_vec = scene_data.radiance_inverse_xform * ref_vec;
 
 #ifdef USE_RADIANCE_OCTMAP_ARRAY
@@ -1982,7 +1953,7 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 		//make vertex orientation the world one, but still align to camera
 		vec3 cam_pos = mat3(inv_view_matrix) * vertex;
 		vec3 cam_normal = mat3(inv_view_matrix) * indirect_normal;
-		vec3 cam_reflection = mat3(inv_view_matrix) * reflect(-view, indirect_normal);
+		vec3 cam_reflection = mat3(inv_view_matrix) * reflect(-view, normal);
 
 		//apply y-mult
 		cam_pos.y *= sdfgi.y_mult;
@@ -2028,7 +1999,7 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 				if (cascade == sdfgi.max_cascades - 1) {
 					diffuse = mix(diffuse, ambient_light, blend);
 					if (use_specular) {
-						indirect_specular_light = mix(specular, indirect_specular_light, blend);
+						specular = mix(specular, indirect_specular_light, blend);
 					}
 				} else {
 					vec3 diffuse2, specular2;
@@ -2044,7 +2015,7 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 
 			ambient_light = diffuse;
 			if (use_specular) {
-				indirect_specular_light = specular;
+				indirect_specular_light = mix(indirect_specular_light, specular, min(1.0, roughness * 5.0));
 			}
 		}
 	}
@@ -2054,7 +2025,7 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 		// Make vertex orientation the world one, but still align to camera.
 		vec3 cam_pos = mat3(inv_view_matrix) * vertex;
 		vec3 cam_normal = mat3(inv_view_matrix) * indirect_normal;
-		vec3 ref_vec = mat3(inv_view_matrix) * normalize(reflect(-view, indirect_normal));
+		vec3 ref_vec = mat3(inv_view_matrix) * normalize(reflect(-view, normal));
 
 		//find arbitrary tangent and bitangent, then build a matrix
 		vec3 v0 = abs(cam_normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
@@ -2092,18 +2063,18 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 			vec2 base_coord = screen_uv;
 			vec2 closest_coord = base_coord;
 #ifdef USE_MULTIVIEW
-			float closest_ang = dot(indirect_normal, normalize(textureLod(sampler2DArray(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), vec3(base_coord, ViewIndex), 0.0).xyz * 2.0 - 1.0));
+			float closest_ang = dot(normal, normalize(textureLod(sampler2DArray(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), vec3(base_coord, ViewIndex), 0.0).xyz * 2.0 - 1.0));
 #else // USE_MULTIVIEW
-			float closest_ang = dot(indirect_normal, normalize(textureLod(sampler2D(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), base_coord, 0.0).xyz * 2.0 - 1.0));
+			float closest_ang = dot(normal, normalize(textureLod(sampler2D(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), base_coord, 0.0).xyz * 2.0 - 1.0));
 #endif // USE_MULTIVIEW
 
 			for (int i = 0; i < 4; i++) {
 				const vec2 neighbors[4] = vec2[](vec2(-1, 0), vec2(1, 0), vec2(0, -1), vec2(0, 1));
 				vec2 neighbour_coord = base_coord + neighbors[i] * scene_data.screen_pixel_size;
 #ifdef USE_MULTIVIEW
-				float neighbour_ang = dot(indirect_normal, normalize(textureLod(sampler2DArray(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), vec3(neighbour_coord, ViewIndex), 0.0).xyz * 2.0 - 1.0));
+				float neighbour_ang = dot(normal, normalize(textureLod(sampler2DArray(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), vec3(neighbour_coord, ViewIndex), 0.0).xyz * 2.0 - 1.0));
 #else // USE_MULTIVIEW
-				float neighbour_ang = dot(indirect_normal, normalize(textureLod(sampler2D(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), neighbour_coord, 0.0).xyz * 2.0 - 1.0));
+				float neighbour_ang = dot(normal, normalize(textureLod(sampler2D(normal_roughness_buffer, SAMPLER_LINEAR_CLAMP), neighbour_coord, 0.0).xyz * 2.0 - 1.0));
 #endif // USE_MULTIVIEW
 				if (neighbour_ang > closest_ang) {
 					closest_ang = neighbour_ang;
@@ -2202,7 +2173,7 @@ void fragment_shader(in SceneData scene_data, uint instance_index) {
 				}
 #endif // LIGHT_CLEARCOAT_USED
 
-				reflection_process(reflection_index, vertex, ref_vec, normal, roughness, ambient_light,
+				reflection_process(reflection_index, vertex, ref_vec, indirect_normal, roughness, ambient_light,
 #ifdef LIGHT_CLEARCOAT_USED
 						cc_ref_vec, mix(0.001, 0.1, clearcoat_roughness), cc_reflection_accum,
 #endif
