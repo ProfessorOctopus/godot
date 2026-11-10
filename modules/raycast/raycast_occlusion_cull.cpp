@@ -34,6 +34,7 @@
 #include "core/config/project_settings.h"
 #include "core/math/projection.h"
 #include "core/object/worker_thread_pool.h"
+#include "core/typedefs.h"
 #include "core/os/os.h"
 
 #ifdef __SSE2__
@@ -49,8 +50,8 @@ void RaycastOcclusionCull::RaycastHZBuffer::clear() {
 		memfree(camera_rays_unaligned_buffer);
 		camera_rays_unaligned_buffer = nullptr;
 		camera_rays = nullptr;
+		camera_ray_masks = nullptr;
 	}
-	camera_ray_masks.clear();
 	camera_rays_tile_count = 0;
 	tile_grid_size = Size2i();
 }
@@ -73,13 +74,16 @@ void RaycastOcclusionCull::RaycastHZBuffer::resize(const Size2i &p_size) {
 	if (camera_rays_unaligned_buffer) {
 		memfree(camera_rays_unaligned_buffer);
 	}
-
-	const int alignment = 64; // Embree requires ray packets to be 64-aligned
-	camera_rays_unaligned_buffer = (uint8_t *)memalloc(camera_rays_tile_count * sizeof(CameraRayTile) + alignment);
-	camera_rays = (CameraRayTile *)(camera_rays_unaligned_buffer + alignment - (((uint64_t)camera_rays_unaligned_buffer) % alignment));
-
-	camera_ray_masks.resize(camera_rays_tile_count * TILE_RAYS);
-	memset(camera_ray_masks.ptr(), ~0, camera_rays_tile_count * TILE_RAYS * sizeof(uint32_t));
+	// Embree requires ray packets and their valid masks to be 64-aligned.
+	const int alignment = 64;
+	static_assert(sizeof(CameraRayTile) % alignment == 0, "`camera_rays_unaligned_buffer` must stay 64-aligned.");
+	const size_t rays_size = camera_rays_tile_count * sizeof(CameraRayTile);
+	const size_t masks_size = camera_rays_tile_count * TILE_RAYS * sizeof(uint32_t);
+	camera_rays_unaligned_buffer = (uint8_t *)memalloc(rays_size + masks_size + alignment);
+	size_t offset = (alignment - ((uintptr_t)camera_rays_unaligned_buffer % alignment)) % alignment;
+	camera_rays = (CameraRayTile *)(camera_rays_unaligned_buffer + offset);
+	camera_ray_masks = (uint32_t *)((uint8_t *)camera_rays + rays_size);
+	memset(camera_ray_masks, ~0, masks_size);
 }
 
 void RaycastOcclusionCull::RaycastHZBuffer::update_camera_rays(const Transform3D &p_cam_transform, const Vector3 &p_near_bottom_left, const Vector2 &p_near_extents, real_t p_z_far, bool p_cam_orthogonal) {
@@ -111,12 +115,20 @@ void RaycastOcclusionCull::RaycastHZBuffer::_camera_rays_threaded(uint32_t p_thr
 	uint32_t total_threads = p_data->thread_count;
 	uint32_t from = p_thread * total_tiles / total_threads;
 	uint32_t to = (p_thread + 1 == total_threads) ? total_tiles : ((p_thread + 1) * total_tiles / total_threads);
-	_generate_camera_rays(p_data, from, to);
+	if (p_data->camera_orthogonal) {
+		_generate_camera_rays<true>(p_data, from, to);
+	} else {
+		_generate_camera_rays<false>(p_data, from, to);
+	}
 }
 
-void RaycastOcclusionCull::RaycastHZBuffer::_generate_camera_rays(const CameraRayThreadData *p_data, int p_from, int p_to) {
-	const Size2i &buffer_size = sizes[0];
+template <bool orthogonal>
+void RaycastOcclusionCull::RaycastHZBuffer::_generate_camera_rays(const CameraRayThreadData *p_data, int p_from, int p_to) const {
+	// We are going to be telling the compiler that this pointer is aligned for packed loads.
+	DEV_ASSERT((reinterpret_cast<uintptr_t>(p_data) & 15) != 0);
 
+	const Size2i &buffer_size = sizes.ptr()[0];
+	const CameraRayThreadData *data_aligned = (CameraRayThreadData *)assume_aligned_gd(p_data, 16);
 	for (int i = p_from; i < p_to; i++) {
 		CameraRayTile &tile = camera_rays[i];
 		int tile_x = (i % tile_grid_size.x) * TILE_SIZE;
@@ -128,31 +140,28 @@ void RaycastOcclusionCull::RaycastHZBuffer::_generate_camera_rays(const CameraRa
 
 			float u = (float(x) + 0.5f) / buffer_size.x;
 			float v = (float(y) + 0.5f) / buffer_size.y;
-			Vector3 pixel_pos = p_data->pixel_corner + u * p_data->pixel_u_interp + v * p_data->pixel_v_interp;
+			Vector3 pixel_pos = data_aligned->pixel_corner + u * data_aligned->pixel_u_interp + v * data_aligned->pixel_v_interp;
 
-			tile.ray.tnear[j] = p_data->z_near;
+			tile.ray.tnear[j] = data_aligned->z_near;
 
 			Vector3 dir;
-			if (p_data->camera_orthogonal) {
-				dir = p_data->camera_dir;
-				tile.ray.org_x[j] = pixel_pos.x - dir.x * p_data->z_near;
-				tile.ray.org_y[j] = pixel_pos.y - dir.y * p_data->z_near;
-				tile.ray.org_z[j] = pixel_pos.z - dir.z * p_data->z_near;
+			if constexpr (orthogonal) {
+				dir = data_aligned->camera_dir;
+				tile.ray.org_x[j] = pixel_pos.x - dir.x * data_aligned->z_near;
+				tile.ray.org_y[j] = pixel_pos.y - dir.y * data_aligned->z_near;
+				tile.ray.org_z[j] = pixel_pos.z - dir.z * data_aligned->z_near;
 			} else {
-				dir = (pixel_pos - p_data->camera_pos).normalized();
-				tile.ray.org_x[j] = p_data->camera_pos.x;
-				tile.ray.org_y[j] = p_data->camera_pos.y;
-				tile.ray.org_z[j] = p_data->camera_pos.z;
-				tile.ray.tnear[j] /= dir.dot(p_data->camera_dir);
+				dir = (pixel_pos - data_aligned->camera_pos).normalized_nonzero();
+				tile.ray.org_x[j] = data_aligned->camera_pos.x;
+				tile.ray.org_y[j] = data_aligned->camera_pos.y;
+				tile.ray.org_z[j] = data_aligned->camera_pos.z;
+				tile.ray.tnear[j] /= dir.dot(data_aligned->camera_dir);
 			}
-
 			tile.ray.dir_x[j] = dir.x;
 			tile.ray.dir_y[j] = dir.y;
 			tile.ray.dir_z[j] = dir.z;
-
-			tile.ray.tfar[j] = p_data->z_far;
+			tile.ray.tfar[j] = data_aligned->z_far;
 			tile.ray.time[j] = 0.0f;
-
 			tile.ray.flags[j] = 0;
 			tile.ray.mask[j] = ~0U;
 			tile.hit.geomID[j] = RTC_INVALID_GEOMETRY_ID;
@@ -341,7 +350,7 @@ void RaycastOcclusionCull::Scenario::_update_dirty_instance(int p_idx, RID *p_in
 	const Vector3 *read_ptr = occ->vertices.ptr();
 	float *write_ptr = occ_inst->xformed_vertices.ptr();
 
-	if (vertices_size > 1024) {
+	if (vertices_size > 1024 && WorkerThreadPool::get_singleton()->get_thread_index() == -1) {
 		TransformThreadData td;
 		td.xform = occ_inst->xform;
 		td.read = read_ptr;
@@ -350,11 +359,9 @@ void RaycastOcclusionCull::Scenario::_update_dirty_instance(int p_idx, RID *p_in
 		td.thread_count = WorkerThreadPool::get_singleton()->get_thread_count();
 		WorkerThreadPool::GroupID group_task = WorkerThreadPool::get_singleton()->add_template_group_task(this, &Scenario::_transform_vertices_thread, &td, td.thread_count, -1, true, SNAME("RaycastOcclusionCull"));
 		WorkerThreadPool::get_singleton()->wait_for_group_task_completion(group_task);
-
 	} else {
 		_transform_vertices_range(read_ptr, write_ptr, occ_inst->xform, 0, vertices_size);
 	}
-
 	occ_inst->indices.resize(occ->indices.size());
 	memcpy(occ_inst->indices.ptr(), occ->indices.ptr(), occ->indices.size() * sizeof(int32_t));
 }
@@ -614,7 +621,7 @@ void RaycastOcclusionCull::buffer_update(RID p_buffer, const Transform3D &p_cam_
 
 	buffer.update_camera_rays(p_cam_transform, near_bottom_left, vp_rect.get_size(), p_cam_projection.get_z_far(), p_cam_orthogonal);
 
-	scenario.raycast(buffer.camera_rays, buffer.camera_ray_masks.ptr(), buffer.camera_rays_tile_count);
+	scenario.raycast(buffer.camera_rays, buffer.camera_ray_masks, buffer.camera_rays_tile_count);
 	buffer.sort_rays(-p_cam_transform.basis.get_column(2), p_cam_orthogonal);
 	buffer.update_mips();
 }

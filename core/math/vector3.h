@@ -123,6 +123,7 @@ struct [[nodiscard]] Vector3 {
 
 	_FORCE_INLINE_ void normalize();
 	_FORCE_INLINE_ Vector3 normalized() const;
+	_FORCE_INLINE_ Vector3 normalized_nonzero() const;
 	_FORCE_INLINE_ bool is_normalized() const;
 	_FORCE_INLINE_ Vector3 inverse() const;
 	Vector3 limit_length(real_t p_len = 1.0) const;
@@ -561,6 +562,12 @@ void Vector3::normalize() {
 		y /= l;
 		z /= l;
 	}
+}
+
+Vector3 Vector3::normalized_nonzero() const {
+	real_t lengthsq = x * x + y * y + z * z;
+	real_t length = Math::sqrt(lengthsq);
+	return Vector3(x / length, y / length, z / length);
 }
 
 Vector3 Vector3::normalized() const {
