@@ -280,15 +280,10 @@ TEST_CASE("[Vector2] Operators") {
 	CHECK_MESSAGE(
 			((String)Vector2(9.8, 9.9)) == "(9.8, 9.9)",
 			"Vector2 cast to String should work as expected.");
-#ifdef REAL_T_IS_DOUBLE
+
 	CHECK_MESSAGE(
 			((String)Vector2(Math::PI, Math::TAU)) == "(3.14159265358979, 6.28318530717959)",
 			"Vector2 cast to String should print the correct amount of digits for real_t = double.");
-#else
-	CHECK_MESSAGE(
-			((String)Vector2(Math::PI, Math::TAU)) == "(3.141593, 6.283185)",
-			"Vector2 cast to String should print the correct amount of digits for real_t = float.");
-#endif // REAL_T_IS_DOUBLE
 }
 
 TEST_CASE("[Vector2] Other methods") {

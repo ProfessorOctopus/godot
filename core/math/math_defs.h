@@ -137,14 +137,9 @@ enum class EulerOrder {
 
 /**
  * The "Real" type is an abstract type used for real numbers, such as 1.5,
- * in contrast to integer numbers. Precision can be controlled with the
- * presence or absence of the REAL_T_IS_DOUBLE define.
+ * in contrast to integer numbers.
  */
-#ifdef REAL_T_IS_DOUBLE
 typedef double real_t;
-#else
-typedef float real_t;
-#endif
 
 /**
  * Rarely, there will be a scenario where a function/variable expects one of the builtin integral

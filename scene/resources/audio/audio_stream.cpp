@@ -156,8 +156,6 @@ AudioStreamPlayback::~AudioStreamPlayback() {
 	}
 }
 
-//////////////////////////////
-
 void AudioStreamPlaybackResampled::begin_resample() {
 	//clear cubic interpolation history
 	internal_buffer[0] = AudioFrame(0.0, 0.0);
@@ -167,6 +165,7 @@ void AudioStreamPlaybackResampled::begin_resample() {
 	//mix buffer
 	_mix_internal(internal_buffer + 4, INTERNAL_BUFFER_LEN);
 	mix_offset = 0;
+	internal_buffer_end = -1;
 }
 
 int AudioStreamPlaybackResampled::_mix_internal(AudioFrame *p_buffer, int p_frames) {
@@ -242,8 +241,6 @@ int AudioStreamPlaybackResampled::mix(AudioFrame *p_buffer, float p_rate_scale, 
 	}
 	return mixed_frames_total;
 }
-
-////////////////////////////////
 
 Ref<AudioStreamPlayback> AudioStream::instantiate_playback() {
 	Ref<AudioStreamPlayback> ret;

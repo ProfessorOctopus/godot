@@ -138,7 +138,9 @@ private:
 	static const char *tk_name[TK_MAX];
 
 	template <typename T>
-	static Error _parse_construct(Stream *p_stream, Vector<T> &r_construct, int &r_line, String &r_err_str);
+	static Error _parse_packed_array(Stream *p_stream, Vector<T> &r_construct, int &r_line, String &r_err_str);
+	template <typename T>
+	static Error _parse_construct(Stream *p_stream, T *r_construct, int p_buffer_size, int &r_line, String &r_err_str);
 	static Error _parse_byte_array(Stream *p_stream, Vector<uint8_t> &r_construct, int &r_line, String &r_err_str);
 	static Error _parse_enginecfg(Stream *p_stream, Vector<String> &r_strings, int &r_line, String &r_err_str);
 	static Error _parse_dictionary(Dictionary &r_object, Stream *p_stream, int &r_line, String &r_err_str, ResourceParser *p_res_parser = nullptr);

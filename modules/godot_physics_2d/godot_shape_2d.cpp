@@ -570,11 +570,7 @@ real_t GodotConvexPolygonShape2D::get_moment_of_inertia(real_t p_mass, const Siz
 }
 
 void GodotConvexPolygonShape2D::set_data(const Variant &p_data) {
-#ifdef REAL_T_IS_DOUBLE
 	ERR_FAIL_COND(p_data.get_type() != Variant::PACKED_VECTOR2_ARRAY && p_data.get_type() != Variant::PACKED_FLOAT64_ARRAY);
-#else
-	ERR_FAIL_COND(p_data.get_type() != Variant::PACKED_VECTOR2_ARRAY && p_data.get_type() != Variant::PACKED_FLOAT32_ARRAY);
-#endif
 
 	if (points) {
 		memdelete_arr(points);
@@ -812,11 +808,7 @@ int GodotConcavePolygonShape2D::_generate_bvh(BVH *p_bvh, int p_len, int p_depth
 }
 
 void GodotConcavePolygonShape2D::set_data(const Variant &p_data) {
-#ifdef REAL_T_IS_DOUBLE
 	ERR_FAIL_COND(p_data.get_type() != Variant::PACKED_VECTOR2_ARRAY && p_data.get_type() != Variant::PACKED_FLOAT64_ARRAY);
-#else
-	ERR_FAIL_COND(p_data.get_type() != Variant::PACKED_VECTOR2_ARRAY && p_data.get_type() != Variant::PACKED_FLOAT32_ARRAY);
-#endif
 
 	Rect2 aabb_new;
 

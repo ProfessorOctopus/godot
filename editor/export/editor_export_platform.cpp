@@ -773,11 +773,7 @@ HashSet<String> EditorExportPlatform::get_features(const Ref<EditorExportPreset>
 		result.insert("template_release");
 	}
 
-#ifdef REAL_T_IS_DOUBLE
 	result.insert("double");
-#else
-	result.insert("single");
-#endif // REAL_T_IS_DOUBLE
 
 	if (!p_preset->get_custom_features().is_empty()) {
 		Vector<String> tmp_custom_list = p_preset->get_custom_features().split(",");
@@ -789,7 +785,6 @@ HashSet<String> EditorExportPlatform::get_features(const Ref<EditorExportPreset>
 			}
 		}
 	}
-
 	return result;
 }
 

@@ -406,7 +406,6 @@ public:
 	}
 
 	// http://andrewthall.org/papers/df64_qf128.pdf
-#ifdef REAL_T_IS_DOUBLE
 	static _FORCE_INLINE_ void split_double(double a, float *a_hi, float *a_lo) {
 		const double SPLITTER = (1 << 29) + 1;
 		double t = a * SPLITTER;
@@ -415,7 +414,6 @@ public:
 		*a_hi = (float)t_hi;
 		*a_lo = (float)t_lo;
 	}
-#endif
 
 	/* Samplers */
 

@@ -122,10 +122,7 @@ private:
 		float inv_view_matrix[12];
 		float view_matrix[12];
 
-#ifdef REAL_T_IS_DOUBLE
 		float inv_view_precision[4];
-#endif
-
 		float projection_matrix_view[RendererSceneRender::MAX_RENDER_VIEWS][16];
 		float inv_projection_matrix_view[RendererSceneRender::MAX_RENDER_VIEWS][16];
 		float eye_offset[RendererSceneRender::MAX_RENDER_VIEWS][4];

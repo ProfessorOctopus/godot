@@ -2170,7 +2170,6 @@ void RenderForwardMobile::_fill_instance_data(RenderListType p_render_list, uint
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(inst->transform, instance_data.transform);
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(inst->prev_transform, instance_data.prev_transform);
 
-#ifdef REAL_T_IS_DOUBLE
 			// Split the origin into two components, the float approximation and the missing precision.
 			// In the shader we will combine these back together to restore the lost precision.
 			RendererRD::MaterialStorage::split_double(inst->transform.origin.x, &instance_data.transform[3], &instance_data.model_precision[0]);
@@ -2179,14 +2178,12 @@ void RenderForwardMobile::_fill_instance_data(RenderListType p_render_list, uint
 			RendererRD::MaterialStorage::split_double(inst->prev_transform.origin.x, &instance_data.prev_transform[3], &instance_data.prev_model_precision[0]);
 			RendererRD::MaterialStorage::split_double(inst->prev_transform.origin.y, &instance_data.prev_transform[7], &instance_data.prev_model_precision[1]);
 			RendererRD::MaterialStorage::split_double(inst->prev_transform.origin.z, &instance_data.prev_transform[11], &instance_data.prev_model_precision[2]);
-#endif
 		} else {
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(Transform3D(), instance_data.transform);
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(Transform3D(), instance_data.prev_transform);
-#ifdef REAL_T_IS_DOUBLE
+
 			memset(instance_data.model_precision, 0, sizeof(instance_data.model_precision));
 			memset(instance_data.prev_model_precision, 0, sizeof(instance_data.prev_model_precision));
-#endif
 		}
 
 		instance_data.flags = inst->flags_cache;
@@ -3673,11 +3670,6 @@ RenderForwardMobile::RenderForwardMobile() {
 	{
 		defines += "\n#define MATERIAL_UNIFORM_SET " + itos(MATERIAL_UNIFORM_SET) + "\n";
 	}
-#ifdef REAL_T_IS_DOUBLE
-	{
-		defines += "\n#define USE_DOUBLE_PRECISION \n";
-	}
-#endif
 	{
 #ifdef MODULE_TEXTURE_STREAMING_ENABLED
 		bool texture_streaming = GLOBAL_GET("rendering/textures/streaming/enabled");

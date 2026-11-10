@@ -1755,11 +1755,9 @@ TEST_CASE("[Variant] Writer and parser Vector2") {
 	{
 		Vector2 vec2 = Vector2(1.234567898765432123456789e30, 1.234567898765432123456789e-10);
 		VariantWriter::write_to_string(vec2, vec2_str);
-#ifdef REAL_T_IS_DOUBLE
+
 		CHECK_MESSAGE(vec2_str == "Vector2(1.2345678987654322e+30, 1.2345678987654322e-10)", "Should write with enough digits to ensure parsing back is exact.");
-#else
-		CHECK_MESSAGE(vec2_str == "Vector2(1.2345679e+30, 1.2345679e-10)", "Should write with enough digits to ensure parsing back is exact.");
-#endif
+
 		VariantParser::StreamString stream;
 		stream.s = vec2_str;
 		VariantParser::parse(&stream, vec2_parsed, errs, line);

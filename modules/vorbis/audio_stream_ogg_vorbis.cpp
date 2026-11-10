@@ -29,12 +29,10 @@
 /**************************************************************************/
 
 #include "audio_stream_ogg_vorbis.h"
-
 #include "core/io/file_access.h"
 #include "core/object/class_db.h"
 #include "core/templates/rb_map.h"
 #include "servers/audio/audio_server.h"
-
 #include <ogg/ogg.h>
 
 int AudioStreamPlaybackOggVorbis::_mix_internal(AudioFrame *p_buffer, int p_frames) {
@@ -45,7 +43,6 @@ int AudioStreamPlaybackOggVorbis::_mix_internal(AudioFrame *p_buffer, int p_fram
 	}
 
 	int todo = p_frames;
-
 	int beat_length_frames = -1;
 	bool use_loop = looping_override ? looping : vorbis_stream->loop;
 
@@ -412,6 +409,12 @@ AudioStreamPlaybackOggVorbis::~AudioStreamPlaybackOggVorbis() {
 }
 
 Ref<AudioStreamPlayback> AudioStreamOggVorbis::instantiate_playback() {
+	for (const Ref<AudioStreamPlaybackOggVorbis> &playback : playback_cache) {
+		if (playback->get_reference_count() == 1) {
+			return playback;
+		}
+	}
+
 	Ref<AudioStreamPlaybackOggVorbis> ovs;
 
 	ERR_FAIL_COND_V(packet_sequence.is_null(), nullptr);
@@ -423,6 +426,7 @@ Ref<AudioStreamPlayback> AudioStreamOggVorbis::instantiate_playback() {
 	ovs->active = false;
 	ovs->loops = 0;
 	if (ovs->_alloc_vorbis()) {
+		playback_cache.push_back(ovs);
 		return ovs;
 	}
 	// Failed to allocate data structures.

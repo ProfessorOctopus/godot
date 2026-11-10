@@ -81,9 +81,7 @@ String ProjectSettings::get_imported_files_path() const {
 const PackedStringArray ProjectSettings::get_required_features() {
 	PackedStringArray features;
 	features.append(GODOT_VERSION_BRANCH);
-#ifdef REAL_T_IS_DOUBLE
 	features.append("Double Precision");
-#endif
 	return features;
 }
 

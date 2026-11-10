@@ -40,6 +40,7 @@
 #include "servers/rendering/renderer_rd/uniform_set_cache_rd.h"
 #include "servers/rendering/rendering_device.h"
 #include "servers/rendering/rendering_server_default.h"
+#include "servers/rendering/rendering_server_enums.h"
 #include "servers/rendering/storage/ltc_lut.gen.h"
 
 #include "modules/modules_enabled.gen.h"
@@ -722,16 +723,18 @@ uint32_t RenderForwardClustered::_setup_environment(const RenderDataRD *p_render
 	p_render_data->scene_data->update_ubo(scene_state.uniform_buffers[uniform_buffer_index], get_debug_draw_mode(), env, reflection_probe_instance, p_render_data->camera_attributes, p_pancake_shadows, p_screen_size, p_viewport_size, p_default_bg_color, luminance_multiplier, p_opaque_render_buffers, p_apply_alpha_multiplier);
 
 	// now do implementation UBO
-
-	scene_state.ubo.cluster_shift = Math::get_shift_from_power_of_2(p_render_data->cluster_size);
-	scene_state.ubo.max_cluster_element_count_div_32 = p_render_data->cluster_max_elements / 32;
+	scene_state.ubo.tile_shift = Math::get_shift_from_power_of_2(p_render_data->tile_size);
+	scene_state.ubo.bitmasks_per_tile_count = p_render_data->cluster_max_elements / 32;
 	{
-		uint32_t cluster_screen_width = Math::division_round_up((uint32_t)p_screen_size.width, p_render_data->cluster_size);
-		uint32_t cluster_screen_height = Math::division_round_up((uint32_t)p_screen_size.height, p_render_data->cluster_size);
-		scene_state.ubo.cluster_type_size = cluster_screen_width * cluster_screen_height * (scene_state.ubo.max_cluster_element_count_div_32 + 32);
-		scene_state.ubo.cluster_width = cluster_screen_width;
+		uint32_t tiles_per_row = Math::division_round_up((uint32_t)p_screen_size.width, p_render_data->tile_size);
+		uint32_t tiles_per_column = Math::division_round_up((uint32_t)p_screen_size.height, p_render_data->tile_size);
+		scene_state.ubo.bitmasks_per_type_count = tiles_per_row * tiles_per_column * scene_state.ubo.bitmasks_per_tile_count;
+		scene_state.ubo.tiles_per_row = tiles_per_row;
 	}
 
+	scene_state.ubo.cluster_z_bin_offset = scene_state.ubo.bitmasks_per_type_count * ClusterBuilderRD::ELEMENT_TYPE_MAX;
+	scene_state.ubo.cluster_z_bin_count = ClusterBuilderRD::get_z_bin_count(p_render_data->scene_data->z_near, p_render_data->scene_data->z_far);
+	scene_state.ubo.cluster_z_bin_scale = ClusterBuilderRD::get_z_bin_scale(p_render_data->scene_data->z_near, p_render_data->scene_data->z_far);
 	scene_state.ubo.gi_upscale_for_msaa = false;
 	scene_state.ubo.volumetric_fog_enabled = false;
 
@@ -846,7 +849,6 @@ void RenderForwardClustered::_fill_instance_data(RenderListType p_render_list, i
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(inst->transform, instance_data.transform);
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(inst->prev_transform, instance_data.prev_transform);
 
-#ifdef REAL_T_IS_DOUBLE
 			// Split the origin into two components, the float approximation and the missing precision.
 			// In the shader we will combine these back together to restore the lost precision.
 			RendererRD::MaterialStorage::split_double(inst->transform.origin.x, &instance_data.transform[3], &instance_data.model_precision[0]);
@@ -855,14 +857,11 @@ void RenderForwardClustered::_fill_instance_data(RenderListType p_render_list, i
 			RendererRD::MaterialStorage::split_double(inst->prev_transform.origin.x, &instance_data.prev_transform[3], &instance_data.prev_model_precision[0]);
 			RendererRD::MaterialStorage::split_double(inst->prev_transform.origin.y, &instance_data.prev_transform[7], &instance_data.prev_model_precision[1]);
 			RendererRD::MaterialStorage::split_double(inst->prev_transform.origin.z, &instance_data.prev_transform[11], &instance_data.prev_model_precision[2]);
-#endif
 		} else {
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(Transform3D(), instance_data.transform);
 			RendererRD::MaterialStorage::store_transform_transposed_3x4(Transform3D(), instance_data.prev_transform);
-#ifdef REAL_T_IS_DOUBLE
 			memset(instance_data.model_precision, 0, sizeof(instance_data.model_precision));
 			memset(instance_data.prev_model_precision, 0, sizeof(instance_data.prev_model_precision));
-#endif
 		}
 
 		instance_data.flags = inst->flags_cache;
@@ -1391,9 +1390,7 @@ void RenderForwardClustered::_update_volumetric_fog(Ref<RenderSceneBuffersRD> p_
 		settings.rb_size = size;
 		settings.time = time;
 		settings.is_using_radiance_octmap_array = is_using_radiance_octmap_array();
-		settings.max_cluster_elements = RendererRD::LightStorage::get_singleton()->get_max_cluster_elements();
 		settings.volumetric_fog_filter_active = get_volumetric_fog_filter_active();
-
 		settings.shadow_sampler = shadow_sampler;
 		settings.shadow_atlas_depth = RendererRD::LightStorage::get_singleton()->owns_shadow_atlas(p_shadow_atlas) ? RendererRD::LightStorage::get_singleton()->shadow_atlas_get_texture(p_shadow_atlas) : RID();
 		settings.voxel_gi_buffer = rbgi->get_voxel_gi_buffer();
@@ -1403,7 +1400,6 @@ void RenderForwardClustered::_update_volumetric_fog(Ref<RenderSceneBuffersRD> p_
 		settings.area_light_atlas = RendererRD::TextureStorage::get_singleton()->area_light_atlas_get_texture();
 		settings.directional_shadow_depth = RendererRD::LightStorage::get_singleton()->directional_shadow_get_texture();
 		settings.directional_light_buffer = RendererRD::LightStorage::get_singleton()->get_directional_light_buffer();
-
 		settings.vfog = fog;
 		settings.cluster_builder = rb_data->cluster_builder;
 		settings.rbgi = rbgi;
@@ -1849,7 +1845,7 @@ void RenderForwardClustered::_render_scene(RenderDataRD *p_render_data, const Co
 	ERR_FAIL_NULL(current_cluster_builder);
 
 	p_render_data->cluster_buffer = current_cluster_builder->get_cluster_buffer();
-	p_render_data->cluster_size = current_cluster_builder->get_cluster_size();
+	p_render_data->tile_size = current_cluster_builder->get_tile_size();
 	p_render_data->cluster_max_elements = current_cluster_builder->get_max_cluster_elements();
 
 	_update_vrs(rb);
@@ -2743,7 +2739,9 @@ void RenderForwardClustered::_render_shadow_pass(RID p_light, RID p_shadow_atlas
 			light_storage->light_instance_set_shadow_pass(p_light, get_scene_pass());
 		}
 
-		use_pancake = light_storage->light_get_param(base, RSE::LIGHT_PARAM_SHADOW_PANCAKE_SIZE) > 0;
+		// Disable pancake when DirectionalLight3D.angular_distance is bigger than 0.
+		// Pancake flattens the depth buffer and PCSS need the full depth buffer untouched to work correctly.
+		use_pancake = light_storage->light_get_param(base, RSE::LIGHT_PARAM_SHADOW_PANCAKE_SIZE) > 0 && light_storage->light_get_param(base, RSE::LIGHT_PARAM_SIZE) <= 0;
 		light_projection = light_storage->light_instance_get_shadow_camera(p_light, p_pass);
 		light_transform = light_storage->light_instance_get_shadow_transform(p_light, p_pass);
 
@@ -2944,7 +2942,7 @@ void RenderForwardClustered::_render_shadow_append(RID p_framebuffer, const Page
 
 	RenderDataRD render_data;
 	render_data.scene_data = &scene_data;
-	render_data.cluster_size = 1;
+	render_data.tile_size = 1;
 	render_data.cluster_max_elements = 32;
 	render_data.instances = &p_instances;
 	render_data.render_info = p_render_info;
@@ -3048,7 +3046,7 @@ void RenderForwardClustered::_render_particle_collider_heightfield(RID p_fb, con
 
 	RenderDataRD render_data;
 	render_data.scene_data = &scene_data;
-	render_data.cluster_size = 1;
+	render_data.tile_size = 1;
 	render_data.cluster_max_elements = 32;
 	render_data.instances = &p_instances;
 
@@ -3094,7 +3092,7 @@ void RenderForwardClustered::_render_material(const Transform3D &p_cam_transform
 
 	RenderDataRD render_data;
 	render_data.scene_data = &scene_data;
-	render_data.cluster_size = 1;
+	render_data.tile_size = 1;
 	render_data.cluster_max_elements = 32;
 	render_data.instances = &p_instances;
 
@@ -3150,7 +3148,7 @@ void RenderForwardClustered::_render_uv2(const PagedArray<RenderGeometryInstance
 
 	RenderDataRD render_data;
 	render_data.scene_data = &scene_data;
-	render_data.cluster_size = 1;
+	render_data.tile_size = 1;
 	render_data.cluster_max_elements = 32;
 	render_data.instances = &p_instances;
 
@@ -3226,7 +3224,7 @@ void RenderForwardClustered::_render_sdfgi(Ref<RenderSceneBuffersRD> p_render_bu
 
 	RenderDataRD render_data;
 	render_data.scene_data = &scene_data;
-	render_data.cluster_size = 1;
+	render_data.tile_size = 1;
 	render_data.cluster_max_elements = 32;
 	render_data.instances = &p_instances;
 
@@ -5310,12 +5308,6 @@ RenderForwardClustered::RenderForwardClustered() {
 		{
 			defines += "\n#define MATERIAL_UNIFORM_SET " + itos(MATERIAL_UNIFORM_SET) + "\n";
 		}
-#ifdef REAL_T_IS_DOUBLE
-		{
-			defines += "\n#define USE_DOUBLE_PRECISION \n";
-		}
-#endif
-
 		scene_shader.init(defines);
 	}
 

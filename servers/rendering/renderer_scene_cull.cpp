@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "renderer_scene_cull.h"
-
 #include "core/config/engine.h"
 #include "core/config/project_settings.h"
 #include "core/math/geometry_3d.h"
@@ -43,7 +42,6 @@
 #include "servers/xr/xr_interface.h"
 #endif
 
-//#define DEBUG_CULL_TIME
 #ifdef DEBUG_CULL_TIME
 #include "core/os/os.h"
 #endif
@@ -2387,7 +2385,8 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 	}
 }
 
-bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, const Transform3D p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect, RID p_shadow_atlas, Scenario *p_scenario, float p_screen_mesh_lod_threshold, uint32_t p_visible_layers) {
+bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, const Transform3D p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect, RID p_shadow_atlas, Scenario *p_scenario, float p_screen_mesh_lod_threshold, uint64_t p_visibility_viewport_mask, uint32_t p_visible_layers) {
+#define LIGHT_VIS_RANGE_CHECK ((instance->array_index == -1) || (p_scenario->instance_data[instance->array_index].visibility_index == -1) || _visibility_range_check<false>(p_scenario->instance_visibility[p_scenario->instance_data[instance->array_index].visibility_index], p_cam_transform.origin, p_visibility_viewport_mask) == 0)
 	InstanceLightData *light = static_cast<InstanceLightData *>(p_instance->base_data);
 
 	Transform3D light_transform = p_instance->transform;
@@ -2458,7 +2457,9 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 								RSG::mesh_storage->mesh_instance_check_for_update(instance->mesh_instance);
 							}
 						}
-
+						if (!LIGHT_VIS_RANGE_CHECK) {
+							continue;
+						}
 						shadow_data.instances.push_back(static_cast<InstanceGeometryData *>(instance->base_data)->geometry_instance);
 					}
 
@@ -2541,7 +2542,9 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 								RSG::mesh_storage->mesh_instance_check_for_update(instance->mesh_instance);
 							}
 						}
-
+						if (!LIGHT_VIS_RANGE_CHECK) {
+							continue;
+						}
 						shadow_data.instances.push_back(static_cast<InstanceGeometryData *>(instance->base_data)->geometry_instance);
 					}
 
@@ -2607,6 +2610,9 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 					if (instance->mesh_instance.is_valid()) {
 						RSG::mesh_storage->mesh_instance_check_for_update(instance->mesh_instance);
 					}
+				}
+				if (!LIGHT_VIS_RANGE_CHECK) {
+					continue;
 				}
 				shadow_data.instances.push_back(static_cast<InstanceGeometryData *>(instance->base_data)->geometry_instance);
 			}
@@ -2686,7 +2692,7 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 			shadow_data.pass = 0;
 		}
 	}
-
+#undef LIGHT_VIS_RANGE_CHECK
 	return animated_material_found;
 }
 
@@ -3362,26 +3368,20 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 
 	RENDER_TIMESTAMP("Cull 3D Scene");
 
-	//rasterizer->set_camera(p_camera_data->main_transform, p_camera_data.main_projection, p_camera_data.is_orthogonal);
-
 	/* STEP 2 - CULL */
-
 	Vector<Plane> planes = p_camera_data->main_projection.get_projection_planes(p_camera_data->main_transform);
 	cull.frustum = Frustum(planes);
-
-	Vector<RID> directional_lights;
+	directional_light_instances.clear();
+	lights_with_shadow.clear();
 	// directional lights
 	{
 		cull.shadow_count = 0;
-
-		Vector<Instance *> lights_with_shadow;
-
 		for (Instance *E : scenario->directional_lights) {
 			if (!E->visible || !(E->layer_mask & p_visible_layers)) {
 				continue;
 			}
 
-			if (directional_lights.size() >= RendererSceneRender::MAX_DIRECTIONAL_LIGHTS) {
+			if (directional_light_instances.size() >= RendererSceneRender::MAX_DIRECTIONAL_LIGHTS) {
 				break;
 			}
 
@@ -3394,7 +3394,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 					lights_with_shadow.push_back(E);
 				}
 				//add to list
-				directional_lights.push_back(light->instance);
+				directional_light_instances.push_back(light->instance);
 			}
 		}
 
@@ -3431,6 +3431,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 	}
 
 	scene_cull_result.clear();
+	uint64_t visibility_viewport_mask = scenario->viewport_visibility_masks.has(p_viewport) ? scenario->viewport_visibility_masks[p_viewport] : 0;
 
 	{
 		uint64_t cull_from = 0;
@@ -3447,7 +3448,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 		cull_data.render_reflection_probe = render_reflection_probe;
 		cull_data.occlusion_buffer = RendererSceneOcclusionCull::get_singleton()->buffer_get_ptr(p_viewport);
 		cull_data.camera_matrix = &p_camera_data->main_projection;
-		cull_data.visibility_viewport_mask = scenario->viewport_visibility_masks.has(p_viewport) ? scenario->viewport_visibility_masks[p_viewport] : 0;
+		cull_data.visibility_viewport_mask = visibility_viewport_mask;
 #ifdef DEBUG_CULL_TIME
 		uint64_t time_from = OS::get_singleton()->get_ticks_usec();
 #endif
@@ -3648,7 +3649,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 			if (redraw && max_shadows_used < MAX_UPDATE_SHADOWS) {
 				//must redraw!
 				RENDER_TIMESTAMP("> Render Light3D " + itos(i));
-				if (_light_instance_update_shadow(ins, p_camera_data->main_transform, p_camera_data->main_projection, p_camera_data->is_orthogonal, p_camera_data->vaspect, p_shadow_atlas, scenario, p_screen_mesh_lod_threshold, p_visible_layers)) {
+				if (_light_instance_update_shadow(ins, p_camera_data->main_transform, p_camera_data->main_projection, p_camera_data->is_orthogonal, p_camera_data->vaspect, p_shadow_atlas, scenario, p_screen_mesh_lod_threshold, visibility_viewport_mask, p_visible_layers)) {
 					light->make_shadow_dirty();
 				}
 				RENDER_TIMESTAMP("< Render Light3D " + itos(i));
@@ -3661,10 +3662,8 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 	}
 
 	//render SDFGI
-
 	{
 		// Q: Should this whole block be skipped if we're rendering our reflection probe?
-
 		sdfgi_update_data.update_static = false;
 
 		if (cull.sdfgi.region_count > 0) {
@@ -3691,15 +3690,15 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 		}
 
 		if (p_reflection_probe.is_null()) {
-			sdfgi_update_data.directional_lights = &directional_lights;
+			sdfgi_update_data.directional_lights = &directional_light_instances;
 			sdfgi_update_data.positional_light_instances = scenario->dynamic_lights.ptr();
 			sdfgi_update_data.positional_light_count = scenario->dynamic_lights.size();
 		}
 	}
 
 	//append the directional lights to the lights culled
-	for (int i = 0; i < directional_lights.size(); i++) {
-		scene_cull_result.light_instances.push_back(directional_lights[i]);
+	for (int i = 0; i < directional_light_instances.size(); i++) {
+		scene_cull_result.light_instances.push_back(directional_light_instances[i]);
 	}
 
 	RID camera_attributes;
@@ -3944,7 +3943,8 @@ void RendererSceneCull::render_probes() {
 			for (Instance *E : probe->lights) {
 				Instance *instance = E;
 				InstanceLightData *instance_light = (InstanceLightData *)instance->base_data;
-				if (!instance->visible) {
+				RSE::LightBakeMode bake_mode = RSG::light_storage->light_get_bake_mode(instance->base);
+				if (!instance->visible || bake_mode == RSE::LIGHT_BAKE_DISABLED) {
 					continue;
 				}
 				if (cache_dirty) {
@@ -3979,7 +3979,8 @@ void RendererSceneCull::render_probes() {
 
 			for (const Instance *instance : probe->owner->scenario->directional_lights) {
 				InstanceLightData *instance_light = (InstanceLightData *)instance->base_data;
-				if (!instance->visible) {
+				RSE::LightBakeMode bake_mode = RSG::light_storage->light_get_bake_mode(instance->base);
+				if (!instance->visible || bake_mode == RSE::LIGHT_BAKE_DISABLED) {
 					continue;
 				}
 				if (cache_dirty) {
@@ -4031,7 +4032,8 @@ void RendererSceneCull::render_probes() {
 				for (Instance *E : probe->lights) {
 					Instance *instance = E;
 					InstanceLightData *instance_light = (InstanceLightData *)instance->base_data;
-					if (!instance->visible) {
+					RSE::LightBakeMode bake_mode = RSG::light_storage->light_get_bake_mode(instance->base);
+					if (!instance->visible || bake_mode == RSE::LIGHT_BAKE_DISABLED) {
 						continue;
 					}
 
@@ -4056,7 +4058,8 @@ void RendererSceneCull::render_probes() {
 				}
 				for (const Instance *instance : probe->owner->scenario->directional_lights) {
 					InstanceLightData *instance_light = (InstanceLightData *)instance->base_data;
-					if (!instance->visible) {
+					RSE::LightBakeMode bake_mode = RSG::light_storage->light_get_bake_mode(instance->base);
+					if (!instance->visible || bake_mode == RSE::LIGHT_BAKE_DISABLED) {
 						continue;
 					}
 

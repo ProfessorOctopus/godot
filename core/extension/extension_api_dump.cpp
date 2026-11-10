@@ -116,13 +116,7 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 		header["version_status"] = GODOT_VERSION_STATUS;
 		header["version_build"] = GODOT_VERSION_BUILD;
 		header["version_full_name"] = GODOT_VERSION_FULL_NAME;
-
-#if REAL_T_IS_DOUBLE
 		header["precision"] = "double";
-#else
-		header["precision"] = "single";
-#endif
-
 		api_dump["header"] = header;
 	}
 
@@ -144,17 +138,10 @@ Dictionary GDExtensionAPIDump::generate_extension_api(bool p_include_docs) {
 			// For compile-time size check.
 			constexpr uint32_t operator[](int p_index) const {
 				switch (p_index) {
-#ifndef REAL_T_IS_DOUBLE
-					case sizeof(uint32_t):
-						return size_32_bits_real_float;
-					case sizeof(uint64_t):
-						return size_64_bits_real_float;
-#else // REAL_T_IS_DOUBLE
 					case sizeof(uint32_t):
 						return size_32_bits_real_double;
 					case sizeof(uint64_t):
 						return size_64_bits_real_double;
-#endif
 				}
 				return -1;
 			}

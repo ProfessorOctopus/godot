@@ -1010,7 +1010,6 @@ PackedVector2Array OpenXRSpatialEntityExtension::get_vector2_buffer(RID p_spatia
 		ERR_FAIL_V_MSG(ret, "OpenXR: Failed to get buffer size [" + openxr_api->get_error_string(result) + "]");
 	}
 
-#ifdef REAL_T_IS_DOUBLE
 	// OpenXR XrVector2f is using floats, Godot Vector2 is using double, so we need to do a copy.
 	LocalVector<XrVector2f> buffer;
 	buffer.resize(count);
@@ -1026,16 +1025,6 @@ PackedVector2Array OpenXRSpatialEntityExtension::get_vector2_buffer(RID p_spatia
 		ptr[i].x = buffer[i].x;
 		ptr[i].y = buffer[i].y;
 	}
-#else
-	// OpenXR's XrVector2f and Godots Vector2 should be interchangeable.
-	ret.resize(count);
-
-	result = xrGetSpatialBufferVector2fEXT(snapshot_data->spatial_snapshot, &info, ret.size(), &count, (XrVector2f *)ret.ptrw());
-	if (XR_FAILED(result)) {
-		ERR_FAIL_V_MSG(PackedVector2Array(), "OpenXR: Failed to get buffer [" + openxr_api->get_error_string(result) + "]");
-	}
-#endif
-
 	return ret;
 }
 
@@ -1060,7 +1049,6 @@ PackedVector3Array OpenXRSpatialEntityExtension::get_vector3_buffer(RID p_spatia
 		ERR_FAIL_V_MSG(ret, "OpenXR: Failed to get buffer size [" + openxr_api->get_error_string(result) + "]");
 	}
 
-#ifdef REAL_T_IS_DOUBLE
 	// OpenXR XrVector3f is using floats, Godot Vector3 is using double, so we need to do a copy.
 	LocalVector<XrVector3f> buffer;
 	buffer.resize(count);
@@ -1077,16 +1065,6 @@ PackedVector3Array OpenXRSpatialEntityExtension::get_vector3_buffer(RID p_spatia
 		ptr[i].y = buffer[i].y;
 		ptr[i].z = buffer[i].z;
 	}
-#else
-	// OpenXR's XrVector3f and Godots Vector3 should be interchangeable.
-	ret.resize(count);
-
-	result = xrGetSpatialBufferVector3fEXT(snapshot_data->spatial_snapshot, &info, ret.size(), &count, (XrVector3f *)ret.ptrw());
-	if (XR_FAILED(result)) {
-		ERR_FAIL_V_MSG(PackedVector3Array(), "OpenXR: Failed to get buffer [" + openxr_api->get_error_string(result) + "]");
-	}
-#endif
-
 	return ret;
 }
 

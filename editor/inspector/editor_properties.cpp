@@ -4240,11 +4240,8 @@ EditorProperty *EditorInspectorDefaultPlugin::get_editor_for_property(Object *p_
 			EditorPropertyQuaternion *editor = memnew(EditorPropertyQuaternion);
 			// Quaternions are almost never used for human-readable values that need stepifying,
 			// so we should be more precise with their step, as much as the float precision allows.
-#ifdef REAL_T_IS_DOUBLE
 			constexpr double QUATERNION_STEP = 1e-14;
-#else
-			constexpr double QUATERNION_STEP = 1e-6;
-#endif
+
 			editor->setup(_parse_range_hint(p_hint, p_hint_text, QUATERNION_STEP), p_hint == PROPERTY_HINT_HIDE_QUATERNION_EDIT);
 			return editor;
 		} break;

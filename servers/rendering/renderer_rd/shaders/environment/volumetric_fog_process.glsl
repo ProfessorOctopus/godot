@@ -155,7 +155,7 @@ layout(set = 0, binding = 15, std140) uniform Params {
 
 	float fog_frustum_end;
 	float ambient_inject;
-	float z_far;
+	float z_near;
 	int filter_axis;
 
 	vec3 ambient_color;
@@ -173,19 +173,25 @@ layout(set = 0, binding = 15, std140) uniform Params {
 	float detail_spread;
 	float gi_inject;
 	uint max_voxel_gi_instances;
-	uint cluster_type_size;
+	uint bitmasks_per_type_count;
 
 	vec2 screen_size;
-	uint cluster_shift;
-	uint cluster_width;
+	uint tile_shift;
+	uint tiles_per_row;
 
-	uint max_cluster_element_count_div_32;
+	uint bitmasks_per_tile_count;
 	bool use_temporal_reprojection;
 	uint temporal_frame;
 	float temporal_blend;
 
 	vec2 sky_border_size;
-	vec2 pad;
+	uint cluster_z_bin_count;
+	float cluster_z_bin_scale;
+
+	uint cluster_z_bin_offset;
+	uint pad0;
+	uint pad1;
+	uint pad2;
 
 	mat3x4 cam_rotation;
 	mat4 to_prev_view;
@@ -253,9 +259,9 @@ void cluster_get_item_range(uint p_offset, out uint item_min, out uint item_max,
 }
 
 uint cluster_get_range_clip_mask(uint i, uint z_min, uint z_max) {
-	int local_min = clamp(int(z_min) - int(i) * 32, 0, 31);
-	int mask_width = min(int(z_max) - int(z_min), 32 - local_min);
-	return bitfieldInsert(uint(0), uint(0xFFFFFFFF), local_min, mask_width);
+	int local_min = clamp(int(z_min) - int(i) * 32, 0, 32);
+	int local_max = clamp(int(z_max) - int(i) * 32, 0, 32);
+	return bitfieldInsert(uint(0), uint(0xFFFFFFFF), local_min, local_max - local_min);
 }
 
 float henyey_greenstein(float cos_theta, float g) {
@@ -306,13 +312,11 @@ void main() {
 
 	vec3 posf = vec3(pos);
 
-	//posf += mix(vec3(0.0),vec3(1.0),0.3) * hash3f(uvec3(pos)) * 2.0 - 1.0;
-
 	vec3 fog_unit_pos = posf * fog_cell_size + fog_cell_size * 0.5; //center of voxels
 
 	uvec2 screen_pos = uvec2(fog_unit_pos.xy * params.screen_size);
-	uvec2 cluster_pos = screen_pos >> params.cluster_shift;
-	uint cluster_offset = (params.cluster_width * cluster_pos.y + cluster_pos.x) * (params.max_cluster_element_count_div_32 + 32);
+	uvec2 tile_pos = screen_pos >> params.tile_shift;
+	uint tile_offset = (params.tiles_per_row * tile_pos.y + tile_pos.x) * params.bitmasks_per_tile_count;
 	//positions in screen are too spread apart, no hopes for optimizing with subgroups
 
 	fog_unit_pos.z = pow(fog_unit_pos.z, params.detail_spread);
@@ -349,8 +353,8 @@ void main() {
 			fog_unit_pos = posf * fog_cell_size + fog_cell_size * halton_map[params.temporal_frame]; //center of voxels, offset by halton table
 
 			screen_pos = uvec2(fog_unit_pos.xy * params.screen_size);
-			cluster_pos = screen_pos >> params.cluster_shift;
-			cluster_offset = (params.cluster_width * cluster_pos.y + cluster_pos.x) * (params.max_cluster_element_count_div_32 + 32);
+			tile_pos = screen_pos >> params.tile_shift;
+			tile_offset = (params.tiles_per_row * tile_pos.y + tile_pos.x) * params.bitmasks_per_tile_count;
 			//positions in screen are too spread apart, no hopes for optimizing with subgroups
 
 			fog_unit_pos.z = pow(fog_unit_pos.z, params.detail_spread);
@@ -361,8 +365,7 @@ void main() {
 		}
 	}
 
-	uint cluster_z = uint(clamp((abs(view_pos.z) / params.z_far) * 32.0, 0.0, 31.0));
-
+	uint z_bin = params.cluster_z_bin_offset + uint(clamp((abs(view_pos.z) - params.z_near) * params.cluster_z_bin_scale, 0.0, float(params.cluster_z_bin_count - 1)));
 	vec3 total_light = vec3(0.0);
 
 	float total_density = params.base_density;
@@ -462,18 +465,16 @@ void main() {
 		//compute lights from cluster
 
 		{ //omni lights
-
-			uint cluster_omni_offset = cluster_offset;
-
+			uint tile_omni_offset = tile_offset;
 			uint item_min;
 			uint item_max;
 			uint item_from;
 			uint item_to;
 
-			cluster_get_item_range(cluster_omni_offset + params.max_cluster_element_count_div_32 + cluster_z, item_min, item_max, item_from, item_to);
+			cluster_get_item_range(z_bin, item_min, item_max, item_from, item_to);
 
 			for (uint i = item_from; i < item_to; i++) {
-				uint mask = cluster_buffer.data[cluster_omni_offset + i];
+				uint mask = cluster_buffer.data[tile_omni_offset + i];
 				mask &= cluster_get_range_clip_mask(i, item_min, item_max);
 				uint merged_mask = mask;
 
@@ -482,11 +483,6 @@ void main() {
 					merged_mask &= ~(1 << bit);
 
 					uint light_index = 32 * i + bit;
-
-					//if (!bool(omni_omni_lights.data[light_index].mask & draw_call.layer_mask)) {
-					//	continue; //not masked
-					//}
-
 					vec3 light_pos = omni_lights.data[light_index].position;
 					float d = distance(omni_lights.data[light_index].position, view_pos);
 					float shadow_attenuation = 1.0;
@@ -529,28 +525,22 @@ void main() {
 		}
 
 		{ //spot lights
-
-			uint cluster_spot_offset = cluster_offset + params.cluster_type_size;
-
+			uint tile_spot_offset = tile_offset + params.bitmasks_per_type_count;
 			uint item_min;
 			uint item_max;
 			uint item_from;
 			uint item_to;
 
-			cluster_get_item_range(cluster_spot_offset + params.max_cluster_element_count_div_32 + cluster_z, item_min, item_max, item_from, item_to);
+			cluster_get_item_range(z_bin + params.cluster_z_bin_count, item_min, item_max, item_from, item_to);
 
 			for (uint i = item_from; i < item_to; i++) {
-				uint mask = cluster_buffer.data[cluster_spot_offset + i];
+				uint mask = cluster_buffer.data[tile_spot_offset + i];
 				mask &= cluster_get_range_clip_mask(i, item_min, item_max);
 				uint merged_mask = mask;
 
 				while (merged_mask != 0) {
 					uint bit = findMSB(merged_mask);
 					merged_mask &= ~(1 << bit);
-
-					//if (!bool(omni_lights.data[light_index].mask & draw_call.layer_mask)) {
-					//	continue; //not masked
-					//}
 
 					uint light_index = 32 * i + bit;
 
@@ -594,18 +584,16 @@ void main() {
 		}
 
 		{ //area lights
-
-			uint cluster_area_offset = cluster_offset + params.cluster_type_size * 2;
-
+			uint tile_area_offset = tile_offset + params.bitmasks_per_type_count * 2;
 			uint item_min;
 			uint item_max;
 			uint item_from;
 			uint item_to;
 
-			cluster_get_item_range(cluster_area_offset + params.max_cluster_element_count_div_32 + cluster_z, item_min, item_max, item_from, item_to);
+			cluster_get_item_range(z_bin + params.cluster_z_bin_count * 2, item_min, item_max, item_from, item_to);
 
 			for (uint i = item_from; i < item_to; i++) {
-				uint mask = cluster_buffer.data[cluster_area_offset + i];
+				uint mask = cluster_buffer.data[tile_area_offset + i];
 				mask &= cluster_get_range_clip_mask(i, item_min, item_max);
 				uint merged_mask = mask;
 

@@ -31,6 +31,7 @@
 #include "texture_storage.h"
 
 #include "core/config/engine.h"
+#include "servers/rendering/renderer_rd/cluster_builder_rd.h"
 #include "servers/rendering/renderer_rd/effects/copy_effects.h"
 #include "servers/rendering/renderer_rd/framebuffer_cache_rd.h"
 #include "servers/rendering/renderer_rd/renderer_scene_render_rd.h"
@@ -1743,6 +1744,7 @@ void TextureStorage::texture_proxy_update(RID p_texture, RID p_proxy_to) {
 void TextureStorage::texture_drawable_blit_rect(const TypedArray<RID> &p_textures, const Rect2i &p_rect, RID p_material, const Color &p_modulate, const TypedArray<RID> &p_source_textures, int p_to_mipmap) {
 	ERR_FAIL_COND_MSG(!tex_blit_shader.initialized, "Texture Blit shader & materials not yet initialized.");
 	ERR_FAIL_COND_MSG(p_textures.is_empty() || p_source_textures.is_empty(), "Blit Rect texture output and source arrays must contain at least 1 texture.");
+	ERR_FAIL_COND_MSG(p_to_mipmap < 0, "Cannot target a negative MipMap level.");
 	const RID default_tex_rid = texture_rd_get_default(DEFAULT_RD_TEXTURE_WHITE);
 	RendererRD::MaterialStorage *material_storage = RendererRD::MaterialStorage::get_singleton();
 
@@ -4239,6 +4241,8 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 	uv_xform.basis.scale(Vector3(2.0, 1.0, 2.0));
 	uv_xform.origin = Vector3(-1.0, 0.0, -1.0);
 
+	Transform3D camera_inverse_xform = p_camera_xform.affine_inverse();
+
 	uint32_t decals_size = p_decals.size();
 
 	decal_count = 0;
@@ -4268,10 +4272,10 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 				}
 			}
 		}
-
 		decal_sort[decal_count].decal_instance = decal_instance;
 		decal_sort[decal_count].decal = decal;
-		decal_sort[decal_count].depth = distance - decal_instance->sorting_offset;
+		decal_sort[decal_count].nearest_depth = ClusterBuilderRD::get_box_depth_range(camera_inverse_xform * xform, decal->size / 2).x - decal_instance->sorting_offset;
+		decal_sort[decal_count].center_distance = distance;
 		decal_count++;
 	}
 
@@ -4294,7 +4298,7 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 		float fade = 1.0;
 
 		if (decal->distance_fade) {
-			const real_t distance = decal_sort[i].depth + decal_instance->sorting_offset;
+			const real_t distance = decal_sort[i].center_distance;
 			const float fade_begin = decal->distance_fade_begin;
 			const float fade_length = decal->distance_fade_length;
 
@@ -4312,9 +4316,6 @@ void TextureStorage::update_decal_buffer(const PagedArray<RID> &p_decals, const 
 		scale_xform.basis.scale(decal_extents);
 
 		Transform3D xform = decal_instance->transform;
-
-		Transform3D camera_inverse_xform = p_camera_xform.affine_inverse();
-
 		Transform3D to_decal_xform = (camera_inverse_xform * xform * scale_xform * uv_xform).affine_inverse();
 		MaterialStorage::store_transform(to_decal_xform, dd.xform);
 

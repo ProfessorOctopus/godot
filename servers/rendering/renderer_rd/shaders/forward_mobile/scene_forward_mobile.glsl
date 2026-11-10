@@ -170,7 +170,6 @@ layout(location = 14) out vec2 point_coord_interp;
 
 #define scene_data scene_data_block.data
 
-#ifdef USE_DOUBLE_PRECISION
 // Helper functions for emulating double precision when adding floats.
 vec3 quick_two_sum(vec3 a, vec3 b, out vec3 out_p) {
 	vec3 s = a + b;
@@ -195,7 +194,6 @@ vec3 double_add_vec3(vec3 base_a, vec3 prec_a, vec3 base_b, vec3 prec_b, out vec
 	s = quick_two_sum(s, se, out_precision);
 	return s;
 }
-#endif
 
 uint multimesh_stride() {
 	uint stride = sc_multimesh_format_2d() ? 2 : 3;
@@ -253,10 +251,8 @@ void vertex_shader(in vec3 vertex,
 		in vec3 binormal_highp,
 #endif
 		in uint instance_index, in uint multimesh_offset, in mat3x4 in_model_matrix,
-#ifdef USE_DOUBLE_PRECISION
 		in vec3 model_precision,
 		in vec3 view_precision,
-#endif
 #ifdef MODE_DUAL_PARABOLOID
 		in float dual_paraboloid_side,
 		in float z_far,
@@ -372,15 +368,6 @@ void vertex_shader(in vec3 vertex,
 #endif
 		//transpose
 		matrix = transpose(matrix);
-
-#if !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED) || defined(MODEL_MATRIX_USED)
-		// Normally we can bake the multimesh transform into the model matrix, but when using double precision
-		// we avoid baking it in so we can emulate high precision.
-		read_model_matrix = model_matrix * matrix;
-#if !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED)
-		model_matrix = read_model_matrix;
-#endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED)
-#endif // !defined(USE_DOUBLE_PRECISION) || defined(SKIP_TRANSFORM_USED) || defined(VERTEX_WORLD_COORDS_USED) || defined(MODEL_MATRIX_USED)
 		model_normal_matrix = model_normal_matrix * mat3(matrix);
 	}
 
@@ -441,7 +428,6 @@ void vertex_shader(in vec3 vertex,
 			in_view_matrix[2],
 			vec4(0.0, 0.0, 0.0, 1.0)));
 
-#ifdef USE_DOUBLE_PRECISION
 	mat4 modelview = read_view_matrix * model_matrix;
 
 	// We separate the basis from the origin because the basis is fine with single point precision.
@@ -459,9 +445,7 @@ void vertex_shader(in vec3 vertex,
 	vec3 temp_precision; // Will be ignored.
 	modelview[3].xyz = double_add_vec3(model_origin, model_precision, inv_view_matrix[3].xyz, view_precision, temp_precision);
 	modelview[3].xyz = mat3(read_view_matrix) * modelview[3].xyz;
-#else
-	mat4 modelview = read_view_matrix * model_matrix;
-#endif
+
 	mat3 modelview_normal = mat3(read_view_matrix) * model_normal_matrix;
 	vec2 read_viewport_size = scene_data.viewport_size;
 
@@ -727,10 +711,8 @@ void main() {
 			prev_binormal,
 #endif
 			draw_call.instance_index, draw_call.multimesh_motion_vectors_previous_offset, instances.data[draw_call.instance_index].prev_transform,
-#ifdef USE_DOUBLE_PRECISION
 			instances.data[draw_call.instance_index].prev_model_precision.xyz,
 			scene_data_block.prev_data.inv_view_precision,
-#endif
 
 #ifdef MODE_DUAL_PARABOLOID
 			scene_data_block.prev_data.dual_paraboloid_side,
@@ -789,10 +771,8 @@ void main() {
 			binormal,
 #endif
 			draw_call.instance_index, draw_call.multimesh_motion_vectors_current_offset, instances.data[draw_call.instance_index].transform,
-#ifdef USE_DOUBLE_PRECISION
 			instances.data[draw_call.instance_index].model_precision.xyz,
 			scene_data_block.data.inv_view_precision,
-#endif
 #ifdef MODE_DUAL_PARABOLOID
 			scene_data_block.data.dual_paraboloid_side,
 			scene_data_block.data.z_far,

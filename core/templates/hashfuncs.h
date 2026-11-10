@@ -130,11 +130,7 @@ uint32_t hash_murmur3_one_float(float p_in, uint32_t p_seed = HASH_MURMUR3_SEED)
 uint32_t hash_murmur3_one_double(double p_in, uint32_t p_seed = HASH_MURMUR3_SEED);
 
 _FORCE_INLINE_ uint32_t hash_murmur3_one_real(real_t p_in, uint32_t p_seed = HASH_MURMUR3_SEED) {
-#ifdef REAL_T_IS_DOUBLE
 	return hash_murmur3_one_double(p_in, p_seed);
-#else
-	return hash_murmur3_one_float(p_in, p_seed);
-#endif
 }
 
 _FORCE_INLINE_ uint32_t hash_rotl32(uint32_t p_x, int8_t p_r) {

@@ -76,11 +76,9 @@ void ExportTemplateManager::_request_mirrors() {
 	if (!strcmp(GODOT_VERSION_STATUS, "dev") || !strcmp(GODOT_VERSION_STATUS, "beta") || !strcmp(GODOT_VERSION_STATUS, "rc")) {
 		_set_empty_mirror_list();
 		mirrors_list->set_tooltip_text(TTRC("Official export templates aren't available for development builds."));
-#ifdef REAL_T_IS_DOUBLE
 	} else if (true) {
 		_set_empty_mirror_list();
 		mirrors_list->set_tooltip_text(TTRC("Official export templates aren't available for double-precision builds."));
-#endif
 	} else if (!_is_online()) {
 		mirrors_list->set_tooltip_text(TTRC("Template downloading is disabled in offline mode."));
 	} else {

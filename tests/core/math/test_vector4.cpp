@@ -213,15 +213,9 @@ TEST_CASE("[Vector4] Operators") {
 	CHECK_MESSAGE(
 			((String)Vector4(9.7, 9.8, 9.9, -1.8)) == "(9.7, 9.8, 9.9, -1.8)",
 			"Vector4 cast to String should work as expected.");
-#ifdef REAL_T_IS_DOUBLE
 	CHECK_MESSAGE(
 			((String)Vector4(Math::E, Math::SQRT2, Math::SQRT3, Math::SQRT3)) == "(2.71828182845905, 1.4142135623731, 1.73205080756888, 1.73205080756888)",
 			"Vector4 cast to String should print the correct amount of digits for real_t = double.");
-#else
-	CHECK_MESSAGE(
-			((String)Vector4(Math::E, Math::SQRT2, Math::SQRT3, Math::SQRT3)) == "(2.718282, 1.414214, 1.732051, 1.732051)",
-			"Vector4 cast to String should print the correct amount of digits for real_t = float.");
-#endif // REAL_T_IS_DOUBLE
 }
 
 TEST_CASE("[Vector4] Other methods") {

@@ -605,12 +605,6 @@ if env.editor_build:
     if env["no_editor_splash"]:
         env.Append(CPPDEFINES=["NO_EDITOR_SPLASH"])
 
-if not env["deprecated"]:
-    env.Append(CPPDEFINES=["DISABLE_DEPRECATED"])
-
-if env["precision"] == "double":
-    env.Append(CPPDEFINES=["REAL_T_IS_DOUBLE"])
-
 # Library Support
 if env["library_type"] != "executable":
     if "library" not in env.get("supported", []):

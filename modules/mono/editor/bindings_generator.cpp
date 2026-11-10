@@ -319,13 +319,7 @@ String BindingsGenerator::bbcode_to_text(const String &p_bbcode, const TypeInter
 			} else if (tag == "bool" || tag == "int") {
 				output.append(tag);
 			} else if (tag == "float") {
-				output.append(
-#ifdef REAL_T_IS_DOUBLE
-						"double"
-#else
-						"float"
-#endif
-				);
+				output.append("double");
 			} else if (tag == "Variant") {
 				output.append("'Godot.Variant'");
 			} else if (tag == "String") {
@@ -638,13 +632,7 @@ String BindingsGenerator::bbcode_to_xml(const String &p_bbcode, const TypeInterf
 				xml_output.append(tag);
 				xml_output.append("\"/>");
 			} else if (tag == "float") {
-				xml_output.append("<see cref=\""
-#ifdef REAL_T_IS_DOUBLE
-								  "double"
-#else
-								  "float"
-#endif
-								  "\"/>");
+				xml_output.append("<see cref=\"""double""\"/>");
 			} else if (tag == "Variant") {
 				xml_output.append("<see cref=\"Godot.Variant\"/>");
 			} else if (tag == "String") {

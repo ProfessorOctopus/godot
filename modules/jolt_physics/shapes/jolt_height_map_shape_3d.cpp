@@ -207,11 +207,7 @@ void JoltHeightMapShape3D::set_data(const Variant &p_data) {
 
 	const Variant maybe_heights = data.get("heights", Variant());
 
-#ifdef REAL_T_IS_DOUBLE
 	ERR_FAIL_COND(maybe_heights.get_type() != Variant::PACKED_FLOAT64_ARRAY);
-#else
-	ERR_FAIL_COND(maybe_heights.get_type() != Variant::PACKED_FLOAT32_ARRAY);
-#endif
 
 	const Variant maybe_width = data.get("width", Variant());
 	ERR_FAIL_COND(maybe_width.get_type() != Variant::INT);

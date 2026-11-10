@@ -2180,11 +2180,7 @@ void GodotHeightMapShape3D::set_data(const Variant &p_data) {
 
 	Variant heights_variant = d["heights"];
 	Vector<real_t> heights_buffer;
-#ifdef REAL_T_IS_DOUBLE
 	if (heights_variant.get_type() == Variant::PACKED_FLOAT64_ARRAY) {
-#else
-	if (heights_variant.get_type() == Variant::PACKED_FLOAT32_ARRAY) {
-#endif
 		// Ready-to-use heights can be passed.
 		heights_buffer = heights_variant;
 	} else if (heights_variant.get_type() == Variant::OBJECT) {
@@ -2203,11 +2199,7 @@ void GodotHeightMapShape3D::set_data(const Variant &p_data) {
 			w[i] = rp[i];
 		}
 	} else {
-#ifdef REAL_T_IS_DOUBLE
 		ERR_FAIL_MSG("Expected PackedFloat64Array or float Image.");
-#else
-		ERR_FAIL_MSG("Expected PackedFloat32Array or float Image.");
-#endif
 	}
 
 	// Compute min and max heights or use precomputed values.

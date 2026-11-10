@@ -131,11 +131,7 @@ bool godot_icall_Internal_GodotIs32Bits() {
 }
 
 bool godot_icall_Internal_GodotIsRealTDouble() {
-#ifdef REAL_T_IS_DOUBLE
 	return (bool)true;
-#else
-	return (bool)false;
-#endif
 }
 
 void godot_icall_Internal_GodotMainIteration() {

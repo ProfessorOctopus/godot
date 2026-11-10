@@ -1367,7 +1367,6 @@ Error encode_variant(const Variant &p_variant, uint8_t *p_buffer, int &r_len, bo
 			const Array array = p_variant;
 			_encode_container_type_header(array.get_element_type(), header, HEADER_DATA_FIELD_TYPED_ARRAY_SHIFT, p_full_objects);
 		} break;
-#ifdef REAL_T_IS_DOUBLE
 		case Variant::VECTOR2:
 		case Variant::VECTOR3:
 		case Variant::VECTOR4:
@@ -1384,7 +1383,6 @@ Error encode_variant(const Variant &p_variant, uint8_t *p_buffer, int &r_len, bo
 		case Variant::AABB: {
 			header |= HEADER_DATA_FLAG_64;
 		} break;
-#endif // REAL_T_IS_DOUBLE
 		default: {
 			// Nothing to do at this stage.
 		} break;

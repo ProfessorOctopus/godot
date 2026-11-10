@@ -1436,7 +1436,6 @@ void RendererCanvasRenderRD::occluder_polygon_set_shape(RID p_occluder, const Ve
 		if (oc->sdf_vertex_array.is_null()) {
 			//create from scratch
 			//vertices
-#ifdef REAL_T_IS_DOUBLE
 			PackedFloat32Array float_points;
 			float_points.resize(p_points.size() * 2);
 			float *float_points_ptr = (float *)float_points.ptrw();
@@ -1445,9 +1444,6 @@ void RendererCanvasRenderRD::occluder_polygon_set_shape(RID p_occluder, const Ve
 				float_points_ptr[i * 2 + 1] = p_points[i].y;
 			}
 			oc->sdf_vertex_buffer = RD::get_singleton()->vertex_buffer_create(p_points.size() * 2 * sizeof(float), float_points.span().reinterpret<uint8_t>());
-#else
-			oc->sdf_vertex_buffer = RD::get_singleton()->vertex_buffer_create(p_points.size() * 2 * sizeof(float), p_points.span().reinterpret<uint8_t>());
-#endif
 			oc->sdf_index_buffer = RD::get_singleton()->index_buffer_create(sdf_indices.size(), RD::INDEX_BUFFER_FORMAT_UINT32, sdf_indices.span().reinterpret<uint8_t>());
 			oc->sdf_index_array = RD::get_singleton()->index_array_create(oc->sdf_index_buffer, 0, sdf_indices.size());
 
@@ -1458,7 +1454,6 @@ void RendererCanvasRenderRD::occluder_polygon_set_shape(RID p_occluder, const Ve
 
 		} else {
 			//update existing
-#ifdef REAL_T_IS_DOUBLE
 			PackedFloat32Array float_points;
 			float_points.resize(p_points.size() * 2);
 			float *float_points_ptr = (float *)float_points.ptrw();
@@ -1467,9 +1462,6 @@ void RendererCanvasRenderRD::occluder_polygon_set_shape(RID p_occluder, const Ve
 				float_points_ptr[i * 2 + 1] = p_points[i].y;
 			}
 			RD::get_singleton()->buffer_update(oc->sdf_vertex_buffer, 0, sizeof(float) * 2 * p_points.size(), float_points.ptr());
-#else
-			RD::get_singleton()->buffer_update(oc->sdf_vertex_buffer, 0, sizeof(float) * 2 * p_points.size(), p_points.ptr());
-#endif
 			RD::get_singleton()->buffer_update(oc->sdf_index_buffer, 0, sdf_indices.size() * sizeof(int32_t), sdf_indices.ptr());
 		}
 	}

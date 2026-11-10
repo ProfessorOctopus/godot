@@ -372,10 +372,8 @@ struct InstanceData {
 	uvec2 area_lights;
 	uvec2 decals;
 	uvec2 padding;
-#ifdef USE_DOUBLE_PRECISION
 	vec4 model_precision;
 	vec4 prev_model_precision;
-#endif
 };
 
 layout(set = 1, binding = 1, std430) buffer restrict readonly InstanceDataBuffer {

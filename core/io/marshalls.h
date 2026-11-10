@@ -36,11 +36,7 @@
 #include "core/variant/variant.h"
 
 // uintr_t is only for pairing with real_t, and we only need it in here.
-#ifdef REAL_T_IS_DOUBLE
 typedef uint64_t uintr_t;
-#else
-typedef uint32_t uintr_t;
-#endif
 
 /**
  * Miscellaneous helpers for marshaling data types, and encoding

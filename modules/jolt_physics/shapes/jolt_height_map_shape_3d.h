@@ -35,11 +35,7 @@
 class JoltHeightMapShape3D final : public JoltShape3D {
 	AABB aabb;
 
-#ifdef REAL_T_IS_DOUBLE
 	PackedFloat64Array heights;
-#else
-	PackedFloat32Array heights;
-#endif
 
 	int width = 0;
 	int depth = 0;

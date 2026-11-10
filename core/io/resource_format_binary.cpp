@@ -2146,9 +2146,7 @@ Error ResourceFormatSaverBinaryInstance::save(const String &p_path, const Ref<Re
 	String script_class;
 	{
 		uint32_t format_flags = FORMAT_FLAG_NAMED_SCENE_IDS | FORMAT_FLAG_UIDS;
-#ifdef REAL_T_IS_DOUBLE
 		format_flags |= FORMAT_FLAG_REAL_T_IS_DOUBLE;
-#endif
 		if (!p_resource->is_class("PackedScene")) {
 			Ref<Script> s = p_resource->get_script();
 			if (s.is_valid()) {
