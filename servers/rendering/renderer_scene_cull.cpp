@@ -2173,22 +2173,20 @@ void RendererSceneCull::_update_instance_lightmap_captures(Instance *p_instance)
 	geom->geometry_instance->set_lightmap_capture(p_instance->lightmap_sh.ptr());
 }
 
-void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_index, Instance *p_instance, const Transform3D p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect) {
+void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_index, Instance *p_instance, const Transform3D p_cam_transform, const Frustum &p_cam_frustum, bool p_cam_orthogonal, bool p_cam_vaspect) {
 	// For later tight culling, the light culler needs to know the details of the directional light.
 	light_culler->prepare_directional_light_begin(p_instance, p_shadow_index);
 
 	InstanceLightData *light = static_cast<InstanceLightData *>(p_instance->base_data);
 
-	real_t max_distance = p_cam_projection.get_z_far();
+	real_t max_distance = p_cam_frustum.get_z_far();
 	real_t shadow_max = RSG::light_storage->light_get_param(p_instance->base, RSE::LIGHT_PARAM_SHADOW_MAX_DISTANCE);
 	if (shadow_max > 0 && !p_cam_orthogonal) { //its impractical (and leads to unwanted behaviors) to set max distance in orthogonal camera
 		max_distance = MIN(shadow_max, max_distance);
 	}
-	max_distance = MAX(max_distance, p_cam_projection.get_z_near() + 0.001);
-	real_t min_distance = MIN(p_cam_projection.get_z_near(), max_distance);
-
+	max_distance = MAX(max_distance, p_cam_frustum.get_z_near() + 0.001);
+	real_t min_distance = MIN(p_cam_frustum.get_z_near(), max_distance);
 	real_t pancake_size = RSG::light_storage->light_get_param(p_instance->base, RSE::LIGHT_PARAM_SHADOW_PANCAKE_SIZE);
-
 	real_t range = max_distance - min_distance;
 
 	int splits = 0;
@@ -2231,19 +2229,12 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 	for (int i = 0; i < splits; i++) {
 		RENDER_TIMESTAMP("Cull DirectionalLight3D, Split " + itos(i));
 
-		// setup a camera matrix for that range!
-		Projection camera_matrix;
+		// Setup a camera frustum for that range!
+		Frustum camera_frustum = p_cam_frustum;
+		camera_frustum.planes[Projection::PLANE_NEAR].d = -distances[(i == 0 || !overlap) ? i : i - 1];
+		camera_frustum.planes[Projection::PLANE_FAR].d = distances[i + 1];
 
-		real_t aspect = p_cam_projection.get_aspect();
-
-		if (p_cam_orthogonal) {
-			Vector2 vp_he = p_cam_projection.get_viewport_half_extents();
-
-			camera_matrix.set_orthogonal(vp_he.y * 2.0, aspect, distances[(i == 0 || !overlap) ? i : i - 1], distances[i + 1], false);
-		} else {
-			real_t fov = p_cam_projection.get_fov(); //this is actually yfov, because set aspect tries to keep it
-			camera_matrix.set_perspective(fov, aspect, distances[(i == 0 || !overlap) ? i : i - 1], distances[i + 1], true);
-		}
+		Vector<Plane> receiver_frustum_planes = camera_frustum.get_projection_planes(p_cam_transform);
 
 		Vector3 frustum_corners_local[8]; // Local space: camera offset is set to zero, but the world basis is used.
 		Vector3 frustum_centroid_local(0, 0, 0);
@@ -2251,7 +2242,7 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 		{
 			// Operate in the camera's view space where possible for maximum numerical stability, as it is 100% independent from rotation/position/scale.
 			Vector3 frustum_corners_cam_view[8];
-			bool res = camera_matrix.get_endpoints(Transform3D(), frustum_corners_cam_view); // Retrieve endpoints in identity transform.
+			bool res = camera_frustum.get_endpoints(Transform3D(), frustum_corners_cam_view); // Retrieve endpoints in identity transform.
 			ERR_CONTINUE(!res);
 
 			// Again, everything in cam view space for maximum numerical stability (yes it matters, see #72015 discussion)
@@ -2279,7 +2270,7 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 			for (int j = 0; j < 8; j++) {
 				frustum_corners_world[j] = frustum_corners_local[j] + p_cam_transform.origin;
 			}
-			Vector<Plane> receiver_frustum_planes = camera_matrix.get_projection_planes(p_cam_transform);
+			Vector<Plane> receiver_frustum_planes = camera_frustum.get_projection_planes(p_cam_transform);
 			// We need world space here, not local space.
 			light_culler->prepare_directional_light_cascade(p_shadow_index, i, receiver_frustum_planes, frustum_corners_world);
 		}
@@ -2370,7 +2361,7 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 			Vector2 light_view_fullrect_max = Vector2(texel_snapped_frustum_centroid.x, texel_snapped_frustum_centroid.y) + light_view_fullrect_size / 2;
 			Vector2 uv_scale = Vector2(1.0 / (light_view_fullrect_max.x - light_view_fullrect_min.x), 1.0 / (light_view_fullrect_max.y - light_view_fullrect_min.y));
 
-			cull.shadows[p_shadow_index].cascades[i].frustum = Frustum(light_frustum_planes);
+			cull.shadows[p_shadow_index].cascades[i].frustum = light_frustum_planes;
 			cull.shadows[p_shadow_index].cascades[i].projection = ortho_camera;
 			cull.shadows[p_shadow_index].cascades[i].transform = ortho_transform;
 			cull.shadows[p_shadow_index].cascades[i].zfar = light_view_frustum_rect_max.z - z_min_cam;
@@ -2385,7 +2376,7 @@ void RendererSceneCull::_light_instance_setup_directional_shadow(int p_shadow_in
 	}
 }
 
-bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, const Transform3D p_cam_transform, const Projection &p_cam_projection, bool p_cam_orthogonal, bool p_cam_vaspect, RID p_shadow_atlas, Scenario *p_scenario, float p_screen_mesh_lod_threshold, uint64_t p_visibility_viewport_mask, uint32_t p_visible_layers) {
+bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, const Transform3D p_cam_transform, bool p_cam_orthogonal, bool p_cam_vaspect, RID p_shadow_atlas, Scenario *p_scenario, float p_screen_mesh_lod_threshold, uint64_t p_visibility_viewport_mask, uint32_t p_visible_layers) {
 #define LIGHT_VIS_RANGE_CHECK ((instance->array_index == -1) || (p_scenario->instance_data[instance->array_index].visibility_index == -1) || _visibility_range_check<false>(p_scenario->instance_visibility[p_scenario->instance_data[instance->array_index].visibility_index], p_cam_transform.origin, p_visibility_viewport_mask) == 0)
 	InstanceLightData *light = static_cast<InstanceLightData *>(p_instance->base_data);
 
@@ -2478,7 +2469,9 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 				real_t radius = RSG::light_storage->light_get_param(p_instance->base, RSE::LIGHT_PARAM_RANGE);
 				real_t z_near = MIN(0.025f, radius);
 				Projection cm;
+				Frustum fm;
 				cm.set_perspective(90, 1, z_near, radius);
+				fm.set_perspective(90, 1, z_near, radius);
 
 				for (int i = 0; i < 6; i++) {
 					RENDER_TIMESTAMP("Cull OmniLight3D Shadow Cube, Side " + itos(i));
@@ -2503,7 +2496,7 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 
 					Transform3D xform = light_transform * Transform3D().looking_at(view_normals[i], view_up[i]);
 
-					Vector<Plane> planes = cm.get_projection_planes(xform);
+					Vector<Plane> planes = fm.get_projection_planes(xform);
 
 					instance_shadow_cull_result.clear();
 
@@ -2569,9 +2562,11 @@ bool RendererSceneCull::_light_instance_update_shadow(Instance *p_instance, cons
 			real_t z_near = MIN(0.025f, radius);
 
 			Projection cm;
+			Frustum fm;
 			cm.set_perspective(angle * 2.0, 1.0, z_near, radius);
+			fm.set_perspective(angle * 2.0, 1.0, z_near, radius);
 
-			Vector<Plane> planes = cm.get_projection_planes(light_transform);
+			Vector<Plane> planes = fm.get_projection_planes(light_transform);
 
 			instance_shadow_cull_result.clear();
 
@@ -2725,6 +2720,7 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 	// Setup Camera(s)
 	// Normal camera
 	Transform3D transform = camera->transform;
+	Frustum frustum;
 	bool vaspect = camera->vaspect;
 	bool is_orthogonal = false;
 
@@ -2737,6 +2733,16 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 					camera->znear,
 					camera->zfar,
 					camera->vaspect);
+
+			// The frustum must be initialized from the camera settings too (not from planes extracted
+			// from the projection matrix) to avoid numerical precision issues with large zfar.
+			frustum.set_orthogonal(
+					camera->size,
+					p_viewport_size.width / (float)p_viewport_size.height,
+					camera->znear,
+					camera->zfar,
+					camera->vaspect);
+
 			is_orthogonal = true;
 
 			camera->offsets.resize(1);
@@ -2747,6 +2753,15 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 		case Camera::PERSPECTIVE: {
 			Projection projection;
 			projection.set_perspective(
+					camera->fov,
+					p_viewport_size.width / (float)p_viewport_size.height,
+					camera->znear,
+					camera->zfar,
+					camera->vaspect);
+
+			// The frustum must be initialized from the camera settings too (not from planes extracted
+			// from the projection matrix) to avoid numerical precision issues with large zfar.
+			frustum.set_perspective(
 					camera->fov,
 					p_viewport_size.width / (float)p_viewport_size.height,
 					camera->znear,
@@ -2768,6 +2783,16 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 					camera->zfar,
 					camera->vaspect);
 
+			// The frustum must be initialized from the camera settings too (not from planes extracted
+			// from the projection matrix) to avoid numerical precision issues with large zfar.
+			frustum.set_frustum(
+					camera->size,
+					p_viewport_size.width / (float)p_viewport_size.height,
+					camera->offset,
+					camera->znear,
+					camera->zfar,
+					camera->vaspect);
+
 			camera->offsets.resize(1);
 			camera->offsets[0] = Transform3D();
 			camera->projections.resize(1);
@@ -2782,7 +2807,7 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 	}
 
 	if (camera->projections.size() == 1) {
-		camera_data.set_camera(transform * camera->offsets[0], camera->projections[0], is_orthogonal, vaspect, jitter, taa_frame_count, camera->visible_layers);
+		camera_data.set_camera(transform * camera->offsets[0], camera->projections[0], frustum, is_orthogonal, vaspect, jitter, taa_frame_count, camera->visible_layers);
 	} else if (camera->projections.size() == 2) {
 		camera_data.set_multiview_camera(transform, camera->offsets, camera->projections, is_orthogonal, vaspect, camera->visible_layers);
 	} else {
@@ -2795,7 +2820,7 @@ void RendererSceneCull::render_camera(const Ref<RenderSceneBuffers> &p_render_bu
 	RENDER_TIMESTAMP("Update Occlusion Buffer")
 
 	// For now just cull on the first camera
-	RendererSceneOcclusionCull::get_singleton()->buffer_update(p_viewport, camera_data.main_transform, camera_data.main_projection, camera_data.is_orthogonal);
+	RendererSceneOcclusionCull::get_singleton()->buffer_update(p_viewport, camera_data.main_transform, camera_data.main_frustum, camera_data.is_orthogonal);
 
 	_render_scene(&camera_data, p_render_buffers, environment, camera->attributes, compositor, camera->visible_layers, p_scenario, p_viewport, p_shadow_atlas, RID(), -1, p_screen_mesh_lod_threshold, p_window_output_max_value, true, r_render_info);
 #endif
@@ -3328,7 +3353,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 	Instance *render_reflection_probe = instance_owner.get_or_null(p_reflection_probe); //if null, not rendering to it
 
 	// Prepare the light - camera volume culling system.
-	light_culler->prepare_camera(p_camera_data->main_transform, p_camera_data->main_projection);
+	light_culler->prepare_camera(p_camera_data->main_transform, p_camera_data->main_frustum, p_camera_data->is_orthogonal);
 
 	Scenario *scenario = scenario_owner.get_or_null(p_scenario);
 	Vector3 camera_position = p_camera_data->main_transform.origin;
@@ -3376,8 +3401,8 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 	RENDER_TIMESTAMP("Cull 3D Scene");
 
 	/* STEP 2 - CULL */
-	Vector<Plane> planes = p_camera_data->main_projection.get_projection_planes(p_camera_data->main_transform);
-	cull.frustum = Frustum(planes);
+	Vector<Plane> planes = p_camera_data->main_frustum.get_projection_planes(p_camera_data->main_transform);
+	cull.frustum = FrustumSign(planes);
 	directional_light_instances.clear();
 	lights_with_shadow.clear();
 	// directional lights
@@ -3412,7 +3437,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 		RSG::light_storage->set_directional_shadow_count(lights_with_shadow.size());
 
 		for (int i = 0; i < lights_with_shadow.size(); i++) {
-			_light_instance_setup_directional_shadow(i, lights_with_shadow[i], p_camera_data->main_transform, p_camera_data->main_projection, p_camera_data->is_orthogonal, p_camera_data->vaspect);
+			_light_instance_setup_directional_shadow(i, lights_with_shadow[i], p_camera_data->main_transform, p_camera_data->main_frustum, p_camera_data->is_orthogonal, p_camera_data->vaspect);
 		}
 	}
 
@@ -3539,11 +3564,11 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 			{ //compute coverage
 
 				Transform3D cam_xf = p_camera_data->main_transform;
-				float zn = p_camera_data->main_projection.get_z_near();
+				float zn = p_camera_data->main_frustum.get_z_near();
 				Plane p(-cam_xf.basis.get_column(2), cam_xf.origin + cam_xf.basis.get_column(2) * -zn); //camera near plane
 
 				// near plane half width and height
-				Vector2 vp_half_extents = p_camera_data->main_projection.get_viewport_half_extents();
+				Vector2 vp_half_extents = p_camera_data->main_frustum.get_viewport_half_extents();
 
 				switch (RSG::light_storage->light_get_type(ins->base)) {
 					case RSE::LIGHT_OMNI: {
@@ -3660,7 +3685,7 @@ void RendererSceneCull::_render_scene(const RendererSceneRender::CameraData *p_c
 			if (redraw && max_shadows_used < MAX_UPDATE_SHADOWS) {
 				//must redraw!
 				RENDER_TIMESTAMP("> Render Light3D " + itos(i));
-				if (_light_instance_update_shadow(ins, p_camera_data->main_transform, p_camera_data->main_projection, p_camera_data->is_orthogonal, p_camera_data->vaspect, p_shadow_atlas, scenario, p_screen_mesh_lod_threshold, visibility_viewport_mask, p_visible_layers)) {
+				if (_light_instance_update_shadow(ins, p_camera_data->main_transform, p_camera_data->is_orthogonal, p_camera_data->vaspect, p_shadow_atlas, scenario, p_screen_mesh_lod_threshold, visibility_viewport_mask, p_visible_layers)) {
 					light->make_shadow_dirty();
 				}
 				RENDER_TIMESTAMP("< Render Light3D " + itos(i));
@@ -3794,7 +3819,7 @@ void RendererSceneCull::render_empty_scene(const Ref<RenderSceneBuffers> &p_rend
 	RENDER_TIMESTAMP("Render Empty 3D Scene");
 
 	RendererSceneRender::CameraData camera_data;
-	camera_data.set_camera(Transform3D(), Projection(), true, false);
+	camera_data.set_camera(Transform3D(), Projection(), Frustum(), true, false);
 
 	scene_render->render_scene(p_render_buffers, &camera_data, &camera_data, PagedArray<RenderGeometryInstance *>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), PagedArray<RID>(), environment, RID(), compositor, p_shadow_atlas, RID(), scenario->reflection_atlas, RID(), 0, 0, nullptr, 0, nullptr, 0, p_window_output_max_value, nullptr);
 #endif
@@ -3853,14 +3878,16 @@ bool RendererSceneCull::_render_reflection_probe_step(Instance *p_instance, int 
 
 			// Render cubemap side.
 			Projection cm;
+			Frustum fm;
 			cm.set_perspective(90, 1, 0.01, max_distance);
+			fm.set_perspective(90, 1, 0.01, max_distance);
 
 			Transform3D local_view;
 			local_view.set_look_at(origin_offset, origin_offset + view_normals[face], view_up[face]);
 
 			RendererSceneRender::CameraData camera_data;
 			Transform3D xform = p_instance->transform * local_view;
-			camera_data.set_camera(xform, cm, false, false);
+			camera_data.set_camera(xform, cm, fm, false, false);
 
 			RENDER_TIMESTAMP("Render ReflectionProbe, Face " + itos(face));
 			_render_scene(&camera_data, render_buffers, environment, RID(), RID(), RSG::light_storage->reflection_probe_get_cull_mask(p_instance->base), p_instance->scenario->self, RID(), shadow_atlas, reflection_probe->instance, face, mesh_lod_threshold, use_shadows);

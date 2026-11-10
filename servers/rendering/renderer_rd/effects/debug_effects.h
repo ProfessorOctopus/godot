@@ -34,8 +34,9 @@
 #include "servers/rendering/renderer_rd/shaders/effects/motion_vectors.glsl.gen.h"
 #include "servers/rendering/renderer_rd/shaders/effects/shadow_frustum.glsl.gen.h"
 
-namespace RendererRD {
+struct Frustum;
 
+namespace RendererRD {
 class DebugEffects {
 private:
 	struct {
@@ -83,12 +84,11 @@ private:
 
 	void _create_frustum_arrays();
 
-protected:
 public:
 	DebugEffects();
 	~DebugEffects();
 
-	void draw_shadow_frustum(RID p_light, const Projection &p_cam_projection, const Transform3D &p_cam_transform, RID p_dest_fb, const Rect2 p_rect);
+	void draw_shadow_frustum(RID p_light, const Frustum &p_cam_frustum, bool p_cam_is_orthogonal, const Transform3D &p_cam_transform, RID p_dest_fb, const Rect2 p_rect);
 	void draw_motion_vectors(RID p_velocity, RID p_depth, RID p_dest_fb, const Projection &p_current_projection, const Transform3D &p_current_transform, const Projection &p_previous_projection, const Transform3D &p_previous_transform, Size2i p_resolution);
 };
 

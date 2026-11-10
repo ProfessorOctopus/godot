@@ -65,6 +65,7 @@ protected:
 	static void _bind_methods();
 
 public:
+	virtual Plane get_cam_frustum_plane(Projection::Planes p_plane) const override;
 	virtual Transform3D get_cam_transform() const override;
 	virtual Projection get_cam_projection() const override;
 
@@ -74,9 +75,9 @@ public:
 
 	virtual RID get_uniform_buffer() const override;
 
+	GDVIRTUAL1RC(Plane, _get_cam_frustum_plane, uint32_t)
 	GDVIRTUAL0RC(Transform3D, _get_cam_transform)
 	GDVIRTUAL0RC(Projection, _get_cam_projection)
-
 	GDVIRTUAL0RC(uint32_t, _get_view_count)
 	GDVIRTUAL1RC(Vector3, _get_view_eye_offset, uint32_t)
 	GDVIRTUAL1RC(Projection, _get_view_projection, uint32_t)
