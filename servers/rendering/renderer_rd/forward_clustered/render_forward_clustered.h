@@ -84,7 +84,7 @@ class RenderForwardClustered : public RendererSceneRenderRD {
 	};
 
 	/* Scene Shader */
-
+	bool single_pass_directional_shadows = true;
 	SceneShaderForwardClustered scene_shader;
 
 public:
