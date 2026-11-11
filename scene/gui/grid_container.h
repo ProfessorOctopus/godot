@@ -42,6 +42,8 @@ class GridContainer : public Container {
 		int v_separation = 0;
 	} theme_cache;
 
+	Vector<Control *> cached_children_nodes;
+
 private:
 	void _resort();
 	Size2 _get_minimum_size(bool p_use_desired_sizes) const;

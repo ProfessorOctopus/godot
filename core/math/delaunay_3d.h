@@ -125,11 +125,9 @@ class Delaunay3D {
 		R128 row1_x = v1_x - v0_x;
 		R128 row1_y = v1_y - v0_y;
 		R128 row1_z = v1_z - v0_z;
-
 		R128 row2_x = v2_x - v0_x;
 		R128 row2_y = v2_y - v0_y;
 		R128 row2_z = v2_z - v0_z;
-
 		R128 row3_x = v3_x - v0_x;
 		R128 row3_y = v3_y - v0_y;
 		R128 row3_z = v3_z - v0_z;
@@ -166,11 +164,9 @@ class Delaunay3D {
 		R128 v_x = p_points[p_vertex].x;
 		R128 v_y = p_points[p_vertex].y;
 		R128 v_z = p_points[p_vertex].z;
-
 		R128 rel2_x = p_simplex.circum_center_x - v_x;
 		R128 rel2_y = p_simplex.circum_center_y - v_y;
 		R128 rel2_z = p_simplex.circum_center_z - v_z;
-
 		R128 radius2 = rel2_x * rel2_x + rel2_y * rel2_y + rel2_z * rel2_z;
 
 		return radius2 < (p_simplex.circum_r2 - R128(0.0000000001));
@@ -190,7 +186,6 @@ class Delaunay3D {
 				return true;
 			}
 		}
-
 		return false;
 	}
 
@@ -226,7 +221,7 @@ public:
 				points[i] = Vector3(Vector3i((src_points[i] - rect.position) / longest_axis * QUANTIZATION_MAX)) / QUANTIZATION_MAX;
 			}
 
-			const real_t delta_max = Math::sqrt(2.0) * 100.0;
+			const real_t delta_max = Math::SQRT2 * 100.0;
 			Vector3 center = Vector3(0.5, 0.5, 0.5);
 
 			// The larger the root simplex is, the more likely it is that the
@@ -257,12 +252,12 @@ public:
 					}
 				}
 			}
-
 			circum_sphere_compute(points, root);
 		}
 
 		AHashMap<Triangle, uint32_t, TriangleHasher> triangles_inserted;
 		LocalVector<Triangle> triangles;
+		const Vector3 scale = proportions * ACCEL_GRID_SIZE;
 
 		for (uint32_t i = 0; i < point_count; i++) {
 			bool unique = true;
@@ -276,7 +271,7 @@ public:
 				continue;
 			}
 
-			Vector3i grid_pos = Vector3i(points[i] * proportions * ACCEL_GRID_SIZE);
+			Vector3i grid_pos = Vector3i(points[i] * scale);
 			grid_pos = grid_pos.clampi(0, ACCEL_GRID_SIZE - 1);
 
 			for (List<Simplex *>::Element *E = acceleration_grid[grid_pos.x][grid_pos.y][grid_pos.z].front(); E;) {
@@ -332,8 +327,8 @@ public:
 
 					const real_t radius2 = Math::sqrt(double(new_simplex->circum_r2)) + 0.0001;
 					Vector3 extents = Vector3(radius2, radius2, radius2);
-					Vector3i from = Vector3i((center - extents) * proportions * ACCEL_GRID_SIZE);
-					Vector3i to = Vector3i((center + extents) * proportions * ACCEL_GRID_SIZE);
+					Vector3i from = Vector3i((center - extents) * scale);
+					Vector3i to = Vector3i((center + extents) * scale);
 					from = from.clampi(0, ACCEL_GRID_SIZE - 1);
 					to = to.clampi(0, ACCEL_GRID_SIZE - 1);
 
@@ -349,12 +344,10 @@ public:
 					}
 				}
 			}
-
 			triangles.clear();
 			triangles_inserted.clear();
 		}
 
-		//print_line("end with simplices: " + itos(simplex_list.size()));
 		Vector<OutputSimplex> ret_simplices;
 		ret_simplices.resize(simplex_list.size());
 		OutputSimplex *ret_simplicesw = ret_simplices.ptrw();
@@ -372,7 +365,6 @@ public:
 				memdelete(simplex);
 				continue;
 			}
-
 			ret_simplicesw[simplices_written].points[0] = simplex->points[0];
 			ret_simplicesw[simplices_written].points[1] = simplex->points[1];
 			ret_simplicesw[simplices_written].points[2] = simplex->points[2];
@@ -380,9 +372,7 @@ public:
 			simplices_written++;
 			memdelete(simplex);
 		}
-
 		ret_simplices.resize(simplices_written);
-
 		memfree(points);
 
 		return ret_simplices;

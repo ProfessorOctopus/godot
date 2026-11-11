@@ -42,24 +42,20 @@
 #include "core/math/bvh_abb.h"
 #include "core/math/vector3.h"
 #include "core/templates/local_vector.h"
+#include "core/templates/pair.h"
 #include "core/templates/pooled_list.h"
+
+// never do these checks in release
+#ifdef DEV_ENABLED
+#ifdef BVH_VERBOSE
+#include "core/string/print_string.h"
+#endif
+#endif
 
 #define BVHABB_CLASS BVH_ABB<BOUNDS, POINT>
 
 // not sure if this is better yet so making optional
 #define BVH_EXPAND_LEAF_AABBS
-
-// never do these checks in release
-#ifdef DEV_ENABLED
-//#define BVH_VERBOSE
-//#define BVH_VERBOSE_TREE
-//#define BVH_VERBOSE_PAIRING
-//#define BVH_VERBOSE_MOVES
-
-//#define BVH_VERBOSE_FRAME
-//#define BVH_CHECKS
-//#define BVH_INTEGRITY_CHECKS
-#endif
 
 // debug only assert
 #ifdef BVH_CHECKS
