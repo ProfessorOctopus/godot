@@ -1049,13 +1049,6 @@ void EditorNode::_notification(int p_what) {
 			// using `touch project.godot`.
 			if (!cmdline_mode) {
 				const String project_settings_path = ProjectSettings::get_singleton()->get_resource_path().path_join("project.godot");
-				// Check the file's size in bytes as an optimization. If it's under 10 bytes, the file is assumed to be empty.
-				if (FileAccess::get_size(project_settings_path) < 10) {
-					const HashMap<String, Variant> initial_settings = get_initial_settings();
-					for (const KeyValue<String, Variant> &initial_setting : initial_settings) {
-						ProjectSettings::get_singleton()->set_setting(initial_setting.key, initial_setting.value);
-					}
-				}
 				ProjectSettings::get_singleton()->save();
 			}
 
@@ -1095,10 +1088,6 @@ void EditorNode::_notification(int p_what) {
 			if (EDITOR_GET("interface/editor/behavior/save_on_focus_loss")) {
 				_save_scene_silently();
 			}
-		} break;
-
-		case NOTIFICATION_WM_ABOUT: {
-			show_about();
 		} break;
 
 		case NOTIFICATION_WM_CLOSE_REQUEST: {
@@ -8183,24 +8172,6 @@ void EditorNode::open_setting_override(const String &p_property) {
 
 void EditorNode::notify_settings_overrides_changed() {
 	settings_overrides_changed = true;
-}
-
-// Returns the list of project settings to add to new projects. This is used by the
-// project manager creation dialog, but also applies to empty `project.godot` files
-// to cover the command line workflow of creating projects using `touch project.godot`.
-//
-// This is used to set better defaults for new projects without affecting existing projects.
-// Keep the list alphabetically sorted.
-HashMap<String, Variant> EditorNode::get_initial_settings() {
-	HashMap<String, Variant> settings;
-	settings["display/window/stretch/aspect"] = "expand";
-	settings["display/window/stretch/mode"] = "canvas_items";
-	settings["gui/common/auto_focus_strategy"] = Control::AutoFocusStrategy::STRATEGY_BALLOON;
-	settings["input_devices/joypads/ignore_joypad_on_unfocused_application"] = true;
-	settings["physics/3d/physics_engine"] = PhysicsServer3DManager::JOLT_PHYSICS_NAME;
-	settings["rendering/rendering_device/driver.windows"] = "d3d12";
-	settings["rendering/lights_and_shadows/multi_bounce_occlusion/enabled"] = true;
-	return settings;
 }
 
 EditorNode::EditorNode() {

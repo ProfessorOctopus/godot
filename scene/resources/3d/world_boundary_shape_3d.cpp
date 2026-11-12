@@ -63,7 +63,10 @@ Vector<Vector3> WorldBoundaryShape3D::get_debug_mesh_lines() const {
 	return points;
 }
 
-Ref<ArrayMesh> WorldBoundaryShape3D::get_debug_arraymesh_faces(const Color &p_modulate) const {
+Ref<ArrayMesh> WorldBoundaryShape3D::get_debug_arraymesh_faces(const Color &p_modulate) {
+	if (debug_mesh_faces_cache.is_valid()) {
+		return debug_mesh_faces_cache;
+	}
 	Plane p = get_plane();
 
 	Vector3 n1 = p.get_any_perpendicular_normal();
@@ -106,6 +109,7 @@ Ref<ArrayMesh> WorldBoundaryShape3D::get_debug_arraymesh_faces(const Color &p_mo
 	a[RSE::ARRAY_COLOR] = colors;
 	a[RSE::ARRAY_INDEX] = indices;
 	mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, a);
+	debug_mesh_faces_cache = mesh;
 
 	return mesh;
 }

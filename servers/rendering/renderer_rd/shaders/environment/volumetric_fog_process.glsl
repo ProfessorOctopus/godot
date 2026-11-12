@@ -246,7 +246,8 @@ float get_omni_attenuation(float dist, float inv_range, float decay) {
 	nd *= nd; // nd^4
 	nd = max(1.0 - nd, 0.0);
 	nd *= nd; // nd^2
-	return nd * pow(max(dist, 0.0001), -decay);
+	float attenuation = nd * pow(max(dist, 0.0001), -decay);
+	return min(attenuation, 1.0);
 }
 
 void cluster_get_item_range(uint p_offset, out uint item_min, out uint item_max, out uint item_from, out uint item_to) {
@@ -383,7 +384,7 @@ void main() {
 #else
 	uint scattering_u = imageLoad(light_only_map, pos).x;
 #endif
-	vec3 scattering = vec3(scattering_u >> 21, (scattering_u << 11) >> 21, scattering_u % 1024) / vec3(2047.0, 2047.0, 1023.0);
+	vec3 scattering = vec3(scattering_u >> 20, (scattering_u << 12) >> 22, scattering_u % 1024) / vec3(1023.0, 1023.0, 1023.0);
 	scattering += params.base_scattering * params.base_density;
 
 #ifdef NO_IMAGE_ATOMICS
@@ -391,7 +392,7 @@ void main() {
 #else
 	uint emission_u = imageLoad(emissive_only_map, pos).x;
 #endif
-	vec3 emission = vec3(emission_u >> 21, (emission_u << 11) >> 21, emission_u % 1024) / vec3(511.0, 511.0, 255.0);
+	vec3 emission = vec3(emission_u >> 20, (emission_u << 12) >> 22, emission_u % 1024) / vec3(255.0, 255.0, 255.0);
 	emission += params.base_emission * params.base_density;
 
 	float cell_depth_size = abs(view_pos.z - get_depth_at_pos(fog_cell_size.z, pos.z + 1));

@@ -771,8 +771,6 @@ public:
 
 	static bool is_cmdline_mode();
 
-	static HashMap<String, Variant> get_initial_settings();
-
 	static void cleanup();
 
 	Ref<Texture2D> get_editor_theme_native_menu_icon(const StringName &p_name, bool p_global_menu, bool p_dark_mode) const;

@@ -189,7 +189,7 @@ void EditorLog::_save_state() {
 	for (const KeyValue<MessageType, LogFilter *> &E : type_filter_map) {
 		EditorSettings::get_singleton()->set_setting("_editor_log_filter_" + itos(E.key), E.value->is_active());
 	}
-	EditorSettings::get_singleton()->set_setting("_editor_log_collapse", collapse);
+	EditorSettings::get_singleton()->set_setting("_editor_log_collapse", true);
 	EditorSettings::save();
 }
 
@@ -199,7 +199,7 @@ void EditorLog::_load_state() {
 	for (const KeyValue<MessageType, LogFilter *> &E : type_filter_map) {
 		E.value->set_active(EDITOR_DEF("_editor_log_filter_" + itos(E.key), true));
 	}
-	collapse_button->set_pressed(EDITOR_DEF("_editor_log_collapse", false));
+	collapse_button->set_pressed(EDITOR_DEF("_editor_log_collapse", true));
 
 	is_loading_state = false;
 }

@@ -53,6 +53,9 @@ class Shape3D : public Resource {
 #endif // DEBUG_ENABLED
 
 protected:
+
+	Ref<ArrayMesh> debug_mesh_faces_cache;
+
 	static void _bind_methods();
 	void _validate_property(PropertyInfo &p_property) const;
 
@@ -63,10 +66,10 @@ protected:
 
 public:
 	virtual RID get_rid() const override { return shape; }
-
+	bool is_debug_mesh_faces_cache_valid() const { return debug_mesh_faces_cache.is_valid(); }
 	Ref<ArrayMesh> get_debug_mesh();
-	virtual Vector<Vector3> get_debug_mesh_lines() const = 0; // { return Vector<Vector3>(); }
-	virtual Ref<ArrayMesh> get_debug_arraymesh_faces(const Color &p_modulate) const = 0;
+	virtual Vector<Vector3> get_debug_mesh_lines() const = 0;
+	virtual Ref<ArrayMesh> get_debug_arraymesh_faces(const Color &p_modulate) = 0;
 	/// Returns the radius of a sphere that fully enclose this shape
 	virtual real_t get_enclosing_radius() const = 0;
 

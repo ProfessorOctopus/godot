@@ -137,10 +137,6 @@ void ProjectManager::_notification(int p_what) {
 			_dim_window();
 		} break;
 
-		case NOTIFICATION_WM_ABOUT: {
-			_show_about();
-		} break;
-
 		case EditorSettings::NOTIFICATION_EDITOR_SETTINGS_CHANGED: {
 			if (EditorThemeManager::is_generated_theme_outdated()) {
 				_update_theme();

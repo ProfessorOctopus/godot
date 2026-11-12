@@ -1606,7 +1606,7 @@ TypedArray<Image> RendererSceneRenderRD::bake_render_uv2(RID p_base, const Typed
 	tf.format = RD::DATA_FORMAT_R16G16B16A16_SFLOAT;
 	RID emission_tex = RD::get_singleton()->texture_create(tf, RD::TextureView());
 
-	tf.format = RD::DATA_FORMAT_R32_SFLOAT;
+	tf.format = RD::DATA_FORMAT_R16_SFLOAT;
 	RID depth_write_tex = RD::get_singleton()->texture_create(tf, RD::TextureView());
 
 	tf.usage_bits = RD::TEXTURE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | RD::TEXTURE_USAGE_CAN_COPY_FROM_BIT;
