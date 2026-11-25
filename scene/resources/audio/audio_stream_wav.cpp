@@ -29,7 +29,6 @@
 /**************************************************************************/
 
 #include "audio_stream_wav.h"
-
 #include "core/io/file_access_memory.h"
 #include "core/io/marshalls.h"
 #include "core/object/class_db.h"
@@ -165,8 +164,6 @@ void AudioStreamPlaybackWAV::decode_samples(const Depth *p_src, AudioFrame *p_ds
 						p_ima_adpcm[i].loop_step_index = p_ima_adpcm[i].step_index;
 						p_ima_adpcm[i].loop_predictor = p_ima_adpcm[i].predictor;
 					}
-
-					//printf("%i - %i - pred %i\n",int(p_ima_adpcm[i].last_nibble),int(nibble),int(p_ima_adpcm[i].predictor));
 				}
 			}
 
@@ -428,8 +425,6 @@ void AudioStreamPlaybackWAV::set_sample_playback(const Ref<AudioSamplePlayback> 
 	}
 }
 
-/////////////////////
-
 void AudioStreamWAV::set_format(Format p_format) {
 	format = p_format;
 }
@@ -682,7 +677,6 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 	}
 
 	/* CHECK WAVE */
-
 	char wave[5];
 	wave[4] = 0;
 	file->get_buffer((uint8_t *)&wave, 4); //WAVE
@@ -702,6 +696,7 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 	uint16_t compression_code = 1;
 	bool format_found = false;
 	bool data_found = false;
+	bool smpl_parsed = false; // We can only parse smpl loop points once (more not supported)
 	uint32_t format_freq = 0;
 	int64_t loop_begin = 0;
 	int64_t loop_end = 0;
@@ -721,13 +716,11 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 		uint32_t file_pos = file->get_position(); //save file pos, so we can skip to next chunk safely
 
 		if (file->eof_reached()) {
-			//ERR_PRINT("EOF REACH");
 			break;
 		}
 
 		if (chunk_id[0] == 'f' && chunk_id[1] == 'm' && chunk_id[2] == 't' && chunk_id[3] == ' ' && !format_found) {
 			/* IS FORMAT CHUNK */
-
 			//Issue: #7755 : Not a bug - usage of other formats (format codes) are unsupported in current importer version.
 			//Consider revision for engine version 3.0
 			compression_code = file->get_16();
@@ -829,43 +822,72 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 					}
 				}
 			}
-
-			// This is commented out due to some weird edge case seemingly in FileAccessMemory, doesn't seem to have any side effects though.
-			// if (file->eof_reached()) {
-			// 	ERR_FAIL_V_MSG(Ref<AudioStreamWAV>(), "Premature end of file.");
-			// }
 		}
 
-		if (import_loop_mode == 0 && chunk_id[0] == 's' && chunk_id[1] == 'm' && chunk_id[2] == 'p' && chunk_id[3] == 'l') {
-			// Loop point info!
+		if (import_loop_mode == 0 && !smpl_parsed && chunk_id[0] == 's' && chunk_id[1] == 'm' && chunk_id[2] == 'p' && chunk_id[3] == 'l') {
+			// SMPL chunk: loop point info
+			// See https://www.recordingblogs.com/wiki/sample-chunk-of-a-wave-file
+			// And https://mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Docs/RIFFNEW.pdf
+			// Especially on page 16 - 18
+			smpl_parsed = true;
 
-			/**
-			 *	Consider exploring next document:
-			 *		http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/Docs/RIFFNEW.pdf
-			 *	Especially on page:
-			 *		16 - 17
-			 *	Timestamp:
-			 *		22:38 06.07.2017 GMT
-			 **/
+			constexpr uint32_t SMPL_HEADER_SIZE = 9 * sizeof(uint32_t);
+			constexpr uint32_t SMPL_LOOP_SIZE = 6 * sizeof(uint32_t);
+			const uint64_t chunk_end = MIN((uint64_t)file_pos + chunksize, file_size);
 
-			for (int i = 0; i < 10; i++) {
-				file->get_32(); // i wish to know why should i do this... no doc!
-			}
+			if (chunksize < SMPL_HEADER_SIZE || (uint64_t)file_pos + SMPL_HEADER_SIZE > chunk_end) {
+				WARN_PRINT("Malformed 'smpl' chunk: invalid header size. Ignoring loop points.");
+			} else {
+				file->get_32(); // dwManufacturer
+				file->get_32(); // dwProduct
+				file->get_32(); // dwSamplePeriod (ns)
+				file->get_32(); // dwMIDIUnityNote
+				file->get_32(); // dwMIDIPitchFraction
+				file->get_32(); // dwSMPTEFormat
+				file->get_32(); // dwSMPTEOffset
+				const uint32_t stated_loop_count = file->get_32();
+				file->get_32(); // cbSamplerData
 
-			// only read 0x00 (loop forward), 0x01 (loop ping-pong) and 0x02 (loop backward)
-			// Skip anything else because it's not supported, reserved for future uses or sampler specific
-			// from https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl (loop type values table)
-			uint32_t loop_type = file->get_32();
-			if (loop_type == 0x00 || loop_type == 0x01 || loop_type == 0x02) {
-				if (loop_type == 0x00) {
-					loop_mode = AudioStreamWAV::LOOP_FORWARD;
-				} else if (loop_type == 0x01) {
-					loop_mode = AudioStreamWAV::LOOP_PINGPONG;
-				} else if (loop_type == 0x02) {
-					loop_mode = AudioStreamWAV::LOOP_BACKWARD;
+				const uint64_t remaining = chunk_end - file->get_position();
+				const uint64_t available_loop_count = remaining / SMPL_LOOP_SIZE;
+
+				if (stated_loop_count > available_loop_count) {
+					WARN_PRINT("Malformed 'smpl' chunk: sample loop count exceeds chunk size. Reading available loops.");
 				}
-				loop_begin = file->get_32();
-				loop_end = file->get_32();
+
+				const uint64_t loop_count = MIN((uint64_t)stated_loop_count, available_loop_count);
+
+				// Godot currently only supports a single loop, so we only use the first record.
+				if (loop_count > 0) {
+					file->get_32(); // dwIdentifier
+					const uint32_t loop_type = file->get_32();
+					const uint32_t loop_start_value = file->get_32();
+					const uint32_t loop_end_value = file->get_32(); // dwEnd (inclusive)
+					file->get_32(); // dwFraction
+					file->get_32(); // dwPlayCount
+
+					// only read 0x00 (loop forward), 0x01 (loop ping-pong) and 0x02 (loop backward)
+					// Skip anything else because it's not supported, reserved for future uses or sampler specific
+					switch (loop_type) {
+						case 0x00:
+							loop_mode = AudioStreamWAV::LOOP_FORWARD;
+							break;
+						case 0x01:
+							loop_mode = AudioStreamWAV::LOOP_PINGPONG;
+							break;
+						case 0x02:
+							loop_mode = AudioStreamWAV::LOOP_BACKWARD;
+							break;
+						default:
+							WARN_PRINT_ONCE("Unsupported loop type in 'smpl' chunk. Ignoring loop points.");
+							break;
+					}
+
+					if (loop_mode != AudioStreamWAV::LOOP_DISABLED) {
+						loop_begin = loop_start_value;
+						loop_end = loop_end_value;
+					}
+				}
 			}
 		}
 
@@ -910,10 +932,27 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 				}
 			}
 		}
-
 		// Move to the start of the next chunk. Note that RIFF requires a padding byte for odd
 		// chunk sizes.
 		file->seek(file_pos + chunksize + (chunksize & 1));
+	}
+
+	// Loop points from file are in sample frames
+	// Making sure these represent a valid range
+	if (loop_mode != AudioStreamWAV::LOOP_DISABLED) {
+		const int64_t max_frame = MAX((int64_t)0, frames - 1);
+		const int64_t clamped_begin = CLAMP(loop_begin, (int64_t)0, max_frame);
+		const int64_t clamped_end = CLAMP(loop_end, (int64_t)0, max_frame);
+
+		if (clamped_end <= clamped_begin) {
+			WARN_PRINT("Invalid loop points in WAV file. Disabling loop.");
+			loop_mode = AudioStreamWAV::LOOP_DISABLED;
+			loop_begin = 0;
+			loop_end = 0;
+		} else {
+			loop_begin = clamped_begin;
+			loop_end = clamped_end;
+		}
 	}
 
 	// STEP 2, APPLY CONVERSIONS
@@ -921,19 +960,7 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 	bool is16 = format_bits != 8;
 	uint32_t rate = format_freq;
 
-	/*
-	print_line("Input Sample: ");
-	print_line("\tframes: " + itos(frames));
-	print_line("\tformat_channels: " + itos(format_channels));
-	print_line("\t16bits: " + itos(is16));
-	print_line("\trate: " + itos(rate));
-	print_line("\tloop: " + itos(loop));
-	print_line("\tloop begin: " + itos(loop_begin));
-	print_line("\tloop end: " + itos(loop_end));
-	*/
-
 	//apply frequency limit
-
 	bool limit_rate = p_options.get("force/max_rate", false);
 	uint32_t limit_rate_hz = p_options.get("force/max_rate_hz", 0);
 	if (limit_rate && rate > limit_rate_hz && rate > 0 && frames > 0) {
@@ -962,7 +989,6 @@ Ref<AudioStreamWAV> AudioStreamWAV::load_from_buffer(const Vector<uint8_t> &p_st
 
 				// update position and always keep fractional part within ]0...1]
 				// in order to avoid 32bit floating point precision errors
-
 				frac += (float)rate / (float)limit_rate_hz;
 				int64_t tpos = (int64_t)Math::floor(frac);
 				ipos += tpos;
@@ -1235,28 +1261,20 @@ void AudioStreamWAV::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("set_data", "data"), &AudioStreamWAV::set_data);
 	ClassDB::bind_method(D_METHOD("get_data"), &AudioStreamWAV::get_data);
-
 	ClassDB::bind_method(D_METHOD("set_format", "format"), &AudioStreamWAV::set_format);
 	ClassDB::bind_method(D_METHOD("get_format"), &AudioStreamWAV::get_format);
-
 	ClassDB::bind_method(D_METHOD("set_loop_mode", "loop_mode"), &AudioStreamWAV::set_loop_mode);
 	ClassDB::bind_method(D_METHOD("get_loop_mode"), &AudioStreamWAV::get_loop_mode);
-
 	ClassDB::bind_method(D_METHOD("set_loop_begin", "loop_begin"), &AudioStreamWAV::set_loop_begin);
 	ClassDB::bind_method(D_METHOD("get_loop_begin"), &AudioStreamWAV::get_loop_begin);
-
 	ClassDB::bind_method(D_METHOD("set_loop_end", "loop_end"), &AudioStreamWAV::set_loop_end);
 	ClassDB::bind_method(D_METHOD("get_loop_end"), &AudioStreamWAV::get_loop_end);
-
 	ClassDB::bind_method(D_METHOD("set_mix_rate", "mix_rate"), &AudioStreamWAV::set_mix_rate);
 	ClassDB::bind_method(D_METHOD("get_mix_rate"), &AudioStreamWAV::get_mix_rate);
-
 	ClassDB::bind_method(D_METHOD("set_stereo", "stereo"), &AudioStreamWAV::set_stereo);
 	ClassDB::bind_method(D_METHOD("is_stereo"), &AudioStreamWAV::is_stereo);
-
 	ClassDB::bind_method(D_METHOD("set_tags", "tags"), &AudioStreamWAV::set_tags);
 	ClassDB::bind_method(D_METHOD("get_tags"), &AudioStreamWAV::get_tags);
-
 	ClassDB::bind_method(D_METHOD("save_to_wav", "path"), &AudioStreamWAV::save_to_wav);
 
 	ADD_PROPERTY(PropertyInfo(Variant::PACKED_BYTE_ARRAY, "data", PROPERTY_HINT_NONE, "", PROPERTY_USAGE_NO_EDITOR), "set_data", "get_data");
@@ -1272,7 +1290,6 @@ void AudioStreamWAV::_bind_methods() {
 	BIND_ENUM_CONSTANT(FORMAT_16_BITS);
 	BIND_ENUM_CONSTANT(FORMAT_IMA_ADPCM);
 	BIND_ENUM_CONSTANT(FORMAT_QOA);
-
 	BIND_ENUM_CONSTANT(LOOP_DISABLED);
 	BIND_ENUM_CONSTANT(LOOP_FORWARD);
 	BIND_ENUM_CONSTANT(LOOP_PINGPONG);

@@ -494,7 +494,8 @@ void ServersDebugger::_send_resource_usage() {
 }
 
 // Done on a best-effort basis.
-String ServersDebugger::_get_resource_type_from_path(const String &p_path) {
+String ServersDebugger::_get_resource_type_from_path(const String &p_path)
+{
 	if (p_path.is_empty()) {
 		return "";
 	}
@@ -503,17 +504,17 @@ String ServersDebugger::_get_resource_type_from_path(const String &p_path) {
 		return "";
 	}
 
-	if (ResourceCache::has(p_path)) {
-		Ref<Resource> resource = ResourceCache::get_ref(p_path);
+	// Another thread can drop the last reference at any time; get_ref() then returns null.
+	Ref<Resource> resource = ResourceCache::get_ref(p_path);
+	if (resource.is_valid()) {
 		return resource->get_class();
-	} else {
-		// This doesn't work all the time for embedded resources.
-		String resource_type = ResourceLoader::get_resource_type(p_path);
-		if (resource_type != "") {
-			return resource_type;
-		}
 	}
 
+	// This doesn't work all the time for embedded resources.
+	String resource_type = ResourceLoader::get_resource_type(p_path);
+	if (resource_type != "") {
+		return resource_type;
+	}
 	return "";
 }
 

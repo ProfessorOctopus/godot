@@ -255,19 +255,14 @@ public:
 	FUNC3(texture_set_detect_3d_callback, RID, RenderingServerTypes::TextureDetectCallback, void *)
 	FUNC3(texture_set_detect_normal_callback, RID, RenderingServerTypes::TextureDetectCallback, void *)
 	FUNC3(texture_set_detect_roughness_callback, RID, RenderingServerTypes::TextureDetectRoughnessCallback, void *)
-
 	FUNC2(texture_set_path, RID, const String &)
 	FUNC1RC(String, texture_get_path, RID)
-
 	FUNC1RC(Image::Format, texture_get_format, RID)
-
-	FUNC1(texture_debug_usage, List<RenderingServerTypes::TextureInfo> *)
-
+	FUNC1S(texture_debug_usage, List<RenderingServerTypes::TextureInfo> *)
 	FUNC2(texture_set_force_redraw_if_visible, RID, bool)
 	FUNCRIDTEX2(texture_rd, const RID &, const RSE::TextureLayeredType)
 	FUNC2RC(RID, texture_get_rd_texture, RID, bool)
 	FUNC2RC(uint64_t, texture_get_native_handle, RID, bool)
-
 	FUNC2(texture_2d_attach_streaming_state, RID, RID);
 
 	/* SHADER API */
@@ -385,50 +380,36 @@ public:
 			}
 			command_queue.push(RSG::scene, &RenderingMethod::mesh_generate_pipelines, mesh, true);
 		}
-
 		return mesh;
 	}
 
 	FUNC2(mesh_set_blend_shape_count, RID, int)
 
 	FUNCRIDSPLIT(mesh)
-
 	FUNC2(mesh_add_surface, RID, const RenderingServerTypes::SurfaceData &)
-
 	FUNC1RC(int, mesh_get_blend_shape_count, RID)
-
 	FUNC2(mesh_set_blend_shape_mode, RID, RSE::BlendShapeMode)
 	FUNC1RC(RSE::BlendShapeMode, mesh_get_blend_shape_mode, RID)
-
 	FUNC4(mesh_surface_update_vertex_region, RID, int, int, const Vector<uint8_t> &)
 	FUNC4(mesh_surface_update_attribute_region, RID, int, int, const Vector<uint8_t> &)
 	FUNC4(mesh_surface_update_skin_region, RID, int, int, const Vector<uint8_t> &)
 	FUNC4(mesh_surface_update_index_region, RID, int, int, const Vector<uint8_t> &)
-
 	FUNC3(mesh_surface_set_material, RID, int, RID)
 	FUNC2RC(RID, mesh_surface_get_material, RID, int)
-
 	FUNC2RC(RenderingServerTypes::SurfaceData, mesh_get_surface, RID, int)
-
 	FUNC1RC(int, mesh_get_surface_count, RID)
-
 	FUNC2(mesh_set_custom_aabb, RID, const AABB &)
 	FUNC1RC(AABB, mesh_get_custom_aabb, RID)
-
 	FUNC2(mesh_set_path, RID, const String &)
 	FUNC1RC(String, mesh_get_path, RID)
-
 	FUNC2(mesh_set_shadow_mesh, RID, RID)
-
 	FUNC2(mesh_surface_remove, RID, int)
 	FUNC1(mesh_clear, RID)
-
 	FUNC2RC(RID, mesh_surface_get_vertex_buffer_rd_rid, RID, int)
 	FUNC2RC(RID, mesh_surface_get_attribute_buffer_rd_rid, RID, int)
 	FUNC2RC(RID, mesh_surface_get_skin_buffer_rd_rid, RID, int)
 	FUNC2RC(RID, mesh_surface_get_index_buffer_rd_rid, RID, int)
-
-	FUNC1(mesh_debug_usage, List<RenderingServerTypes::MeshInfo> *)
+	FUNC1S(mesh_debug_usage, List<RenderingServerTypes::MeshInfo> *)
 
 	/* MULTIMESH API */
 
